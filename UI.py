@@ -58,6 +58,16 @@ class Label(Element):
     def render(self, surface: pygame.Surface) -> None: 
         self.text.render(surface, self.rect)
 
+class Image(Element):
+    def __init__(self, image: pygame.Surface, rect: Optional[pygame.Rect] = None, **kwargs) -> None:
+        self.rect = rect or image.get_rect(**kwargs)
+        self.image = image
+    
+    def handle_event(self, event: pygame.event.Event) -> bool: ...
+    def update(self, dt: float) -> None: ...
+    def render(self, surface: pygame.Surface) -> None: 
+        surface.blit(self.image, self.rect)
+
 @dataclass # Simpelt, består BARA data
 class ButtonConfig:
     bg: tuple[int, int, int] # background
@@ -193,8 +203,10 @@ menu.render(screen el. surface)
 m = Central.get("Menu")
 """
 
+#BUTTON_SOUND = pygame.mixer.Sound("...")
+
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
-PRIMARY_FONT = pygame.font.SysFont("Courier", 12)
+PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 
 MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
@@ -204,24 +216,29 @@ SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
 
 def start():
     global ui
+    #BUTTON_SOUND.play()
     ui = Central.get("Modes")
 
 def back_to_start():
     global ui
+    #BUTTON_SOUND.play()
     ui = Central.get("Menu")
 
 def select_solo():
     global active
+    #BUTTON_SOUND.play()
     active = False
     environ["mode"] = "solo"
 
 def select_vs():
     global active
+    #BUTTON_SOUND.play()
     active = False
     environ["mode"] = "vs"
 
 def quit():
     global active
+    #BUTTON_SOUND.play()
     active = False
     environ["mode"] = "exit"
 
@@ -295,6 +312,8 @@ ui = MAIN_MENU
 active = True
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("War Lightning")
+#pygame.display.set_icon()
 while active:
     dt = clock.tick()
     for event in pygame.event.get():
