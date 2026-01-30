@@ -6,6 +6,8 @@ from typing import (
 from dataclasses import dataclass
 import pygame
 
+pygame.init()
+
 @runtime_checkable
 class Element(Protocol):
     """Construction drawing for construction drawings"""
@@ -46,7 +48,14 @@ text.render(surface, center=(10, 10))
 """
 
 class Label(Element):
-    ...
+    def __init__(self, rect: pygame.Rect, text: Text) -> None:
+        self.rect = rect
+        self.text = text
+    
+    def handle_event(self, event: pygame.event.Event) -> bool: ...
+    def update(self, dt: float) -> None: ...
+    def render(self, surface: pygame.Surface) -> None: 
+        self.text.render(surface, self.rect)
 
 @dataclass # Simpelt, består BARA data
 class ButtonConfig:
@@ -137,7 +146,7 @@ class Central:
         cls.uis[ui.name] = ui
     
     @classmethod
-    def get(cls, name: str) -> None:
+    def get(cls, name: str) -> Optional["UI"]:
         return cls.uis.get(name) # graceful
 
 class UI:
@@ -146,8 +155,9 @@ class UI:
         self.elements = []
         Central.add(self)
     
-    def add_element(self, element: Element) -> None:
+    def add_element(self, element: Element) -> "UI":
         self.elements.append(element)
+        return self
     
     def handle_event(self, event: pygame.event.Event) -> bool:
         for element in reversed(self.elements):
@@ -176,30 +186,36 @@ menu.render(screen el. surface)
 m = Central.get("Menu")
 """
 
-pygame.init()
+HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
+PRIMARY_FONT = pygame.font.SysFont("Courier", 12)
 
-primary_font = pygame.font.SysFont("Courier", 12)
+MAIN_MENU = UI("Menu")
+MODE_MENU = UI("Modes")
 
-button = Button(
-    pygame.Rect(10, 10, 200, 50),
+TITLE = Text(HEADER_FONT, "War Lightning", (50, 50, 50))
+
+def start():
+    global ui
+    ui = Central.get("Modes")
+
+MAIN_MENU\
+.add_element(Label(
+    TITLE.text_rect(center=(400, 30)), TITLE
+))\
+.add_element(Button(
+    pygame.Rect(325, 300, 150, 38),
     ButtonConfig(
-        (255, 150, 150),
-        (255, 75, 75),
-        (255, 0, 0),
-        (255, 215, 215),
-        5, 
-        2
+        (150, 150, 240),
+        (175, 175, 255),
+        (200, 200, 255),
+        (0, 0, 255),
+        15, 1
     ),
-    Text(
-        primary_font,
-        "Text",
-        (50, 50, 50)
-    ),
-    lambda: print("Hello world!")
-)
+    Text(PRIMARY_FONT, "Start", (50, 50, 50)),
+    start
+))
 
-ui = UI("Menu")
-ui.add_element(button)
+ui = MAIN_MENU
 
 active = True
 clock = pygame.time.Clock()
