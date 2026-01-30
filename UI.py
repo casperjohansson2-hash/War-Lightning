@@ -112,7 +112,7 @@ class Button(Element):
 
     def render(self, surface: pygame.Surface) -> None: 
         pygame.draw.rect(surface, self.drawn_bg, self.rect, border_radius=self.config.border_radius)
-        pygame.draw.rect(surface, self.drawn_bg, self.rect, self.config.border_width, self.config.border_radius)
+        pygame.draw.rect(surface, self.config.border_color, self.rect, self.config.border_width, self.config.border_radius)
         self.text.render(surface, center=self.rect.center)
 
 """
@@ -193,6 +193,7 @@ MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
 
 TITLE = Text(HEADER_FONT, "War Lightning", (50, 50, 50))
+SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
 
 def start():
     global ui
@@ -205,15 +206,21 @@ MAIN_MENU\
 .add_element(Button(
     pygame.Rect(325, 300, 150, 38),
     ButtonConfig(
-        (150, 150, 240),
-        (175, 175, 255),
-        (200, 200, 255),
-        (0, 0, 255),
-        15, 1
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        (200, 200, 200),
+        15, 2
     ),
     Text(PRIMARY_FONT, "Start", (50, 50, 50)),
     start
 ))
+
+MODE_MENU\
+.add_element(Label(
+    SELECT_MODE_TITLE.text_rect(center=(400, 30)), SELECT_MODE_TITLE
+))#\
+#.add_element()
 
 ui = MAIN_MENU
 
