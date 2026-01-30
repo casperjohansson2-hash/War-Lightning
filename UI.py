@@ -5,6 +5,9 @@ from typing import (
 )
 from dataclasses import dataclass
 import pygame
+from os import environ
+
+pygame.init()
 
 @runtime_checkable
 class Element(Protocol):
@@ -46,14 +49,20 @@ text.render(surface, center=(10, 10))
 """
 
 class Label(Element):
-    ...
+    def __init__(self, rect: pygame.Rect, text: Text) -> None:
+        self.rect = rect
+        self.text = text
+    
+    def handle_event(self, event: pygame.event.Event) -> bool: ...
+    def update(self, dt: float) -> None: ...
+    def render(self, surface: pygame.Surface) -> None: 
+        self.text.render(surface, self.rect)
 
 @dataclass # Simpelt, består BARA data
 class ButtonConfig:
     bg: tuple[int, int, int] # background
     hover_bg: tuple[int, int, int]
     pressed_bg: tuple[int, int, int]
-    border_color: tuple[int, int, int]
     border_radius: int
     border_width: int
 
@@ -75,6 +84,7 @@ class Button(Element):
         self.text = text
         self.on_press = on_press
 
+        self.drawn_border = config.bg
         self.drawn_bg = config.bg
         self.hover = False
         self.pressed = False
@@ -100,10 +110,16 @@ class Button(Element):
             self.drawn_bg = self.config.hover_bg
         else:
             self.drawn_bg = self.config.bg
+        self.drawn_border = (
+            max(min(self.drawn_bg[0] + 30, 255), 0),
+            max(min(self.drawn_bg[1] + 30, 255), 0),
+            max(min(self.drawn_bg[2] + 30, 255), 0)
+        )
 
     def render(self, surface: pygame.Surface) -> None: 
-        pygame.draw.rect(surface, self.drawn_bg, self.rect, border_radius=self.config.border_radius)
-        pygame.draw.rect(surface, self.drawn_bg, self.rect, self.config.border_width, self.config.border_radius)
+        if self.config.border_width > 0:
+            pygame.draw.rect(surface, self.drawn_bg, self.rect, border_radius=self.config.border_radius)
+        pygame.draw.rect(surface, self.drawn_border, self.rect, self.config.border_width, self.config.border_radius)
         self.text.render(surface, center=self.rect.center)
 
 """
@@ -137,7 +153,7 @@ class Central:
         cls.uis[ui.name] = ui
     
     @classmethod
-    def get(cls, name: str) -> None:
+    def get(cls, name: str) -> Optional["UI"]:
         return cls.uis.get(name) # graceful
 
 class UI:
@@ -146,8 +162,9 @@ class UI:
         self.elements = []
         Central.add(self)
     
-    def add_element(self, element: Element) -> None:
+    def add_element(self, element: Element) -> "UI":
         self.elements.append(element)
+        return self
     
     def handle_event(self, event: pygame.event.Event) -> bool:
         for element in reversed(self.elements):
@@ -176,30 +193,104 @@ menu.render(screen el. surface)
 m = Central.get("Menu")
 """
 
-pygame.init()
+HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
+PRIMARY_FONT = pygame.font.SysFont("Courier", 12)
 
-primary_font = pygame.font.SysFont("Courier", 12)
+MAIN_MENU = UI("Menu")
+MODE_MENU = UI("Modes")
 
-button = Button(
-    pygame.Rect(10, 10, 200, 50),
+TITLE = Text(HEADER_FONT, "War Lightning", (50, 50, 50))
+SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
+
+def start():
+    global ui
+    ui = Central.get("Modes")
+
+def back_to_start():
+    global ui
+    ui = Central.get("Menu")
+
+def select_solo():
+    global active
+    active = False
+    environ["mode"] = "solo"
+
+def select_vs():
+    global active
+    active = False
+    environ["mode"] = "vs"
+
+def quit():
+    global active
+    active = False
+    environ["mode"] = "exit"
+
+MAIN_MENU\
+.add_element(Label(
+    TITLE.text_rect(center=(400, 30)), TITLE
+))\
+.add_element(Button(
+    pygame.Rect(325, 300, 150, 38),
     ButtonConfig(
-        (255, 150, 150),
-        (255, 75, 75),
+        (150, 150, 150),
+        (100, 100, 100),
         (255, 0, 0),
-        (255, 215, 215),
-        5, 
-        2
+        15, 2
     ),
-    Text(
-        primary_font,
-        "Text",
-        (50, 50, 50)
+    Text(PRIMARY_FONT, "Start", (50, 50, 50)),
+    start
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
     ),
-    lambda: print("Hello world!")
-)
+    Text(PRIMARY_FONT, "Exit", (50, 50, 50)),
+    quit
+))
 
-ui = UI("Menu")
-ui.add_element(button)
+MODE_MENU\
+.add_element(Label(
+    SELECT_MODE_TITLE.text_rect(center=(400, 30)), SELECT_MODE_TITLE
+))\
+.add_element(Button(
+    pygame.Rect(125, 300, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "Solo", (50, 50, 50)),
+    select_solo
+))\
+.add_element(Button(
+    pygame.Rect(525, 300, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "VS", (50, 50, 50)),
+    select_vs
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "Go Back", (50, 50, 50)),
+    back_to_start
+))
+
+ui = MAIN_MENU
 
 active = True
 clock = pygame.time.Clock()
