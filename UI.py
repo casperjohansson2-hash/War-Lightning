@@ -58,6 +58,16 @@ class Label(Element):
     def render(self, surface: pygame.Surface) -> None: 
         self.text.render(surface, self.rect)
 
+class Image(Element):
+    def __init__(self, image: pygame.Surface, rect: Optional[pygame.Rect] = None, **kwargs) -> None:
+        self.rect = rect or image.get_rect(**kwargs)
+        self.image = image
+    
+    def handle_event(self, event: pygame.event.Event) -> bool: ...
+    def update(self, dt: float) -> None: ...
+    def render(self, surface: pygame.Surface) -> None: 
+        surface.blit(self.image, self.rect)
+
 @dataclass # Simpelt, består BARA data
 class ButtonConfig:
     bg: tuple[int, int, int] # background
@@ -295,6 +305,8 @@ ui = MAIN_MENU
 active = True
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("War Lightning")
+#pygame.display.set_icon()
 while active:
     dt = clock.tick()
     for event in pygame.event.get():
