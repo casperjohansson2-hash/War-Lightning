@@ -130,7 +130,7 @@ while game:
         bullet_list1.append(Bullet(player_1.player1_x + 20, player_1.player1_y))
         bullet_counter1 = 0
 
-    if keys[pygame.K_KP_ENTER]:
+    if keys[pygame.K_RETURN]:
 
         bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y))
         bullet_counter2 = 0
