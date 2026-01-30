@@ -30,7 +30,7 @@ def damage():
 
     return player_damage
 
-
+#Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
 background = pygame.image.load("C:/War Lightning/assets/tiles/svart.jpg")
 sprite_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.jpg")
 original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
@@ -38,13 +38,14 @@ original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png"
 
 sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
 sprite_player2 = pygame.transform.smoothscale(original_player2, (original_player2.get_width(), original_player2.get_height()))
+#Här defineras fps klockan för att begränsa till samma hastighet
 clock = pygame.time.Clock()
-
+#Det som håller spelet igång och startar upp fönstret
 game = True
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("War Lightning")
 
-
+#Klasserna för spelare 1 och spelare 2 som innehåller deras hälsa, skada, olika lägen, hastighet och alla deras funktioner
 class Player1:
     def __init__(self):
         self.player1_x = width - 1980
@@ -109,7 +110,7 @@ class Player2:
             self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
             self.direction = "RIGHT"
 
-
+#Klassen för skotten som båda spelarna kan skjuta, och håller koll på hastighet och direktion
 class Bullet:
     def __init__(self, x, y, direction):
         self.x = x
@@ -139,7 +140,7 @@ class Bullet:
     def draw(self, screen):
         screen.blit(self.bild, (self.x, self.y))
 
-
+#Klassen som gör det möjligt för sprites att kunna rotera på sig så att det blir snyggare
 class RotatingSprite(pygame.sprite.Sprite):
     def __init__(self, x, y, image_path):
         super().__init__()
