@@ -62,7 +62,6 @@ class ButtonConfig:
     bg: tuple[int, int, int] # background
     hover_bg: tuple[int, int, int]
     pressed_bg: tuple[int, int, int]
-    border_color: tuple[int, int, int]
     border_radius: int
     border_width: int
 
@@ -84,6 +83,7 @@ class Button(Element):
         self.text = text
         self.on_press = on_press
 
+        self.drawn_border = config.bg
         self.drawn_bg = config.bg
         self.hover = False
         self.pressed = False
@@ -109,10 +109,16 @@ class Button(Element):
             self.drawn_bg = self.config.hover_bg
         else:
             self.drawn_bg = self.config.bg
+        self.drawn_border = (
+            max(min(self.drawn_bg[0] + 30, 255), 0),
+            max(min(self.drawn_bg[1] + 30, 255), 0),
+            max(min(self.drawn_bg[2] + 30, 255), 0)
+        )
 
     def render(self, surface: pygame.Surface) -> None: 
-        pygame.draw.rect(surface, self.drawn_bg, self.rect, border_radius=self.config.border_radius)
-        pygame.draw.rect(surface, self.config.border_color, self.rect, self.config.border_width, self.config.border_radius)
+        if self.config.border_width > 0:
+            pygame.draw.rect(surface, self.drawn_bg, self.rect, border_radius=self.config.border_radius)
+        pygame.draw.rect(surface, self.drawn_border, self.rect, self.config.border_width, self.config.border_radius)
         self.text.render(surface, center=self.rect.center)
 
 """
@@ -209,7 +215,6 @@ MAIN_MENU\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        (200, 200, 200),
         15, 2
     ),
     Text(PRIMARY_FONT, "Start", (50, 50, 50)),
