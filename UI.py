@@ -203,6 +203,8 @@ menu.render(screen el. surface)
 m = Central.get("Menu")
 """
 
+#BUTTON_SOUND = pygame.mixer.Sound("...")
+
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
 PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 
@@ -214,24 +216,29 @@ SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
 
 def start():
     global ui
+    #BUTTON_SOUND.play()
     ui = Central.get("Modes")
 
 def back_to_start():
     global ui
+    #BUTTON_SOUND.play()
     ui = Central.get("Menu")
 
 def select_solo():
     global active
+    #BUTTON_SOUND.play()
     active = False
     environ["mode"] = "solo"
 
 def select_vs():
     global active
+    #BUTTON_SOUND.play()
     active = False
     environ["mode"] = "vs"
 
 def quit():
     global active
+    #BUTTON_SOUND.play()
     active = False
     environ["mode"] = "exit"
 
