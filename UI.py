@@ -11,7 +11,7 @@ class Element(Protocol):
     """Construction drawing for construction drawings"""
     rect: pygame.Rect
 
-    def handle_event(self, event: pygame.event.Event) -> None: ...
+    def handle_event(self, event: pygame.event.Event) -> bool: ...
     def update(self, dt: float) -> None: ...
     def render(self, surface: pygame.Surface) -> None: ...
 
@@ -45,6 +45,9 @@ text = Text(font, "Hello!", (10, 10, 10)) # (r, g, b)
 text.render(surface, center=(10, 10))
 """
 
+class Label(Element):
+    ...
+
 @dataclass # Simpelt, består BARA data
 class ButtonConfig:
     bg: tuple[int, int, int] # background
@@ -76,7 +79,7 @@ class Button(Element):
         self.hover = False
         self.pressed = False
     
-    def handle_event(self, event: pygame.event.Event) -> None: 
+    def handle_event(self, event: pygame.event.Event) -> bool: 
         match event.type:
             case pygame.MOUSEMOTION:
                 self.hover = self.rect.collidepoint(event.pos)
@@ -84,8 +87,9 @@ class Button(Element):
                 self.pressed = self.hover
             case pygame.MOUSEBUTTONUP:
                 if self.pressed:
+                    self.pressed = False
                     self.on_press()
-                self.pressed = False
+                    return True
             case pygame.WINDOWLEAVE:
                 self.pressed = False
 
@@ -101,3 +105,117 @@ class Button(Element):
         pygame.draw.rect(surface, self.drawn_bg, self.rect, border_radius=self.config.border_radius)
         pygame.draw.rect(surface, self.drawn_bg, self.rect, self.config.border_width, self.config.border_radius)
         self.text.render(surface, center=self.rect.center)
+
+"""
+def func():
+    print("Hello")
+
+button = Button(
+    rect = pygame.Rect(x, y, width, height)
+    config = ButtonConfig(
+        bg = (r, g, b),
+        hover_bg = (r, g, b),
+        pressed_bg = (r, g, b)
+        border_color = (r, g, b)
+        border_radius = 5
+        border_width = 1
+    ),
+    text = Text(
+        font = <font>,
+        text = "Text",
+        color = (r, g, b)
+    ),
+    on_press = func
+)
+"""
+
+class Central:
+    uis: dict[str, "UI"] = {}
+
+    @classmethod
+    def add(cls, ui: "UI") -> None:
+        cls.uis[ui.name] = ui
+    
+    @classmethod
+    def get(cls, name: str) -> None:
+        return cls.uis.get(name) # graceful
+
+class UI:
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.elements = []
+        Central.add(self)
+    
+    def add_element(self, element: Element) -> None:
+        self.elements.append(element)
+    
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        for element in reversed(self.elements):
+            if element.handle_event(event):
+                return True
+    
+    def update(self, dt: float) -> None:
+        for element in self.elements:
+            element.update(dt)
+    
+    def render(self, surface: pygame.Surface) -> None:
+        for element in self.elements:
+            element.render(surface)
+
+"""
+Usage:
+button = Button(...)
+menu = UI("Menu")
+menu.add_element(button)
+...
+menu.handle_event(event)
+...
+menu.update(dt)
+menu.render(screen el. surface)
+...
+m = Central.get("Menu")
+"""
+
+pygame.init()
+
+primary_font = pygame.font.SysFont("Courier", 12)
+
+button = Button(
+    pygame.Rect(10, 10, 200, 50),
+    ButtonConfig(
+        (255, 150, 150),
+        (255, 75, 75),
+        (255, 0, 0),
+        (255, 215, 215),
+        5, 
+        2
+    ),
+    Text(
+        primary_font,
+        "Text",
+        (50, 50, 50)
+    ),
+    lambda: print("Hello world!")
+)
+
+ui = UI("Menu")
+ui.add_element(button)
+
+active = True
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode((800, 600))
+while active:
+    dt = clock.tick()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            active = False
+        ui.handle_event(event)
+    
+    screen.fill((255, 255, 255))
+
+    ui.update(dt)
+    ui.render(screen)
+
+    pygame.display.flip()
+
+pygame.quit()
