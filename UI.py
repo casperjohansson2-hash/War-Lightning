@@ -204,7 +204,7 @@ m = Central.get("Menu")
 """
 
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
-PRIMARY_FONT = pygame.font.SysFont("Courier", 12)
+PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 
 MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
