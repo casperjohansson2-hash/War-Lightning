@@ -5,6 +5,7 @@ from typing import (
 )
 from dataclasses import dataclass
 import pygame
+from os import environ
 
 pygame.init()
 
@@ -205,6 +206,25 @@ def start():
     global ui
     ui = Central.get("Modes")
 
+def back_to_start():
+    global ui
+    ui = Central.get("Menu")
+
+def select_solo():
+    global active
+    active = False
+    environ["mode"] = "solo"
+
+def select_vs():
+    global active
+    active = False
+    environ["mode"] = "vs"
+
+def quit():
+    global active
+    active = False
+    environ["mode"] = "exit"
+
 MAIN_MENU\
 .add_element(Label(
     TITLE.text_rect(center=(400, 30)), TITLE
@@ -219,13 +239,56 @@ MAIN_MENU\
     ),
     Text(PRIMARY_FONT, "Start", (50, 50, 50)),
     start
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "Exit", (50, 50, 50)),
+    quit
 ))
 
 MODE_MENU\
 .add_element(Label(
     SELECT_MODE_TITLE.text_rect(center=(400, 30)), SELECT_MODE_TITLE
-))#\
-#.add_element()
+))\
+.add_element(Button(
+    pygame.Rect(125, 300, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "Solo", (50, 50, 50)),
+    select_solo
+))\
+.add_element(Button(
+    pygame.Rect(525, 300, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "VS", (50, 50, 50)),
+    select_vs
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "Go Back", (50, 50, 50)),
+    back_to_start
+))
 
 ui = MAIN_MENU
 
