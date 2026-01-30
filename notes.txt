@@ -1,4 +1,4 @@
 Kontakta grafik vid: 320B
 
 Casper     | Neo      | Maxi
-Huvud Spel | Partikel | AI
+Rendring   | Spelaren   | AI
