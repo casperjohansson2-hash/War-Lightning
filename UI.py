@@ -155,7 +155,7 @@ button = Button(
 )
 """
 
-class Central:
+class Central: # THIS IS NOT THREAD-SAFE!!!
     uis: dict[str, "UI"] = {}
 
     @classmethod
@@ -203,7 +203,11 @@ menu.render(screen el. surface)
 m = Central.get("Menu")
 """
 
-#BUTTON_SOUND = pygame.mixer.Sound("...")
+def get_mode() -> str:
+    """Import this method and call it to retrieve what mode the user has selected."""
+    return environ["mode"]
+
+#BUTTON_SOUND = pygame.mixer.Sound("assets/ui/press_button.mp3")
 
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
 PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
@@ -214,34 +218,52 @@ MODE_MENU = UI("Modes")
 TITLE = Text(HEADER_FONT, "War Lightning", (50, 50, 50))
 SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
 
-def start():
-    global ui
-    #BUTTON_SOUND.play()
-    ui = Central.get("Modes")
+class Menu:
+    def __init__(self, screen: pygame.Surface) -> None:
+        self.screen = screen
+        self.clock = pygame.time.Clock()
+        self.active = False
+        self.ui = MAIN_MENU
 
-def back_to_start():
-    global ui
-    #BUTTON_SOUND.play()
-    ui = Central.get("Menu")
+    def start(self) -> None:
+        #BUTTON_SOUND.play()
+        self.ui = Central.get("Modes")
 
-def select_solo():
-    global active
-    #BUTTON_SOUND.play()
-    active = False
-    environ["mode"] = "solo"
+    def back_to_start(self) -> None:
+        #BUTTON_SOUND.play()
+        self.ui = Central.get("Menu")
 
-def select_vs():
-    global active
-    #BUTTON_SOUND.play()
-    active = False
-    environ["mode"] = "vs"
+    def select_solo(self) -> None:
+        #BUTTON_SOUND.play()
+        self.active = False
+        environ["mode"] = "solo"
 
-def quit():
-    global active
-    #BUTTON_SOUND.play()
-    active = False
-    environ["mode"] = "exit"
+    def select_vs(self) -> None:
+        #BUTTON_SOUND.play()
+        self.active = False
+        environ["mode"] = "vs"
 
+    def quit(self) -> None:
+        #BUTTON_SOUND.play()
+        self.active = False
+        environ["mode"] = "exit"
+
+    def run(self):
+        self.active = True
+        while self.active:
+            dt = self.clock.tick()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.quit()
+                self.ui.handle_event(event)
+            
+            screen.fill((255, 255, 255))
+
+            self.ui.update(dt)
+            self.ui.render(screen)
+
+            pygame.display.flip()
+    
 MAIN_MENU\
 .add_element(Label(
     TITLE.text_rect(center=(400, 30)), TITLE
@@ -255,7 +277,7 @@ MAIN_MENU\
         15, 2
     ),
     Text(PRIMARY_FONT, "Start", (50, 50, 50)),
-    start
+    lambda: menu.start()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
@@ -266,7 +288,7 @@ MAIN_MENU\
         15, 2
     ),
     Text(PRIMARY_FONT, "Exit", (50, 50, 50)),
-    quit
+    lambda: menu.quit()
 ))
 
 MODE_MENU\
@@ -282,7 +304,7 @@ MODE_MENU\
         15, 2
     ),
     Text(PRIMARY_FONT, "Solo", (50, 50, 50)),
-    select_solo
+    lambda: menu.select_solo()
 ))\
 .add_element(Button(
     pygame.Rect(525, 300, 150, 38),
@@ -293,7 +315,7 @@ MODE_MENU\
         15, 2
     ),
     Text(PRIMARY_FONT, "VS", (50, 50, 50)),
-    select_vs
+    lambda: menu.select_vs()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
@@ -304,28 +326,15 @@ MODE_MENU\
         15, 2
     ),
     Text(PRIMARY_FONT, "Go Back", (50, 50, 50)),
-    back_to_start
+    lambda: menu.back_to_start()
 ))
 
-ui = MAIN_MENU
 
-active = True
-clock = pygame.time.Clock()
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("War Lightning")
 #pygame.display.set_icon()
-while active:
-    dt = clock.tick()
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            active = False
-        ui.handle_event(event)
-    
-    screen.fill((255, 255, 255))
 
-    ui.update(dt)
-    ui.render(screen)
-
-    pygame.display.flip()
+menu = Menu(screen)
+menu.run()
 
 pygame.quit()
