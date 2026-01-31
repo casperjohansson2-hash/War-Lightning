@@ -1,12 +1,11 @@
 """General purpose module. Replace the code below when you want to showcase any code. Keep it short."""
 
-from ui import Text, get_mode, stop_loading
+from ui import Text, get_mode
 from tiles import Direction, Tile, Player
 import pygame
 
 mode = get_mode() # Automatically stops loading-screen
 if mode == "exit": # In case we have to free memory (C++, C, C#, Java and a lot of other languages concerns later on in your careers guys)
-    stop_loading()
     exit()
 
 WIDTH, HEIGHT = (1920, 1080) # Define width and height as the first thing you do. You won't have any screen until everything below is loaded.

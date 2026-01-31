@@ -193,7 +193,7 @@ m = Central.get("Menu")
 class AppState:
     mode: Optional[str] = None
 
-def get_mode() -> Type[AppState]:
+def get_mode() -> str:
     """Import this method and call it to retrieve what mode the user has selected."""
     return AppState.mode
 
