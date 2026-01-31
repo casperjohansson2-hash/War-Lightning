@@ -1,7 +1,7 @@
 """UI (user-interface) elements for menus and other..."""
 
 from typing import (
-    Callable, Optional, Protocol, runtime_checkable
+    Tuple, List, Dict, Callable, Optional, Protocol, runtime_checkable
 )
 from dataclasses import dataclass
 from threading import Thread
@@ -24,7 +24,7 @@ class Text:
         self, 
         font: pygame.font.Font,
         text: str,
-        color: tuple[int, int, int],
+        color: Tuple[int, int, int],
     ) -> None:
         self.font = font
         self.text = text
@@ -71,9 +71,9 @@ class Image(Element):
 
 @dataclass # Simpelt, består BARA data
 class ButtonConfig:
-    bg: tuple[int, int, int] # background
-    hover_bg: tuple[int, int, int]
-    pressed_bg: tuple[int, int, int]
+    bg: Tuple[int, int, int] # background
+    hover_bg: Tuple[int, int, int]
+    pressed_bg: Tuple[int, int, int]
     border_radius: int
     border_width: int
 
@@ -157,7 +157,7 @@ button = Button(
 """
 
 class Central: # THIS IS NOT THREAD-SAFE!!!
-    uis: dict[str, "UI"] = {}
+    uis: Dict[str, "UI"] = {}
 
     @classmethod
     def add(cls, ui: "UI") -> None:

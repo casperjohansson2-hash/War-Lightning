@@ -1,6 +1,7 @@
 """General purpose module. Replace the code below when you want to showcase any code. Keep it short."""
 
 from ui import Text, get_mode, stop_loading
+from tiles import Direction, Tile, Player
 import pygame
 
 mode = get_mode() # Automatically stops loading-screen
@@ -13,6 +14,36 @@ WIDTH, HEIGHT = (1920, 1080) # Define width and height as the first thing you do
 clock = pygame.time.Clock()
 target_fps = 60.0
 active = True
+
+PLAYER_WIDTH, PLAYER_HEIGHT = (50, 50)
+player1_tile = Tile.new_tile("assets/tanks/Player1.png", (PLAYER_WIDTH, PLAYER_HEIGHT), Direction.UP)
+player2_tile = Tile.new_tile("assets/tanks/Player2.png", (PLAYER_WIDTH, PLAYER_HEIGHT), Direction.UP)
+player1 = Player(
+    player1_tile, 
+    500, 
+    500, 
+    keybinds = {
+        "up": pygame.K_w, 
+        "down": pygame.K_s, 
+        "left": pygame.K_a, 
+        "right": pygame.K_d
+    },
+    speed = 20,
+    data = {"health": 100}
+)
+player2 = Player(
+    player2_tile, 
+    200, 
+    500, 
+    keybinds = {
+        "up": pygame.K_UP,
+        "down": pygame.K_DOWN,
+        "left": pygame.K_LEFT,
+        "right": pygame.K_RIGHT
+    }, 
+    speed = 20,
+    data = {"health": 100}
+)
 
 primary_font = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 
@@ -29,7 +60,7 @@ screen_rect = screen.get_rect()
 pygame.display.set_caption("War Lightning")
 
 while active:
-    dt = clock.tick(target_fps)
+    dt = clock.tick(target_fps) / 1000
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             active = False
@@ -37,6 +68,11 @@ while active:
     screen.fill((255, 255, 255))
 
     text.render(screen, center=screen_rect.center)
+
+    player1.update(dt)
+    player2.update(dt)
+    player1.render(screen)
+    player2.render(screen)
 
     pygame.display.flip()
 
