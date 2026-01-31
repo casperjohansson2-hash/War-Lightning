@@ -72,6 +72,7 @@ class ButtonConfig:
     bg: Tuple[int, int, int] # background
     hover_bg: Tuple[int, int, int]
     pressed_bg: Tuple[int, int, int]
+    alpha: int
     border_radius: int
     border_width: int
 
@@ -88,48 +89,63 @@ class Button(Element):
         text: Text,
         on_press: Callable
     ) -> None:
+        self.surface = pygame.Surface(rect.size, pygame.SRCALPHA)
         self.rect = rect
         self.config = config
         self.text = text
         self.on_press = on_press
 
+        self.offset_rect = pygame.Rect(0, 0, rect.width, rect.height)
         self.drawn_border = config.bg
         self.drawn_bg = config.bg
         self.hover = False
         self.pressed = False
+        self._fix = True
+
+        self.update()
     
     def handle_event(self, event: pygame.event.Event) -> bool: 
         match event.type:
             case pygame.MOUSEMOTION:
+                was_hovered = self.hover
                 self.hover = self.rect.collidepoint(event.pos)
+                self._fix = not self.hover == was_hovered
             case pygame.MOUSEBUTTONDOWN:
+                was_pressed = self.pressed
                 self.pressed = self.hover
+                self._fix = not self.pressed == was_pressed
             case pygame.MOUSEBUTTONUP:
                 if self.pressed:
+                    self._fix = True
                     self.pressed = False
                     self.on_press()
                     return True
             case pygame.WINDOWLEAVE:
                 self.pressed = False
+                self._fix = True
 
     def update(self, dt: float = 1) -> None: 
-        if self.pressed:
-            self.drawn_bg = self.config.pressed_bg
-        elif self.hover:
-            self.drawn_bg = self.config.hover_bg
-        else:
-            self.drawn_bg = self.config.bg
-        self.drawn_border = (
-            max(min(self.drawn_bg[0] + 30, 255), 0),
-            max(min(self.drawn_bg[1] + 30, 255), 0),
-            max(min(self.drawn_bg[2] + 30, 255), 0)
-        )
+        if self._fix:
+            if self.pressed:
+                self.drawn_bg = self.config.pressed_bg
+            elif self.hover:
+                self.drawn_bg = self.config.hover_bg
+            else:
+                self.drawn_bg = self.config.bg
+            self.drawn_border = (
+                max(min(self.drawn_bg[0] + 50, 255), 0),
+                max(min(self.drawn_bg[1] + 60, 255), 0),
+                max(min(self.drawn_bg[2] + 70, 255), 0)
+            )
+            if self.config.border_width > 0:
+                pygame.draw.rect(self.surface, self.drawn_bg, self.offset_rect, border_radius=self.config.border_radius)
+            pygame.draw.rect(self.surface, self.drawn_border, self.offset_rect, self.config.border_width, self.config.border_radius)
+            self.text.render(self.surface, center=self.offset_rect.center)
+            self.surface.set_alpha(self.config.alpha)
+            self._fix = False
 
     def render(self, surface: pygame.Surface) -> None: 
-        if self.config.border_width > 0:
-            pygame.draw.rect(surface, self.drawn_bg, self.rect, border_radius=self.config.border_radius)
-        pygame.draw.rect(surface, self.drawn_border, self.rect, self.config.border_width, self.config.border_radius)
-        self.text.render(surface, center=self.rect.center)
+        surface.blit(self.surface, self.rect)
 
 """
 def func():
@@ -279,9 +295,9 @@ MAIN_MENU\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        15, 2
+        200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Start", (50, 50, 50)),
+    Text(PRIMARY_FONT, "Start", (0, 0, 0)),
     lambda: menu.start()
 ))\
 .add_element(Button(
@@ -290,9 +306,9 @@ MAIN_MENU\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        15, 2
+        200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Settings", (50, 50, 50)),
+    Text(PRIMARY_FONT, "Settings", (0, 0, 0)),
     lambda: menu.open_settings()
 ))\
 .add_element(Button(
@@ -301,9 +317,9 @@ MAIN_MENU\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        15, 2
+        200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Exit", (50, 50, 50)),
+    Text(PRIMARY_FONT, "Exit", (0, 0, 0)),
     lambda: menu.quit()
 ))
 
@@ -317,9 +333,9 @@ MODE_MENU\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        15, 2
+        200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Solo", (50, 50, 50)),
+    Text(PRIMARY_FONT, "Solo", (0, 0, 0)),
     lambda: menu.select_solo()
 ))\
 .add_element(Button(
@@ -328,9 +344,9 @@ MODE_MENU\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        15, 2
+        200, 15, 2
     ),
-    Text(PRIMARY_FONT, "VS", (50, 50, 50)),
+    Text(PRIMARY_FONT, "VS", (0, 0, 0)),
     lambda: menu.select_vs()
 ))\
 .add_element(Button(
@@ -339,9 +355,9 @@ MODE_MENU\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        15, 2
+        200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Go Back", (50, 50, 50)),
+    Text(PRIMARY_FONT, "Go Back", (0, 0, 0)),
     lambda: menu.back_to_start()
 ))
 
@@ -355,9 +371,9 @@ SETTINGS\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        15, 2
+        200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Go Back", (50, 50, 50)),
+    Text(PRIMARY_FONT, "Go Back", (0, 0, 0)),
     lambda: menu.back_to_start()
 ))
 
