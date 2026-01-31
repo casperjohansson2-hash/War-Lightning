@@ -154,22 +154,10 @@ button = Button(
 )
 """
 
-class UIRegistry: # THIS IS NOT THREAD-SAFE!!!
-    uis: Dict[str, "UI"] = {}
-
-    @classmethod
-    def add(cls, ui: "UI") -> None:
-        cls.uis[ui.name] = ui
-    
-    @classmethod
-    def get(cls, name: str) -> Optional["UI"]:
-        return cls.uis.get(name) # graceful
-
 class UI:
     def __init__(self, name: str) -> None:
         self.name = name
         self.elements = []
-        UIRegistry.add(self)
     
     def add_element(self, element: Element) -> "UI":
         self.elements.append(element)
@@ -238,15 +226,15 @@ class Menu:
 
     def start(self) -> None:
         #BUTTON_SOUND.play()
-        self.ui = UIRegistry.get("Modes")
+        self.ui = MODE_MENU
     
     def open_settings(self) -> None:
         #BUTTON_SOUND.play()
-        self.ui = UIRegistry.get("Settings")
+        self.ui = SETTINGS
 
     def back_to_start(self) -> None:
         #BUTTON_SOUND.play()
-        self.ui = UIRegistry.get("Menu")
+        self.ui = MAIN_MENU
 
     def select_solo(self) -> None:
         #BUTTON_SOUND.play()
