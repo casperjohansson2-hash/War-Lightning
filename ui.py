@@ -4,8 +4,9 @@ from typing import (
     Callable, Optional, Protocol, runtime_checkable
 )
 from dataclasses import dataclass
-import pygame
+from threading import Thread
 from os import environ
+import pygame
 
 pygame.init()
 
@@ -15,7 +16,7 @@ class Element(Protocol):
     rect: pygame.Rect
 
     def handle_event(self, event: pygame.event.Event) -> bool: ...
-    def update(self, dt: float) -> None: ...
+    def update(self, dt: float = 1) -> None: ...
     def render(self, surface: pygame.Surface) -> None: ...
 
 class Text:
@@ -54,7 +55,7 @@ class Label(Element):
         self.text = text
     
     def handle_event(self, event: pygame.event.Event) -> bool: ...
-    def update(self, dt: float) -> None: ...
+    def update(self, dt: float = 1) -> None: ...
     def render(self, surface: pygame.Surface) -> None: 
         self.text.render(surface, self.rect)
 
@@ -64,7 +65,7 @@ class Image(Element):
         self.image = image
     
     def handle_event(self, event: pygame.event.Event) -> bool: ...
-    def update(self, dt: float) -> None: ...
+    def update(self, dt: float = 1) -> None: ...
     def render(self, surface: pygame.Surface) -> None: 
         surface.blit(self.image, self.rect)
 
@@ -113,7 +114,7 @@ class Button(Element):
             case pygame.WINDOWLEAVE:
                 self.pressed = False
 
-    def update(self, dt: float) -> None: 
+    def update(self, dt: float = 1) -> None: 
         if self.pressed:
             self.drawn_bg = self.config.pressed_bg
         elif self.hover:
@@ -207,7 +208,14 @@ def get_mode() -> str:
     """Import this method and call it to retrieve what mode the user has selected."""
     return environ["mode"]
 
-#pygame.mixer.music.load("assets/music/menu.mp3") # We're ready for music now
+def stop_loading() -> None:
+    """Has to be done before pygame.init(), smoothly loads into the game. Must be following the 'get_mode'. 
+    DO NOT forget to handle in case the user selected 'exit' afterwards this."""
+    loader.stop()
+    pygame.display.quit()
+
+
+pygame.mixer.music.load("assets/music/menu.mp3")
 
 #BUTTON_SOUND = pygame.mixer.Sound("assets/ui/press_button.mp3")
 
@@ -220,9 +228,11 @@ MODE_MENU = UI("Modes")
 TITLE = Text(HEADER_FONT, "War Lightning", (50, 50, 50))
 SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
 
+LOADING_TEXT = Text(PRIMARY_FONT, "Loading...", (50, 50, 50))
+
 class Menu:
     def __init__(self, screen: pygame.Surface) -> None:
-        #pygame.mixer.music.play(-1)
+        pygame.mixer.music.play(-1)
 
         self.screen = screen
         self.clock = pygame.time.Clock()
@@ -261,12 +271,41 @@ class Menu:
                     self.quit()
                 self.ui.handle_event(event)
             
-            screen.fill((255, 255, 255))
+            self.screen.fill((255, 255, 255))
 
             self.ui.update(dt)
-            self.ui.render(screen)
+            self.ui.render(self.screen)
 
             pygame.display.flip()
+
+class Loader:
+    def __init__(self, screen: pygame.Surface) -> None:
+        self.screen = screen
+        self.active = False
+        self.thread = None
+
+        self.text_rect = LOADING_TEXT.text_rect(center=screen.get_rect().center)
+    
+    def _loop(self) -> None:
+        self.active = True
+        while self.active:
+            for event in pygame.event.get():
+                ...
+            self.screen.fill((255, 255, 255))
+
+            LOADING_TEXT.render(self.screen, self.text_rect)
+
+            pygame.display.flip()
+        pygame.mixer.music.stop()
+    
+    def run(self) -> None:
+        self.thread = Thread(target=self._loop)
+        self.thread.start()
+            
+    def stop(self) -> None:
+        self.active = False
+        if self.thread:
+            self.thread.join()
     
 MAIN_MENU\
 .add_element(Label(
@@ -339,6 +378,7 @@ pygame.display.set_caption("War Lightning")
 #pygame.display.set_icon()
 
 menu = Menu(screen)
-menu.run()
+loader = Loader(screen)
 
-pygame.quit()
+menu.run()
+loader.run() # Loading screen, in case you have a slow computer or want to adjust things before the game really starts.
