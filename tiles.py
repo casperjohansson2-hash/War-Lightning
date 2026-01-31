@@ -37,13 +37,6 @@ REQUIRED_ANGLE = {
     (Direction.LEFT, Direction.LEFT): 0,
 }
 
-DIRECTION = {
-    0: Direction.UP,
-    90: Direction.LEFT,
-    180: Direction.DOWN,
-    270: Direction.RIGHT
-}
-
 class Tile:
     def __init__(self, image: pygame.Surface, direction: Direction, rect: Optional[pygame.Rect]) -> None:
         self.base_image = image
@@ -95,8 +88,7 @@ class Player:
     
     def move(self, direction: Direction, distance: float) -> None:
         required_angle = REQUIRED_ANGLE[(self.tile.base_direction, direction)]
-        if not self.tile.direction == DIRECTION[required_angle]:
-            self.tile.rotate(required_angle)
+        self.tile.rotate(required_angle)
         match direction:
             case Direction.UP:
                 self.pos_y -= distance
