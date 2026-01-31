@@ -1,7 +1,7 @@
 """UI (user-interface) elements for menus and other..."""
 
 from typing import (
-    Tuple, List, Dict, Callable, Optional, Protocol, runtime_checkable
+    Tuple, Dict, Callable, Optional, Protocol, runtime_checkable
 )
 from dataclasses import dataclass
 from threading import Thread
@@ -224,9 +224,11 @@ PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 
 MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
+SETTINGS = UI("Settings")
 
 TITLE = Text(HEADER_FONT, "War Lightning", (50, 50, 50))
 SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
+SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (50, 50, 50))
 
 LOADING_TEXT = Text(PRIMARY_FONT, "Loading...", (50, 50, 50))
 
@@ -242,6 +244,10 @@ class Menu:
     def start(self) -> None:
         #BUTTON_SOUND.play()
         self.ui = Central.get("Modes")
+    
+    def open_settings(self) -> None:
+        #BUTTON_SOUND.play()
+        self.ui = Central.get("Settings")
 
     def back_to_start(self) -> None:
         #BUTTON_SOUND.play()
@@ -323,6 +329,17 @@ MAIN_MENU\
     lambda: menu.start()
 ))\
 .add_element(Button(
+    pygame.Rect(325, 350, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "Settings", (50, 50, 50)),
+    lambda: menu.open_settings()
+))\
+.add_element(Button(
     pygame.Rect(350, 500, 100, 25),
     ButtonConfig(
         (150, 150, 150),
@@ -372,6 +389,21 @@ MODE_MENU\
     lambda: menu.back_to_start()
 ))
 
+SETTINGS\
+.add_element(Label(
+    SETTINGS_TITLE.text_rect(center=(400, 30)), SETTINGS_TITLE
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        15, 2
+    ),
+    Text(PRIMARY_FONT, "Go Back", (50, 50, 50)),
+    lambda: menu.back_to_start()
+))
 
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("War Lightning")
