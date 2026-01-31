@@ -207,6 +207,8 @@ def get_mode() -> str:
     """Import this method and call it to retrieve what mode the user has selected."""
     return environ["mode"]
 
+#pygame.mixer.music.load("assets/music/menu.mp3") # We're ready for music now
+
 #BUTTON_SOUND = pygame.mixer.Sound("assets/ui/press_button.mp3")
 
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
@@ -220,6 +222,8 @@ SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
 
 class Menu:
     def __init__(self, screen: pygame.Surface) -> None:
+        #pygame.mixer.music.play(-1)
+
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.active = False
