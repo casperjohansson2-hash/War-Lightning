@@ -154,7 +154,7 @@ button = Button(
 )
 """
 
-class Central: # THIS IS NOT THREAD-SAFE!!!
+class UIRegistry: # THIS IS NOT THREAD-SAFE!!!
     uis: Dict[str, "UI"] = {}
 
     @classmethod
@@ -169,7 +169,7 @@ class UI:
     def __init__(self, name: str) -> None:
         self.name = name
         self.elements = []
-        Central.add(self)
+        UIRegistry.add(self)
     
     def add_element(self, element: Element) -> "UI":
         self.elements.append(element)
@@ -180,7 +180,7 @@ class UI:
             if element.handle_event(event):
                 return True
     
-    def update(self, dt: float) -> None:
+    def update(self, dt: float = 1) -> None:
         for element in self.elements:
             element.update(dt)
     
@@ -238,15 +238,15 @@ class Menu:
 
     def start(self) -> None:
         #BUTTON_SOUND.play()
-        self.ui = Central.get("Modes")
+        self.ui = UIRegistry.get("Modes")
     
     def open_settings(self) -> None:
         #BUTTON_SOUND.play()
-        self.ui = Central.get("Settings")
+        self.ui = UIRegistry.get("Settings")
 
     def back_to_start(self) -> None:
         #BUTTON_SOUND.play()
-        self.ui = Central.get("Menu")
+        self.ui = UIRegistry.get("Menu")
 
     def select_solo(self) -> None:
         #BUTTON_SOUND.play()
