@@ -1,11 +1,9 @@
 """UI (user-interface) elements for menus and other..."""
 
 from typing import (
-    Tuple, Dict, Callable, Optional, Protocol, runtime_checkable
+    Tuple, Dict, Callable, Optional, Type, Protocol, runtime_checkable
 )
 from dataclasses import dataclass
-from threading import Thread
-from os import environ
 import pygame
 
 pygame.init()
@@ -204,15 +202,12 @@ menu.render(screen el. surface)
 m = Central.get("Menu")
 """
 
-def get_mode() -> str:
-    """Import this method and call it to retrieve what mode the user has selected."""
-    return environ["mode"]
+class AppState:
+    mode: Optional[str] = None
 
-def stop_loading() -> None:
-    """Has to be done before pygame.init(), smoothly loads into the game. Must be following the 'get_mode'. 
-    DO NOT forget to handle in case the user selected 'exit' afterwards this."""
-    loader.stop()
-    pygame.display.quit()
+def get_mode() -> Type[AppState]:
+    """Import this method and call it to retrieve what mode the user has selected."""
+    return AppState.mode
 
 
 pygame.mixer.music.load("assets/music/menu.mp3")
@@ -256,17 +251,17 @@ class Menu:
     def select_solo(self) -> None:
         #BUTTON_SOUND.play()
         self.active = False
-        environ["mode"] = "solo"
+        AppState.mode = "solo"
 
     def select_vs(self) -> None:
         #BUTTON_SOUND.play()
         self.active = False
-        environ["mode"] = "vs"
+        AppState.mode = "vs"
 
     def quit(self) -> None:
         #BUTTON_SOUND.play()
         self.active = False
-        environ["mode"] = "exit"
+        AppState.mode = "exit"
 
     def run(self):
         self.active = True
@@ -283,35 +278,6 @@ class Menu:
             self.ui.render(self.screen)
 
             pygame.display.flip()
-
-class Loader:
-    def __init__(self, screen: pygame.Surface) -> None:
-        self.screen = screen
-        self.active = False
-        self.thread = None
-
-        self.text_rect = LOADING_TEXT.text_rect(center=screen.get_rect().center)
-    
-    def _loop(self) -> None:
-        self.active = True
-        while self.active:
-            for event in pygame.event.get():
-                ...
-            self.screen.fill((255, 255, 255))
-
-            LOADING_TEXT.render(self.screen, self.text_rect)
-
-            pygame.display.flip()
-        pygame.mixer.music.stop()
-    
-    def run(self) -> None:
-        self.thread = Thread(target=self._loop)
-        self.thread.start()
-            
-    def stop(self) -> None:
-        self.active = False
-        if self.thread:
-            self.thread.join()
     
 MAIN_MENU\
 .add_element(Label(
@@ -410,7 +376,7 @@ pygame.display.set_caption("War Lightning")
 #pygame.display.set_icon()
 
 menu = Menu(screen)
-loader = Loader(screen)
 
 menu.run()
-loader.run() # Loading screen, in case you have a slow computer or want to adjust things before the game really starts.
+
+pygame.display.quit()

@@ -49,9 +49,6 @@ primary_font = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 
 text = Text(primary_font, str(mode), (50, 50, 50)) # We can literaly use any element I have provided, guys! Enjoy.
 
-# Be aware that loading is a really cool effect, but oftentimes the computer loads resources to fast to see the loading-screen.
-# Although the game should actually be loading for some milliseconds longer, that might actually be seen.
-stop_loading() # Only now stop loading.
 pygame.display.init() # Only reinitialize the screen
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT)) # Create the window as the last thing you do. Now the menu will load until the game is actually ready.
