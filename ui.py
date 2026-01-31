@@ -266,6 +266,8 @@ class Menu:
             self.ui.render(self.screen)
 
             pygame.display.flip()
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
     
 MAIN_MENU\
 .add_element(Label(
