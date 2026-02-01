@@ -3,6 +3,7 @@ from typing import (
 )
 from typing import TypedDict
 from enum import Enum, auto
+from functools import cache
 import pygame
 
 class KeyBinds(TypedDict):
@@ -45,12 +46,11 @@ class Tile:
         self.image = image
         self.direction = direction
         self.rect = rect
-
-        self.cache = {}
     
     def get_rect(self, **kwargs: Any) -> pygame.Rect:
         return self.rect or self.image.get_rect(**kwargs)
     
+    @cache
     def rotate(self, angle: Literal[0, 90, 180, 270]) -> None:
         self.direction = self.base_direction
         steps = range(int(angle / 90))
@@ -62,7 +62,7 @@ class Tile:
                     self.direction = Direction.DOWN
                 case Direction.LEFT:
                     self.direction = Direction.UP
-        self.image = self.cache.setdefault(angle, pygame.transform.rotate(self.base_image, angle))
+        self.image = pygame.transform.rotate(self.base_image, angle)
     
     def render(self, surface: pygame.Surface, rect: Optional[pygame.Rect] = None, **kwargs: Any) -> None:
         surface.blit(self.image, rect or self.get_rect(**kwargs))
