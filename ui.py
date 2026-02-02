@@ -229,6 +229,10 @@ def get_setting(name: str) -> Dict[str, Any]:
 
 pygame.mixer.music.load("assets/music/menu.mp3")
 
+BACKGROUND_IMAGE = pygame.transform.smoothscale(pygame.image.load("assets/ui/test.png"), (800, 600))
+DIM = pygame.Surface((800, 600), pygame.SRCALPHA)
+DIM.fill((50, 50, 50, 150))
+
 #BUTTON_SOUND = pygame.mixer.Sound("assets/ui/press_button.mp3")
 
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
@@ -238,13 +242,11 @@ MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
 SETTINGS = UI("Settings")
 
-TITLE = Text(HEADER_FONT, "War Lightning", (50, 50, 50))
-SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (50, 50, 50))
-SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (50, 50, 50))
+TITLE = Text(HEADER_FONT, "War Lightning", (255, 255, 255))
+SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (255, 255, 255))
+SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (255, 255, 255))
 
-LOADING_TEXT = Text(PRIMARY_FONT, "Loading...", (50, 50, 50))
-
-HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (50, 50, 50))
+HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
 
 class Menu:
     def __init__(self, screen: pygame.Surface) -> None:
@@ -298,6 +300,8 @@ class Menu:
                 self.ui.handle_event(event)
             
             self.screen.fill((255, 255, 255))
+            self.screen.blit(BACKGROUND_IMAGE, (0, 0))
+            self.screen.blit(DIM, (0, 0))
 
             self.ui.update(dt)
             self.ui.render(self.screen)
