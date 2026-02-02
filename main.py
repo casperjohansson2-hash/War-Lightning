@@ -91,10 +91,9 @@ else:
                 screen.blit(self.sprite_player1, (self.player1_x, self.player1_y))
                 
 
-
+            
                 pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
-            else:
-                self.kollision_rectangle = pygame.Rect(0, 0, 0, 0)  
+             
 
     if ui.get_mode() == "solo":
         class Player2:
@@ -140,8 +139,7 @@ else:
 
 
                     pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
-                else:
-                    self.kollision_rectangle = pygame.Rect(0, 0, 0, 0)  
+                
     elif ui.get_mode() == "vs":
         class Player2:
             def __init__(self):
@@ -185,8 +183,7 @@ else:
 
 
                     pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
-                else:
-                    self.kollision_rectangle = pygame.Rect(0, 0, 0, 0)  
+                
 
     #Klassen för skotten som båda spelarna kan skjuta, och håller koll på hastighet och direktion
     class Bullet:

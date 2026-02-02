@@ -73,6 +73,13 @@ class Tile:
         scaled_image = pygame.transform.smoothscale(image, size)
         return Tile(scaled_image, direction, rect)
 
+"""
+Usage:
+
+sand = Tile.new_tile("assets/sand_texture.png", (100, 100), Direction.UP, pygame.Rect(10, 10, 100, 100))
+sand.render(surface)
+"""
+
 class Player:
     def __init__(self, tile: Tile, x: Optional[int] = None, y: Optional[int] = None, keybinds: KeyBinds = None, speed: int = 2, data: Optional[Dict[str, Any]] = None, rect: Optional[pygame.Rect] = None) -> None:
         self.tile = tile
@@ -113,3 +120,20 @@ class Player:
     
     def render(self, surface: pygame.Surface, rect: Optional[pygame.Rect] = None, **kwargs: Any) -> None:
         surface.blit(self.tile.image, rect or self.get_rect(**kwargs))
+
+class Map(pygame.Surface):
+    def __init__(self, size: Tuple[int, int], rect: pygame.Rect) -> None:
+        self.size = size
+        self.rect = rect
+    
+    def render(self, surface: pygame.Surface) -> None:
+        surface.blit(self, self.rect)
+    
+"""
+Usage:
+
+map = Map((WIDTH, HEIGHT), pygame.Rect(0, 0, WIDTH, HEIGHT))
+sand.render(map)
+
+map.render(surface)
+"""

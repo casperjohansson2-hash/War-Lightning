@@ -1,7 +1,7 @@
 """UI (user-interface) elements for menus and other..."""
 
 from typing import (
-    Tuple, Callable, Optional, Protocol, runtime_checkable
+    Tuple, Dict, Callable, Optional, Protocol, runtime_checkable, Any
 )
 from dataclasses import dataclass
 from functools import cache
@@ -29,6 +29,10 @@ class Text:
         self.text = text
         self.color = color
         self.surface = font.render(text, True, color)
+    
+    def edit_text(self, text: str) -> None:
+        self.text = text
+        self.surface = self.font.render(text, True, self.color)
     
     def text_rect(self, **kwargs) -> pygame.Rect:
         """Usage: 
@@ -209,12 +213,19 @@ m = Central.get("Menu")
 
 class AppState:
     mode: Optional[str] = None
+    settings: Dict[str, Any] = {
+        "hitboxes": False
+    }
 
 @cache # Faster retrieval
 def get_mode() -> str:
     """Import this method and call it to retrieve what mode the user has selected."""
     return AppState.mode
 
+@cache
+def get_settings() -> Dict[str, Any]:
+    """Import this method and call it to retireve the settings."""
+    return AppState.settings
 
 pygame.mixer.music.load("assets/music/menu.mp3")
 
@@ -233,6 +244,8 @@ SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (50, 50, 50))
 
 LOADING_TEXT = Text(PRIMARY_FONT, "Loading...", (50, 50, 50))
 
+HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (50, 50, 50))
+
 class Menu:
     def __init__(self, screen: pygame.Surface) -> None:
         pygame.mixer.music.play(-1)
@@ -249,6 +262,12 @@ class Menu:
     def open_settings(self) -> None:
         #BUTTON_SOUND.play()
         self.ui = SETTINGS
+    
+    def toggle_hitboxes(self) -> None:
+        #BUTTON_SOUND.play()
+        was_active = AppState.settings["hitboxes"]
+        AppState.settings["hitboxes"] = not was_active
+        HITBOX_TEXT.edit_text("Disabled" if was_active else "Enabled")
 
     def back_to_start(self) -> None:
         #BUTTON_SOUND.play()
@@ -366,6 +385,20 @@ MODE_MENU\
 SETTINGS\
 .add_element(Label(
     SETTINGS_TITLE.text_rect(center=(400, 30)), SETTINGS_TITLE
+))\
+.add_element(Label(
+    HITBOX_TEXT.text_rect(center=(550, 200)), HITBOX_TEXT
+))\
+.add_element(Button(
+    pygame.Rect(325, 180, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Toggle Hitboxes", (0, 0, 0)),
+    lambda: menu.toggle_hitboxes()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
