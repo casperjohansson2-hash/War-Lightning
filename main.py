@@ -16,6 +16,8 @@ import time
 import pygame
 import ui
 
+pygame.mixer.music.load("assets/audio/Match-start.mp3")
+pygame.mixer.music.play()
 if ui.get_mode() == "exit":
     pygame.quit()
 else:
@@ -207,6 +209,7 @@ else:
             self.speed = 10
             self.bild = sprite_bullet
             self.direction = direction
+            self.kollision_rectangle = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
 
             if self.direction == "LEFT":
                 self.bild = pygame.transform.rotate(sprite_bullet, 90)
@@ -225,6 +228,8 @@ else:
                 self.x -= self.speed
             elif self.direction == "RIGHT":
                 self.x += self.speed
+
+            self.kollision_rectangle.topleft = (self.x, self.y)
 
         def draw(self, screen):
             if self.direction == "UP" or self.direction == "DOWN":
@@ -274,6 +279,7 @@ else:
     bullet_list1 = []
     bullet_list2 = []
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
+
     while game:
         #Funktionerna för att de två spelarna ska kunna röra sig
         player_1.move()
@@ -315,8 +321,8 @@ else:
                 bullet_list2.remove(bullet)
         #Här konfigueras fps klockan till sextio frames per sekund
         clock.tick(60)#och här läggs det till till räknarna för att det ska gå långsammare att skjuta
-        bullet_counter1 = bullet_counter1 + 1
-        bullet_counter2 = bullet_counter2 + 1
+        bullet_counter1 = bullet_counter1 + 0.5
+        bullet_counter2 = bullet_counter2 + 0.5
         #Här ritas spelarnas stridsvagnar
         player_1.draw(screen)
         player_2.draw(screen)
