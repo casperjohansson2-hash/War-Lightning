@@ -227,7 +227,10 @@ else:
                 self.x += self.speed
 
         def draw(self, screen):
-            screen.blit(self.bild, (self.x, self.y))
+            if self.direction == "UP" or self.direction == "DOWN":
+                screen.blit(self.bild, (self.x + 8, self.y))
+            else:
+                screen.blit(self.bild, (self.x, self.y + 28))
 
     #Klassen som gör det möjligt för sprites att kunna rotera på sig så att det blir snyggare
     class RotatingSprite(pygame.sprite.Sprite):
