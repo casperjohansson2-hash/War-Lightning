@@ -1,9 +1,10 @@
 """UI (user-interface) elements for menus and other..."""
 
 from typing import (
-    Tuple, Dict, Callable, Optional, Type, Protocol, runtime_checkable
+    Tuple, Callable, Optional, Protocol, runtime_checkable
 )
 from dataclasses import dataclass
+from functools import cache
 import pygame
 
 pygame.init()
@@ -209,6 +210,7 @@ m = Central.get("Menu")
 class AppState:
     mode: Optional[str] = None
 
+@cache # Faster retrieval
 def get_mode() -> str:
     """Import this method and call it to retrieve what mode the user has selected."""
     return AppState.mode
