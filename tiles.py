@@ -132,7 +132,7 @@ class Map(pygame.Surface):
 class Wall(pygame.Rect):
     def __init__(self, x: int, y: int, width: int, height: int) -> None:
         super().__init__(x, y, width, height)
-    
+
 """
 Usage:
 

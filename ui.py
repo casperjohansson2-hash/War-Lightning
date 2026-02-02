@@ -142,12 +142,106 @@ class Button(Element):
                 max(min(self.drawn_bg[1] + 60, 255), 0),
                 max(min(self.drawn_bg[2] + 70, 255), 0)
             )
+            pygame.draw.rect(self.surface, self.drawn_bg, self.offset_rect, border_radius=self.config.border_radius)
             if self.config.border_width > 0:
-                pygame.draw.rect(self.surface, self.drawn_bg, self.offset_rect, border_radius=self.config.border_radius)
-            pygame.draw.rect(self.surface, self.drawn_border, self.offset_rect, self.config.border_width, self.config.border_radius)
+                pygame.draw.rect(self.surface, self.drawn_border, self.offset_rect, self.config.border_width, self.config.border_radius)
             self.text.render(self.surface, center=self.offset_rect.center)
             self.surface.set_alpha(self.config.alpha)
             self._fix = False
+
+    def render(self, surface: pygame.Surface) -> None: 
+        surface.blit(self.surface, self.rect)
+
+@dataclass
+class SliderConfig:
+    slider_bg: Tuple[int, int, int]
+    bg: Tuple[int, int, int] # background
+    hover_bg: Tuple[int, int, int]
+    pressed_bg: Tuple[int, int, int]
+    alpha: int
+    border_radius: int
+    border_width: int
+
+class Slider(Element):
+    def __init__(
+        self,
+        rect: pygame.Rect,
+        config: SliderConfig,
+        initial: float,
+        range: Tuple[float, float],
+        on_change: Callable[[float], Any]
+    ) -> None:
+        self.surface = pygame.Surface(rect.size, pygame.SRCALPHA)
+        self.button_rect = pygame.Rect(0, 0, rect.height, rect.height)
+        height_diff = (rect.height - rect.height / 2)
+        self.slider_rect = pygame.Rect(height_diff, rect.height / 4, rect.width - height_diff * 2, rect.height / 2)
+        self.rect = rect
+        self.config = config
+        self.range = range
+        self.on_change = on_change
+
+        self.factor = initial / (self.range[1] - self.range[0]) - range[0]
+        self.drawn_border = config.bg
+        self.drawn_bg = config.bg
+        self.hover = False
+        self.pressed = False
+    
+    @property
+    def value(self) -> float:
+        return self.range[0] + (self.range[1] - self.range[0]) * self.factor
+    
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.pressed = True
+                return True
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.pressed = False
+
+        elif event.type == pygame.MOUSEMOTION:
+            self.hover = self.rect.collidepoint(event.pos)
+            if self.pressed:
+                local_x = event.pos[0] - self.rect.x
+                self.factor = max(0.0, min(1.0, local_x / self.rect.width))
+                self.on_change(self.value)
+                return True
+
+        return False
+
+    def update(self, dt=1):
+        self.surface.fill((0, 0, 0, 0))
+
+        if self.pressed:
+            bg = self.config.pressed_bg
+        elif self.hover:
+            bg = self.config.hover_bg
+        else:
+            bg = self.config.bg
+
+        border = (
+            min(bg[0] + 50, 255),
+            min(bg[1] + 60, 255),
+            min(bg[2] + 70, 255),
+        )
+
+        self.button_rect.x = int(
+            self.factor * (self.rect.width - self.button_rect.width)
+        )
+
+        pygame.draw.rect(self.surface, self.config.slider_bg, self.slider_rect, border_radius=5)
+        pygame.draw.rect(self.surface, bg, self.button_rect, border_radius=self.config.border_radius)
+
+        if self.config.border_width > 0:
+            pygame.draw.rect(
+                self.surface,
+                border,
+                self.button_rect,
+                self.config.border_width,
+                self.config.border_radius,
+            )
+
+        self.surface.set_alpha(self.config.alpha)
 
     def render(self, surface: pygame.Surface) -> None: 
         surface.blit(self.surface, self.rect)
@@ -214,7 +308,8 @@ m = Central.get("Menu")
 class AppState:
     mode: Optional[str] = None
     settings: Dict[str, Any] = {
-        "hitboxes": False
+        "hitboxes": False,
+        "volume": 1.0
     }
 
 @cache # Faster retrieval
@@ -241,12 +336,15 @@ PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
 SETTINGS = UI("Settings")
+CREDIBILITY = UI("Cred")
 
 TITLE = Text(HEADER_FONT, "War Lightning", (255, 255, 255))
 SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (255, 255, 255))
 SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (255, 255, 255))
+CRED_TITLE = Text(HEADER_FONT, "Creds", (255, 255, 255))
 
 HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
+VOLUME_TEXT = Text(PRIMARY_FONT, "Volume: 1.0", (255, 255, 255))
 
 class Menu:
     def __init__(self, screen: pygame.Surface) -> None:
@@ -265,11 +363,21 @@ class Menu:
         BUTTON_SOUND.play()
         self.ui = SETTINGS
     
+    def open_credits(self) -> None:
+        BUTTON_SOUND.play()
+        self.ui = CREDIBILITY
+    
     def toggle_hitboxes(self) -> None:
         BUTTON_SOUND.play()
         was_active = AppState.settings["hitboxes"]
         AppState.settings["hitboxes"] = not was_active
         HITBOX_TEXT.edit_text("Disabled" if was_active else "Enabled")
+    
+    def edit_volume(self, volume: float) -> None:
+        AppState.settings["volume"] = volume
+        BUTTON_SOUND.set_volume(volume)
+        pygame.mixer.music.set_volume(volume)
+        VOLUME_TEXT.edit_text(f"Volume: {volume:.1f}")
 
     def back_to_start(self) -> None:
         BUTTON_SOUND.play()
@@ -335,6 +443,17 @@ MAIN_MENU\
     ),
     Text(PRIMARY_FONT, "Settings", (200, 235, 220)),
     lambda: menu.open_settings()
+))\
+.add_element(Button(
+    pygame.Rect(325, 400, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Cred", (200, 235, 220)),
+    lambda: menu.open_credits()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
@@ -404,6 +523,22 @@ SETTINGS\
     Text(PRIMARY_FONT, "Toggle Hitboxes", (200, 235, 220)),
     lambda: menu.toggle_hitboxes()
 ))\
+.add_element(Label(
+    VOLUME_TEXT.text_rect(center=(550, 250)), VOLUME_TEXT
+))\
+.add_element(Slider(
+    pygame.Rect(350, 240, 100, 25),
+    SliderConfig(
+        (150, 150, 250),
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    1.0,
+    (0.0, 1.0),
+    lambda vol: menu.edit_volume(vol)
+))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
     ButtonConfig(
@@ -415,6 +550,30 @@ SETTINGS\
     Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
     lambda: menu.back_to_start()
 ))
+
+CREDIBILITY\
+.add_element(Label(
+    CRED_TITLE.text_rect(center=(400, 30)), CRED_TITLE
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
+    lambda: menu.back_to_start()
+))
+
+with open("credits.txt", "r") as f:
+    credits = f.readlines()
+for index, line in enumerate(credits):
+    line = line.replace("\n", "").strip()
+    text = Text(PRIMARY_FONT, line, (255, 255, 255))
+    label = Label(text.text_rect(center=(400, 100+20*index)), text)
+    CREDIBILITY.add_element(label)
 
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("War Lightning")
