@@ -344,7 +344,7 @@ SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (255, 255, 255))
 CRED_TITLE = Text(HEADER_FONT, "Creds", (255, 255, 255))
 
 HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
-VOLUME_TEXT = Text(PRIMARY_FONT, "Volume: 1.0", (255, 255, 255))
+VOLUME_TEXT = Text(PRIMARY_FONT, "Volume: 100%", (255, 255, 255))
 
 class Menu:
     def __init__(self, screen: pygame.Surface) -> None:
@@ -377,7 +377,7 @@ class Menu:
         AppState.settings["volume"] = volume
         BUTTON_SOUND.set_volume(volume)
         pygame.mixer.music.set_volume(volume)
-        VOLUME_TEXT.edit_text(f"Volume: {volume:.1f}")
+        VOLUME_TEXT.edit_text(f"Volume: {round(volume * 100)}%")
 
     def back_to_start(self) -> None:
         BUTTON_SOUND.play()
