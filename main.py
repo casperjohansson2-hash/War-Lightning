@@ -27,20 +27,15 @@ else:
     height = 1080
     #Spelarnas stats
     player_health = 100
-    def damage():
-        chans = random.randint(1, 3)
-        if chans == 1:
-            player_damage = 20
-        else:
-            player_damage = 10
-
-        return player_damage
+    
 
     #Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
     original_background = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
     sprite_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
     original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
     original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
+    normal_hit = pygame.mixer.music.load("C:/War Lightning/assets/audio/Metal hit.mp3")
+    crit_hit = pygame.mixer.music.load("C:/War Lightning/assets/audio/Metal pierce.mp3")
 
     background = pygame.transform.smoothscale(original_background, (width, height))
     sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
@@ -52,6 +47,19 @@ else:
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("War Lightning")
     
+
+
+    def damage():
+        chans = random.randint(1, 3)
+        if chans == 1:
+            player_damage = 20
+        else:
+            player_damage = 10
+
+        return player_damage
+    
+
+
     #Klasserna för spelare 1 och spelare 2 som innehåller deras hälsa, skada, olika lägen, hastighet och alla deras funktioner
     class Player1:
         def __init__(self):
