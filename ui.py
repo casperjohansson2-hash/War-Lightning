@@ -381,7 +381,7 @@ SETTINGS\
 
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("War Lightning")
-#pygame.display.set_icon()
+pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
 
 menu = Menu(screen)
 
