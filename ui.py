@@ -387,10 +387,10 @@ SETTINGS\
     SETTINGS_TITLE.text_rect(center=(400, 30)), SETTINGS_TITLE
 ))\
 .add_element(Label(
-    HITBOX_TEXT.text_rect(center=(550, 300)), HITBOX_TEXT
+    HITBOX_TEXT.text_rect(center=(550, 200)), HITBOX_TEXT
 ))\
 .add_element(Button(
-    pygame.Rect(325, 280, 150, 38),
+    pygame.Rect(325, 180, 150, 38),
     ButtonConfig(
         (150, 150, 150),
         (100, 100, 100),
