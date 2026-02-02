@@ -37,11 +37,12 @@ else:
         return player_damage
 
     #Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
-    background = pygame.image.load("C:/War Lightning/assets/tiles/svart.jpg")
+    original_background = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
     sprite_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
     original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
     original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
 
+    background = pygame.transform.smoothscale(original_background, (width, height))
     sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
     sprite_player2 = pygame.transform.smoothscale(original_player2, (original_player2.get_width(), original_player2.get_height()))
     #Här defineras fps klockan för att begränsa till samma hastighet
@@ -96,10 +97,12 @@ else:
                 if ui.get_setting("hitboxes"):
                     pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
              
-        def collide(self, player1_tank):
+        def collide(self, bullet_rect):
             if not player_1.exploded:
-                if (self.collision_rectangle.colliderect(player1_tank)):
-                    player_1.exploded = True
+                if self.collision_rectangle.colliderect(bullet_rect):
+                    player_1.health -= damage()
+                    return True 
+            return False 
     if ui.get_mode() == "solo":
         class Player2:
             def __init__(self):
@@ -146,10 +149,12 @@ else:
                     if ui.get_setting("hitboxes"):
                         pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
 
-            def collide(self, player2_tank):
+            def collide(self, bullet_rect):
                 if not player_2.exploded:
-                    if (self.collision_rectangle.colliderect(player2_tank)):
-                        player_2.exploded = True
+                    if self.collision_rectangle.colliderect(bullet_rect):
+                        player_2.health -= damage()
+                        return True 
+                return False 
                 
     elif ui.get_mode() == "vs":
         class Player2:
@@ -196,10 +201,12 @@ else:
                     if ui.get_setting("hitboxes"):
                         pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
                 
-            def collide(self, player2_tank):
+            def collide(self, bullet_rect):
                 if not player_2.exploded:
-                    if (self.collision_rectangle.colliderect(player2_tank)):
-                        player_2.exploded = True
+                    if self.collision_rectangle.colliderect(bullet_rect):
+                        player_2.health -= damage()
+                        return True 
+                return False 
 
     #Klassen för skotten som båda spelarna kan skjuta, och håller koll på hastighet och direktion
     class Bullet:
@@ -238,9 +245,7 @@ else:
             else:
                 screen.blit(self.bild, (self.x, self.y + 28))
 
-        def collide(self, collision_bullet):
-            if (self.collision_rectangle.colliderect(collision_bullet)):
-                damage()
+        
 
     #Klassen som gör det möjligt för sprites att kunna rotera på sig så att det blir snyggare
     class RotatingSprite(pygame.sprite.Sprite):
@@ -296,15 +301,15 @@ else:
             if event.type == pygame.QUIT:
                 game = False
 
-        screen.fill((0, 0, 0))
+        
         keys = pygame.key.get_pressed()
         #Knappbindningarna för att skjuta som spelare 1 och spelare 2, och när de skjuter och lever så läggs det till objekt i de tomma listorna
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and player_1.exploded == False:
             if (bullet_counter1 > 20):
                 bullet_list1.append(Bullet(player_1.player1_x + 20, player_1.player1_y, player_1.direction))
                 bullet_counter1 = 0
 
-        if keys[pygame.K_RETURN]:
+        if keys[pygame.K_RETURN] and player_2.exploded == False:
             if (bullet_counter2 > 20):
 
                 bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y, player_2.direction))
@@ -314,23 +319,34 @@ else:
         for bullet in reversed(bullet_list1):
             bullet.move()
             bullet.draw(screen)
-            #Och här så ses det till så att om ett skott är utanför spelets ramar så tas de bort
+            
+            # Check if bullet went off screen
             if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                 bullet_list1.remove(bullet)
+            
+            
+            elif player_2.collide(bullet.collision_rectangle):
+                bullet_list1.remove(bullet)
 
-            bullet.collide(player_2.collision_rectangle)
            
         #Samma som ovan
         for bullet in reversed(bullet_list2):
             bullet.move()
             bullet.draw(screen)
-            #Samma som ovan
+
             if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                 bullet_list2.remove(bullet)
+            
+            
+            elif player_1.collide(bullet.collision_rectangle):
+                bullet_list2.remove(bullet)
+            
 
-            bullet.collide(player_1.collision_rectangle)
+        if player_1.health < 0:
+            player_1.exploded = True
 
-        
+        if player_2.health < 0:
+            player_2.exploded = True
         #Här konfigueras fps klockan till sextio frames per sekund
         clock.tick(60)#och här läggs det till till räknarna för att det ska gå långsammare att skjuta
         bullet_counter1 = bullet_counter1 + 0.5
