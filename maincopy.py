@@ -92,24 +92,24 @@ else:
                     self.direction = "RIGHT"
             
             #print(self.collision_rectangle)
-
-            # --- Move X and resolve ---
-            self.collision_rectangle.x += dx
-            for wall in walls:
-                if self.collision_rectangle.colliderect(wall):
-                    if dx > 0:  # moving right
-                        self.collision_rectangle.right = wall.left
-                    elif dx < 0:  # moving left
-                        self.collision_rectangle.left = wall.right
-
-            # --- Move Y and resolve ---
-            self.collision_rectangle.y += dy
-            for wall in walls:
-                if self.collision_rectangle.colliderect(wall):
-                    if dy > 0:  # moving down
-                        self.collision_rectangle.bottom = wall.top
-                    elif dy < 0:  # moving up
-                        self.collision_rectangle.top = wall.bottom
+            if dx != 0:
+                # --- Move X and resolve ---
+                self.collision_rectangle.x += dx
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dx > 0:  # moving right
+                            self.collision_rectangle.right = wall.left
+                        elif dx < 0:  # moving left
+                            self.collision_rectangle.left = wall.right
+            elif dy != 0:
+                # --- Move Y and resolve ---
+                self.collision_rectangle.y += dy
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dy > 0:  # moving down
+                            self.collision_rectangle.bottom = wall.top
+                        elif dy < 0:  # moving up
+                            self.collision_rectangle.top = wall.bottom
 
             
             self.player1_x, self.player1_y = self.collision_rectangle.topleft

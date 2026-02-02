@@ -16,8 +16,13 @@ import time
 import pygame
 import ui
 
+shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
+normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
+crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
 pygame.mixer.music.load("assets/audio/Match-start.mp3")
 pygame.mixer.music.play()
+volume = ui.get_setting("volume")
+pygame.mixer.music.set_volume(volume)
 if ui.get_mode() == "exit":
     pygame.quit()
 else:
@@ -34,8 +39,7 @@ else:
     sprite_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
     original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
     original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
-    normal_hit = pygame.mixer.music.load("C:/War Lightning/assets/audio/Metal hit.mp3")
-    crit_hit = pygame.mixer.music.load("C:/War Lightning/assets/audio/Metal pierce.mp3")
+    
 
     background = pygame.transform.smoothscale(original_background, (width, height))
     sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
@@ -53,8 +57,10 @@ else:
         chans = random.randint(1, 3)
         if chans == 1:
             player_damage = 20
+            crit_hit.play()
         else:
             player_damage = 10
+            normal_hit.play()
 
         return player_damage
     
@@ -75,27 +81,55 @@ else:
             self.exploded = False
             self.collision_rectangle = pygame.Rect(self.player1_x, self.player1_y, self.sprite_player1.get_width(), self.sprite_player1.get_height())
 
-        def move(self):
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_w] and player_1.health > 0:
-                player_1.player1_y -= player_1.speed
-                self.sprite_player1 = pygame.transform.rotate(self.original_image, 0)
-                self.direction = "UP"
-            elif keys[pygame.K_a] and player_1.health > 0:
-                player_1.player1_x -= player_1.speed
-                self.sprite_player1 = pygame.transform.rotate(self.original_image, 90)
-                self.direction = "LEFT"
-            elif keys[pygame.K_s] and player_1.health > 0:
-                player_1.player1_y += player_1.speed
-                self.sprite_player1 = pygame.transform.rotate(self.original_image, 180)
-                self.direction = "DOWN"
-            elif keys[pygame.K_d] and player_1.health > 0:
-                player_1.player1_x += player_1.speed
-                self.sprite_player1 = pygame.transform.rotate(self.original_image, 270)
-                self.direction = "RIGHT"
+        def move(self, walls):
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_UP] and player_1.health > 0 and up_collision != True:
+                    player_1.player1_y -= player_1.speed
+                    self.sprite_player1 = pygame.transform.rotate(self.original_image, 0)
+                    self.direction = "UP"
+                elif keys[pygame.K_LEFT] and player_1.health > 0 and left_collision != True:
+                    player_1.player1_x -= player_1.speed
+                    self.sprite_player1 = pygame.transform.rotate(self.original_image, 90)
+                    self.direction = "LEFT"
+                elif keys[pygame.K_DOWN] and player_1.health > 0 and down_collision != True:
+                    player_1.player1_y += player_1.speed
+                    self.sprite_player1 = pygame.transform.rotate(self.original_image, 180)
+                    self.direction = "DOWN"
+                elif keys[pygame.K_RIGHT] and player_1.health > 0 and right_collision != True:
+                    player_1.player1_x += player_1.speed
+                    self.sprite_player1 = pygame.transform.rotate(self.original_image, 270)
+                    self.direction = "RIGHT"
 
+                self.collision_rectangle.x += player_1.speed
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if self.direction == "RIGHT":  
+                            right_collision = True
+                            left_collision = False
+                            down_collision = False
+                            up_collision = False
+                        elif self.direction == "LEFT":  
+                            right_collision = False
+                            left_collision = True
+                            down_collision = False
+                            up_collision = False
 
-            self.collision_rectangle.topleft = (self.player1_x, self.player1_y)
+                
+                self.collision_rectangle.y += player_1.speed
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if self.direction == "DOWN":  
+                            right_collision = False
+                            left_collision = False
+                            down_collision = True
+                            up_collision = False
+                        elif self.direction == "UP":  
+                            right_collision = False
+                            left_collision = False
+                            down_collision = False
+                            up_collision = True
+
+                self.collision_rectangle.topleft = (self.player1_x, self.player1_y)
 
         def draw(self, screen):
             if not self.exploded:
@@ -126,25 +160,53 @@ else:
                 self.sprite_player2 = self.original_image
                 self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
 
-            def move(self):
+            def move(self, walls):
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_UP] and player_2.health > 0:
+                if keys[pygame.K_UP] and player_2.health > 0 and up_collision != True:
                     player_2.player2_y -= player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
                     self.direction = "UP"
-                elif keys[pygame.K_LEFT] and player_2.health > 0:
+                elif keys[pygame.K_LEFT] and player_2.health > 0 and left_collision != True:
                     player_2.player2_x -= player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
                     self.direction = "LEFT"
-                elif keys[pygame.K_DOWN] and player_2.health > 0:
+                elif keys[pygame.K_DOWN] and player_2.health > 0 and down_collision != True:
                     player_2.player2_y += player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 180)
                     self.direction = "DOWN"
-                elif keys[pygame.K_RIGHT] and player_2.health > 0:
+                elif keys[pygame.K_RIGHT] and player_2.health > 0 and right_collision != True:
                     player_2.player2_x += player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
 
+                self.collision_rectangle.x += player_2.speed
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if self.direction == "RIGHT":  
+                            right_collision = True
+                            left_collision = False
+                            down_collision = False
+                            up_collision = False
+                        elif self.direction == "LEFT":  
+                            right_collision = False
+                            left_collision = True
+                            down_collision = False
+                            up_collision = False
+
+                
+                self.collision_rectangle.y += player_2.speed
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if self.direction == "DOWN":  
+                            right_collision = False
+                            left_collision = False
+                            down_collision = True
+                            up_collision = False
+                        elif self.direction == "UP":  
+                            right_collision = False
+                            left_collision = False
+                            down_collision = False
+                            up_collision = True
 
                 self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
@@ -179,24 +241,53 @@ else:
                 self.sprite_player2 = self.original_image
                 self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
 
-            def move(self):
+            def move(self, walls):
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_UP] and player_2.health > 0:
+                if keys[pygame.K_UP] and player_2.health > 0 and up_collision != True:
                     player_2.player2_y -= player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
                     self.direction = "UP"
-                elif keys[pygame.K_LEFT] and player_2.health > 0:
+                elif keys[pygame.K_LEFT] and player_2.health > 0 and left_collision != True:
                     player_2.player2_x -= player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
                     self.direction = "LEFT"
-                elif keys[pygame.K_DOWN] and player_2.health > 0:
+                elif keys[pygame.K_DOWN] and player_2.health > 0 and down_collision != True:
                     player_2.player2_y += player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 180)
                     self.direction = "DOWN"
-                elif keys[pygame.K_RIGHT] and player_2.health > 0:
+                elif keys[pygame.K_RIGHT] and player_2.health > 0 and right_collision != True:
                     player_2.player2_x += player_2.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
+
+                self.collision_rectangle.x += player_2.speed
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if self.direction == "RIGHT":  
+                            right_collision = True
+                            left_collision = False
+                            down_collision = False
+                            up_collision = False
+                        elif self.direction == "LEFT":  
+                            right_collision = False
+                            left_collision = True
+                            down_collision = False
+                            up_collision = False
+
+                
+                self.collision_rectangle.y += player_2.speed
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if self.direction == "DOWN":  
+                            right_collision = False
+                            left_collision = False
+                            down_collision = True
+                            up_collision = False
+                        elif self.direction == "UP":  
+                            right_collision = False
+                            left_collision = False
+                            down_collision = False
+                            up_collision = True
 
                 self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
@@ -297,11 +388,13 @@ else:
     bullet_list1 = []
     bullet_list2 = []
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
-
+    walls = [
+        pygame.Rect(10, 0, 50, height)
+    ]
     while game:
         #Funktionerna för att de två spelarna ska kunna röra sig
-        player_1.move()
-        player_2.move()
+        player_1.move(walls)
+        player_2.move(walls)
         #Här ritas bakgrunden
         screen.blit(background, (0, 0))
         #Här görs det så att man kan stänga fönstret och döda systemet
@@ -314,12 +407,13 @@ else:
         #Knappbindningarna för att skjuta som spelare 1 och spelare 2, och när de skjuter och lever så läggs det till objekt i de tomma listorna
         if keys[pygame.K_SPACE] and player_1.exploded == False:
             if (bullet_counter1 > 20):
+                shot.play()
                 bullet_list1.append(Bullet(player_1.player1_x + 20, player_1.player1_y, player_1.direction))
                 bullet_counter1 = 0
 
         if keys[pygame.K_RETURN] and player_2.exploded == False:
             if (bullet_counter2 > 20):
-
+                shot.play()
                 bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y, player_2.direction))
                 bullet_counter2 = 0
 
