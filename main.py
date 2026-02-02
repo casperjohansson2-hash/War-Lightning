@@ -36,7 +36,7 @@ else:
 
     #Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
     background = pygame.image.load("C:/War Lightning/assets/tiles/svart.jpg")
-    sprite_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.jpg")
+    sprite_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
     original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
     original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
 
@@ -91,10 +91,13 @@ else:
                 screen.blit(self.sprite_player1, (self.player1_x, self.player1_y))
                 
 
-                if ui.get_settings()["hitboxes"]:
+                if ui.get_setting("hitboxes"):
                     pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
              
-
+        def kollidera(self, player1_tank):
+            if not player_1.exploded:
+                if (self.kollision_rectangle.colliderect(player1_tank)):
+                    player_1.exploded = True
     if ui.get_mode() == "solo":
         class Player2:
             def __init__(self):
@@ -138,8 +141,13 @@ else:
                     
 
 
-                    if ui.get_settings()["hitboxes"]:
+                    if ui.get_setting("hitboxes"):
                         pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
+
+            def kollidera(self, player2_tank):
+                if not player_2.exploded:
+                    if (self.kollision_rectangle.colliderect(player2_tank)):
+                        player_2.exploded = True
                 
     elif ui.get_mode() == "vs":
         class Player2:
@@ -183,9 +191,13 @@ else:
                     
 
 
-                    if ui.get_settings()["hitboxes"]:
+                    if ui.get_setting("hitboxes"):
                         pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
                 
+            def kollidera(self, player2_tank):
+                if not player_2.exploded:
+                    if (self.kollision_rectangle.colliderect(player2_tank)):
+                        player_2.exploded = True
 
     #Klassen för skotten som båda spelarna kan skjuta, och håller koll på hastighet och direktion
     class Bullet:
