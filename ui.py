@@ -490,7 +490,7 @@ MODE_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "VS", (200, 235, 220)),
+    Text(PRIMARY_FONT, "Versus", (200, 235, 220)),
     lambda: menu.select_vs()
 ))\
 .add_element(Button(

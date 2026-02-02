@@ -132,6 +132,17 @@ class Map(pygame.Surface):
 class Wall(pygame.Rect):
     def __init__(self, x: int, y: int, width: int, height: int) -> None:
         super().__init__(x, y, width, height)
+    
+    def check_collision(self, other: pygame.Rect) -> None:
+        self.colliderect(other)
+
+"""
+Usage of walls:
+
+wall = Wall(x, y, width, height)
+player_rect = pygame.Rect(10, 10, 100, 100)
+collides = wall.check_collision(player_rect)
+"""
 
 """
 Usage:
