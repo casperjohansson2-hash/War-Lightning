@@ -91,8 +91,8 @@ else:
                 screen.blit(self.sprite_player1, (self.player1_x, self.player1_y))
                 
 
-            
-                pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
+                if ui.get_settings()["hitboxes"]:
+                    pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
              
 
     if ui.get_mode() == "solo":
@@ -138,7 +138,8 @@ else:
                     
 
 
-                    pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
+                    if ui.get_settings()["hitboxes"]:
+                        pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
                 
     elif ui.get_mode() == "vs":
         class Player2:
@@ -182,7 +183,8 @@ else:
                     
 
 
-                    pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
+                    if ui.get_settings()["hitboxes"]:
+                        pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
                 
 
     #Klassen för skotten som båda spelarna kan skjuta, och håller koll på hastighet och direktion
