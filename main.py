@@ -64,7 +64,7 @@ else:
             self.sprite_player1 = self.original_image
             self.direction = "UP"
             self.exploded = False
-            self.kollision_rectangle = pygame.Rect(self.player1_x, self.player1_y, self.sprite_player1.get_width(), self.sprite_player1.get_height())
+            self.collision_rectangle = pygame.Rect(self.player1_x, self.player1_y, self.sprite_player1.get_width(), self.sprite_player1.get_height())
 
         def move(self):
             keys = pygame.key.get_pressed()
@@ -86,7 +86,7 @@ else:
                 self.direction = "RIGHT"
 
 
-            self.kollision_rectangle.topleft = (self.player1_x, self.player1_y)
+            self.collision_rectangle.topleft = (self.player1_x, self.player1_y)
 
         def draw(self, screen):
             if not self.exploded:
@@ -94,11 +94,11 @@ else:
                 
 
                 if ui.get_setting("hitboxes"):
-                    pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
+                    pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
              
-        def kollidera(self, player1_tank):
+        def collide(self, player1_tank):
             if not player_1.exploded:
-                if (self.kollision_rectangle.colliderect(player1_tank)):
+                if (self.collision_rectangle.colliderect(player1_tank)):
                     player_1.exploded = True
     if ui.get_mode() == "solo":
         class Player2:
@@ -113,7 +113,7 @@ else:
                 self.exploded = False
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
-                self.kollision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
+                self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
 
             def move(self):
                 keys = pygame.key.get_pressed()
@@ -135,7 +135,7 @@ else:
                     self.direction = "RIGHT"
 
 
-                self.kollision_rectangle.topleft = (self.player2_x, self.player2_y)
+                self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
             def draw(self, screen):
                 if not self.exploded:
@@ -144,11 +144,11 @@ else:
 
 
                     if ui.get_setting("hitboxes"):
-                        pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
+                        pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
 
-            def kollidera(self, player2_tank):
+            def collide(self, player2_tank):
                 if not player_2.exploded:
-                    if (self.kollision_rectangle.colliderect(player2_tank)):
+                    if (self.collision_rectangle.colliderect(player2_tank)):
                         player_2.exploded = True
                 
     elif ui.get_mode() == "vs":
@@ -164,7 +164,7 @@ else:
                 self.exploded = False
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
-                self.kollision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
+                self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
 
             def move(self):
                 keys = pygame.key.get_pressed()
@@ -185,7 +185,7 @@ else:
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
 
-                self.kollision_rectangle.topleft = (self.player2_x, self.player2_y)
+                self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
             def draw(self, screen):
                 if not self.exploded:
@@ -194,11 +194,11 @@ else:
 
 
                     if ui.get_setting("hitboxes"):
-                        pygame.draw.rect(screen, (0, 0, 255), self.kollision_rectangle, 2)
+                        pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
                 
-            def kollidera(self, player2_tank):
+            def collide(self, player2_tank):
                 if not player_2.exploded:
-                    if (self.kollision_rectangle.colliderect(player2_tank)):
+                    if (self.collision_rectangle.colliderect(player2_tank)):
                         player_2.exploded = True
 
     #Klassen för skotten som båda spelarna kan skjuta, och håller koll på hastighet och direktion
@@ -209,7 +209,8 @@ else:
             self.speed = 10
             self.bild = sprite_bullet
             self.direction = direction
-            self.kollision_rectangle = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
+            self.collision_rectangle = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
+            self.collision = False
 
             if self.direction == "LEFT":
                 self.bild = pygame.transform.rotate(sprite_bullet, 90)
@@ -229,13 +230,17 @@ else:
             elif self.direction == "RIGHT":
                 self.x += self.speed
 
-            self.kollision_rectangle.topleft = (self.x, self.y)
+            self.collision_rectangle.topleft = (self.x, self.y)
 
         def draw(self, screen):
             if self.direction == "UP" or self.direction == "DOWN":
                 screen.blit(self.bild, (self.x + 8, self.y))
             else:
                 screen.blit(self.bild, (self.x, self.y + 28))
+
+        def collide(self, collision_bullet):
+            if (self.collision_rectangle.colliderect(collision_bullet)):
+                damage()
 
     #Klassen som gör det möjligt för sprites att kunna rotera på sig så att det blir snyggare
     class RotatingSprite(pygame.sprite.Sprite):
@@ -312,6 +317,9 @@ else:
             #Och här så ses det till så att om ett skott är utanför spelets ramar så tas de bort
             if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                 bullet_list1.remove(bullet)
+
+            bullet.collide(player_2.collision_rectangle)
+           
         #Samma som ovan
         for bullet in reversed(bullet_list2):
             bullet.move()
@@ -319,6 +327,10 @@ else:
             #Samma som ovan
             if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                 bullet_list2.remove(bullet)
+
+            bullet.collide(player_1.collision_rectangle)
+
+        
         #Här konfigueras fps klockan till sextio frames per sekund
         clock.tick(60)#och här läggs det till till räknarna för att det ska gå långsammare att skjuta
         bullet_counter1 = bullet_counter1 + 0.5
