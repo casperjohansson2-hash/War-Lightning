@@ -375,6 +375,8 @@ class Menu:
     
     def edit_volume(self, volume: float) -> None:
         AppState.settings["volume"] = volume
+        BUTTON_SOUND.set_volume(volume)
+        pygame.mixer.music.set_volume(volume)
         VOLUME_TEXT.edit_text(f"Volume: {volume:.1f}")
 
     def back_to_start(self) -> None:
