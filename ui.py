@@ -241,10 +241,12 @@ PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
 MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
 SETTINGS = UI("Settings")
+CREDIBILITY = UI("Cred")
 
 TITLE = Text(HEADER_FONT, "War Lightning", (255, 255, 255))
 SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (255, 255, 255))
 SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (255, 255, 255))
+CRED_TITLE = Text(HEADER_FONT, "Creds", (255, 255, 255))
 
 HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
 
@@ -264,6 +266,10 @@ class Menu:
     def open_settings(self) -> None:
         BUTTON_SOUND.play()
         self.ui = SETTINGS
+    
+    def open_credits(self) -> None:
+        BUTTON_SOUND.play()
+        self.ui = CREDIBILITY
     
     def toggle_hitboxes(self) -> None:
         BUTTON_SOUND.play()
@@ -335,6 +341,17 @@ MAIN_MENU\
     ),
     Text(PRIMARY_FONT, "Settings", (200, 235, 220)),
     lambda: menu.open_settings()
+))\
+.add_element(Button(
+    pygame.Rect(325, 400, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Cred", (200, 235, 220)),
+    lambda: menu.open_credits()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
@@ -415,6 +432,30 @@ SETTINGS\
     Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
     lambda: menu.back_to_start()
 ))
+
+CREDIBILITY\
+.add_element(Label(
+    CRED_TITLE.text_rect(center=(400, 30)), CRED_TITLE
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
+    lambda: menu.back_to_start()
+))
+
+with open("credits.txt", "r") as f:
+    credits = f.readlines()
+for index, line in enumerate(credits):
+    line = line.replace("\n", "").strip()
+    text = Text(PRIMARY_FONT, line, (255, 255, 255))
+    label = Label(text.text_rect(center=(400, 100+20*index)), text)
+    CREDIBILITY.add_element(label)
 
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("War Lightning")
