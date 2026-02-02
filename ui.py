@@ -233,7 +233,7 @@ BACKGROUND_IMAGE = pygame.transform.smoothscale(pygame.image.load("assets/ui/tes
 DIM = pygame.Surface((800, 600), pygame.SRCALPHA)
 DIM.fill((50, 50, 50, 150))
 
-#BUTTON_SOUND = pygame.mixer.Sound("assets/ui/press_button.mp3")
+BUTTON_SOUND = pygame.mixer.Sound("assets/audio/press_button.mp3")
 
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
 PRIMARY_FONT = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25, bold=True)
@@ -258,35 +258,35 @@ class Menu:
         self.ui = MAIN_MENU
 
     def start(self) -> None:
-        #BUTTON_SOUND.play()
+        BUTTON_SOUND.play()
         self.ui = MODE_MENU
     
     def open_settings(self) -> None:
-        #BUTTON_SOUND.play()
+        BUTTON_SOUND.play()
         self.ui = SETTINGS
     
     def toggle_hitboxes(self) -> None:
-        #BUTTON_SOUND.play()
+        BUTTON_SOUND.play()
         was_active = AppState.settings["hitboxes"]
         AppState.settings["hitboxes"] = not was_active
         HITBOX_TEXT.edit_text("Disabled" if was_active else "Enabled")
 
     def back_to_start(self) -> None:
-        #BUTTON_SOUND.play()
+        BUTTON_SOUND.play()
         self.ui = MAIN_MENU
 
     def select_solo(self) -> None:
-        #BUTTON_SOUND.play()
+        BUTTON_SOUND.play()
         self.active = False
         AppState.mode = "solo"
 
     def select_vs(self) -> None:
-        #BUTTON_SOUND.play()
+        BUTTON_SOUND.play()
         self.active = False
         AppState.mode = "vs"
 
     def quit(self) -> None:
-        #BUTTON_SOUND.play()
+        BUTTON_SOUND.play()
         self.active = False
         AppState.mode = "exit"
 
