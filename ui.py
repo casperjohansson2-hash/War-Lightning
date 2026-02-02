@@ -322,7 +322,7 @@ MAIN_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Start", (0, 0, 0)),
+    Text(PRIMARY_FONT, "Start", (200, 235, 220)),
     lambda: menu.start()
 ))\
 .add_element(Button(
@@ -333,18 +333,18 @@ MAIN_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Settings", (0, 0, 0)),
+    Text(PRIMARY_FONT, "Settings", (200, 235, 220)),
     lambda: menu.open_settings()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
     ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
+        (190, 150, 150),
+        (140, 100, 100),
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Exit", (0, 0, 0)),
+    Text(PRIMARY_FONT, "Exit", (200, 235, 220)),
     lambda: menu.quit()
 ))
 
@@ -360,7 +360,7 @@ MODE_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Solo", (0, 0, 0)),
+    Text(PRIMARY_FONT, "Solo", (200, 235, 220)),
     lambda: menu.select_solo()
 ))\
 .add_element(Button(
@@ -371,7 +371,7 @@ MODE_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "VS", (0, 0, 0)),
+    Text(PRIMARY_FONT, "VS", (200, 235, 220)),
     lambda: menu.select_vs()
 ))\
 .add_element(Button(
@@ -382,7 +382,7 @@ MODE_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Go Back", (0, 0, 0)),
+    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
     lambda: menu.back_to_start()
 ))
 
@@ -401,7 +401,7 @@ SETTINGS\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Toggle Hitboxes", (0, 0, 0)),
+    Text(PRIMARY_FONT, "Toggle Hitboxes", (200, 235, 220)),
     lambda: menu.toggle_hitboxes()
 ))\
 .add_element(Button(
@@ -412,7 +412,7 @@ SETTINGS\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Go Back", (0, 0, 0)),
+    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
     lambda: menu.back_to_start()
 ))
 
