@@ -12,7 +12,7 @@ pygame.display.set_caption("Tank War - AI Player 2")
 clock = pygame.time.Clock()
 
 #    AI Tankens Grafik
-raw_image = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
+raw_image = pygame.image.load("C:/War Lightning/War-Lightning/assets/tanks/Player2.png")
 
 original_ai_player = pygame.transform.scale(raw_image, (raw_image.get_width(), raw_image.get_height()))
 
