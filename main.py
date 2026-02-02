@@ -172,27 +172,30 @@ class RotatingSprite(pygame.sprite.Sprite):
         old_center = self.rect.center
         self.rect = self.image.get_rect()
         self.rect.center = old_center
-
+# Här defineras de två spelarna utifrån deras klasser
 player_1 = Player1()
 player_2 = Player2()
-
+#Och här definieras skott räknarna som gör att man inte kan skjuta för snabbt
 bullet_counter1 = 0
 bullet_counter2 = 0
-
+#Listor som håller koll på de olika objekten som avfyrats från båda spelarna under en runda
 bullet_list1 = []
 bullet_list2 = []
+#Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
 while game:
-    
+    #Funktionerna för att de två spelarna ska kunna röra sig
     player_1.move()
     player_2.move()
+    #Här ritas bakgrunden
     screen.blit(background, (0, 0))
+    #Här görs det så att man kan stänga fönstret och döda systemet
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
 
     screen.fill((0, 0, 0))
     keys = pygame.key.get_pressed()
-
+    #Knappbindningarna för att skjuta som spelare 1 och spelare 2, och när de skjuter och lever så läggs det till objekt i de tomma listorna
     if keys[pygame.K_SPACE]:
         if (bullet_counter1 > 20):
             bullet_list1.append(Bullet(player_1.player1_x + 20, player_1.player1_y, player_1.direction))
@@ -204,23 +207,29 @@ while game:
             bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y, player_2.direction))
             bullet_counter2 = 0
 
+    #Här så uppdateras varenda objekt i respektive lista
     for bullet in reversed(bullet_list1):
         bullet.move()
         bullet.draw(screen)
-
-        if bullet.y < -100:
+        #Och här så ses det till så att om ett skott är utanför spelets ramar så tas de bort
+        if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
             bullet_list1.remove(bullet)
-
+    #Samma som ovan
     for bullet in reversed(bullet_list2):
         bullet.move()
         bullet.draw(screen)
-
+        #Samma som ovan
         if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
             bullet_list2.remove(bullet)
-    clock.tick(60)
+    #Här konfigueras fps klockan till sextio frames per sekund
+    clock.tick(60)#och här läggs det till till räknarna för att det ska gå långsammare att skjuta
     bullet_counter1 = bullet_counter1 + 1
     bullet_counter2 = bullet_counter2 + 1
+    #Här ritas spelarnas stridsvagnar
     screen.blit(player_1.sprite_player1, (player_1.player1_x, player_1.player1_y))
     screen.blit(player_2.sprite_player2, (player_2.player2_x, player_2.player2_y))
+    #Och här så uppdateras hela pygame-skärmen
     pygame.display.flip()
+
+#här så stängs pygame och stänger fönstret
 pygame.quit()
