@@ -128,6 +128,10 @@ class Map(pygame.Surface):
     
     def render(self, surface: pygame.Surface) -> None:
         surface.blit(self, self.rect)
+
+class Wall(pygame.Rect):
+    def __init__(self, x: int, y: int, width: int, height: int) -> None:
+        super().__init__(x, y, width, height)
     
 """
 Usage:
