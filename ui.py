@@ -223,9 +223,9 @@ def get_mode() -> str:
     return AppState.mode
 
 @cache
-def get_settings() -> Dict[str, Any]:
+def get_setting(name: str) -> Dict[str, Any]:
     """Import this method and call it to retireve the settings."""
-    return AppState.settings
+    return AppState.settings[name]
 
 pygame.mixer.music.load("assets/music/menu.mp3")
 
