@@ -159,6 +159,8 @@ class SliderConfig:
     hover_bg: Tuple[int, int, int]
     pressed_bg: Tuple[int, int, int]
     alpha: int
+    slider_radius: int
+    slider_width: int
     border_radius: int
     border_width: int
 
@@ -225,11 +227,27 @@ class Slider(Element):
             min(bg[2] + 70, 255),
         )
 
+        slider_border = (
+            min(self.config.slider_bg[0] + 50, 255),
+            min(self.config.slider_bg[1] + 60, 255),
+            min(self.config.slider_bg[2] + 70, 255),
+        )
+
         self.button_rect.x = int(
             self.factor * (self.rect.width - self.button_rect.width)
         )
 
-        pygame.draw.rect(self.surface, self.config.slider_bg, self.slider_rect, border_radius=5)
+        pygame.draw.rect(self.surface, self.config.slider_bg, self.slider_rect, border_radius=self.config.slider_radius)
+
+        if self.config.slider_width > 0:
+            pygame.draw.rect(
+                self.surface, 
+                slider_border, 
+                self.slider_rect, 
+                self.config.slider_width,
+                self.config.slider_radius
+            )
+
         pygame.draw.rect(self.surface, bg, self.button_rect, border_radius=self.config.border_radius)
 
         if self.config.border_width > 0:
@@ -452,7 +470,7 @@ MAIN_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "Cred", (200, 235, 220)),
+    Text(PRIMARY_FONT, "Creds", (200, 235, 220)),
     lambda: menu.open_credits()
 ))\
 .add_element(Button(
@@ -490,7 +508,7 @@ MODE_MENU\
         (255, 0, 0),
         200, 15, 2
     ),
-    Text(PRIMARY_FONT, "VS", (200, 235, 220)),
+    Text(PRIMARY_FONT, "Versus", (200, 235, 220)),
     lambda: menu.select_vs()
 ))\
 .add_element(Button(
@@ -533,7 +551,7 @@ SETTINGS\
         (150, 150, 150),
         (100, 100, 100),
         (255, 0, 0),
-        200, 15, 2
+        200, 5, 2, 15, 2
     ),
     1.0,
     (0.0, 1.0),
