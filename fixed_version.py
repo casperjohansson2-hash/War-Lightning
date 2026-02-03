@@ -166,7 +166,7 @@ class TankWorld(World):
     bullets: List["Bullet"]
 
     def __init__(self, *objects: pygame.Rect) -> None:
-        super().__init__(self, *objects)
+        super().__init__(*objects)
         self.bullets = []
 
 class Bullet:
