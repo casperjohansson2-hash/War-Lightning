@@ -86,8 +86,8 @@ else:
             self.sprite_player1 = self.original_image
             self.direction = "UP"
             self.exploded = False
-            hitbox_width = self.sprite_player1.get_width() - 20
-            hitbox_height = self.sprite_player1.get_height() - 20
+            hitbox_width = self.sprite_player1.get_width() - 25
+            hitbox_height = self.sprite_player1.get_height() - 25
             
             
             self.offset_x = (self.sprite_player1.get_width() - hitbox_width) // 2
@@ -190,8 +190,8 @@ else:
                 self.exploded = False
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
-                hitbox_width = self.sprite_player2.get_width() - 20
-                hitbox_height = self.sprite_player2.get_height() - 20
+                hitbox_width = self.sprite_player2.get_width() - 25
+                hitbox_height = self.sprite_player2.get_height() - 25
             
             
                 self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
@@ -296,8 +296,8 @@ else:
                 self.exploded = False
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
-                hitbox_width = self.sprite_player2.get_width() - 20
-                hitbox_height = self.sprite_player2.get_height() - 20
+                hitbox_width = self.sprite_player2.get_width() - 25
+                hitbox_height = self.sprite_player2.get_height() - 25
             
             
                 self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
@@ -500,8 +500,20 @@ else:
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
     #All kollision
     walls = [
-        pygame.Rect(796, 21, 28, 90),
-        pygame.Rect(794, 169, 28, 90)
+        pygame.Rect(796, 24, 28, 86),
+        pygame.Rect(794, 169, 28, 86),
+        pygame.Rect(794, 336, 28, 86),
+        pygame.Rect(822, 394, 172, 28),
+        pygame.Rect(880, 730, 172, 28),
+        pygame.Rect(794, 504, 28, 86),
+        pygame.Rect(795, 672, 28, 86),
+        pygame.Rect(794, 862, 28, 86),
+        pygame.Rect(1135, 24, 28, 86),
+        pygame.Rect(1135, 169, 28, 86),
+        pygame.Rect(1135, 336, 28, 86),
+        pygame.Rect(1135, 504, 28, 86),
+        pygame.Rect(1136, 672, 28, 86),
+        pygame.Rect(1135, 860, 28, 86),
     ]
     while game:
         if countdown > 0:
