@@ -23,6 +23,10 @@ pygame.mixer.music.load("assets/audio/Match-start.mp3")
 pygame.mixer.music.play()
 volume = ui.get_setting("volume")
 pygame.mixer.music.set_volume(volume)
+
+color_list = [(255, 50, 50), (255, 150, 50), (255, 255, 50)]
+explosions = []
+
 if ui.get_mode() == "exit":
     pygame.quit()
 else:
@@ -148,6 +152,8 @@ else:
         def collide(self, bullet_rect):
             if not player_1.exploded:
                 if self.collision_rectangle.colliderect(bullet_rect):
+                    explosion = [Particle(player_1.player1_x + 34, player_1.player1_y + 30) for _ in range(100)]
+                    explosions.append(explosion)
                     player_1.health -= damage()
                     return True 
             return False 
@@ -169,11 +175,11 @@ else:
             def move(self, walls):
                 keys = pygame.key.get_pressed()
                 
-                # Skapa temporära variabler för hur mycket vi VILL flytta
+                
                 dx = 0
                 dy = 0
 
-                # --- 1. Kolla Input ---
+               
                 if keys[pygame.K_UP] and self.health > 0:
                     dy = -self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
@@ -191,35 +197,35 @@ else:
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
 
-                # --- 2. Hantera X-rörelse och kollision ---
+                
                 self.player2_x += dx
                 self.collision_rectangle.x = self.player2_x
                 
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
-                        if dx > 0: # Vi rörde oss HÖGER, så vi slog i väggens vänstra sida
+                        if dx > 0: 
                             self.collision_rectangle.right = wall.left
-                        if dx < 0: # Vi rörde oss VÄNSTER, så vi slog i väggens högra sida
+                        if dx < 0:
                             self.collision_rectangle.left = wall.right
                         
-                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                       
                         self.player2_x = self.collision_rectangle.x
 
-                # --- 3. Hantera Y-rörelse och kollision ---
+                
                 self.player2_y += dy
                 self.collision_rectangle.y = self.player2_y
                 
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
-                        if dy > 0: # Vi rörde oss NER, slog i väggens ovansida
+                        if dy > 0: 
                             self.collision_rectangle.bottom = wall.top
-                        if dy < 0: # Vi rörde oss UPP, slog i väggens undersida
+                        if dy < 0:
                             self.collision_rectangle.top = wall.bottom
                         
-                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                        
                         self.player2_y = self.collision_rectangle.y
 
-                # Uppdatera till slut rect-koordinaten för säkerhets skull
+                
                 self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
             def draw(self, screen):
@@ -234,6 +240,8 @@ else:
             def collide(self, bullet_rect):
                 if not player_2.exploded:
                     if self.collision_rectangle.colliderect(bullet_rect):
+                        explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
+                        explosions.append(explosion)
                         player_2.health -= damage()
                         return True 
                 return False 
@@ -256,11 +264,11 @@ else:
             def move(self, walls):
                 keys = pygame.key.get_pressed()
                 
-                # Skapa temporära variabler för hur mycket vi VILL flytta
+                
                 dx = 0
                 dy = 0
 
-                # --- 1. Kolla Input ---
+                
                 if keys[pygame.K_UP] and self.health > 0:
                     dy = -self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
@@ -278,35 +286,35 @@ else:
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
 
-                # --- 2. Hantera X-rörelse och kollision ---
+                
                 self.player2_x += dx
                 self.collision_rectangle.x = self.player2_x
                 
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
-                        if dx > 0: # Vi rörde oss HÖGER, så vi slog i väggens vänstra sida
+                        if dx > 0: 
                             self.collision_rectangle.right = wall.left
-                        if dx < 0: # Vi rörde oss VÄNSTER, så vi slog i väggens högra sida
+                        if dx < 0:
                             self.collision_rectangle.left = wall.right
                         
-                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                        
                         self.player2_x = self.collision_rectangle.x
 
-                # --- 3. Hantera Y-rörelse och kollision ---
+                
                 self.player2_y += dy
                 self.collision_rectangle.y = self.player2_y
                 
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
-                        if dy > 0: # Vi rörde oss NER, slog i väggens ovansida
+                        if dy > 0: 
                             self.collision_rectangle.bottom = wall.top
-                        if dy < 0: # Vi rörde oss UPP, slog i väggens undersida
+                        if dy < 0: 
                             self.collision_rectangle.top = wall.bottom
                         
-                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                        
                         self.player2_y = self.collision_rectangle.y
 
-                # Uppdatera till slut rect-koordinaten för säkerhets skull
+                
                 self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
             def draw(self, screen):
@@ -321,6 +329,8 @@ else:
             def collide(self, bullet_rect):
                 if not player_2.exploded:
                     if self.collision_rectangle.colliderect(bullet_rect):
+                        explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
+                        explosions.append(explosion)
                         player_2.health -= damage()
                         return True 
                 return False 
@@ -396,6 +406,28 @@ else:
             old_center = self.rect.center
             self.rect = self.image.get_rect()
             self.rect.center = old_center
+
+
+
+
+    class Particle:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+            self.lifetime = random.randint(20, 50)
+            self.speed_x = random.uniform(-2, 2)
+            self.speed_y = random.uniform(-2, 2)
+            self.radius = random.randint(3, 6)
+            self.color = random.choice(color_list)
+
+        def update(self):
+            self.x += self.speed_x
+            self.y += self.speed_y
+            self.lifetime -= 1
+
+        def draw(self, screen):
+            if self.lifetime > 0:
+                pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
     player_2 = Player2()
@@ -461,6 +493,13 @@ else:
             elif player_1.collide(bullet.collision_rectangle):
                 bullet_list2.remove(bullet)
             
+        for explosion in explosions:
+            for particle in explosion:
+                particle.update()
+                particle.draw(screen)
+
+        explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
+        explosions = [e for e in explosions if len(e) > 0]
 
         if player_1.health < 0:
             player_1.exploded = True
@@ -469,8 +508,8 @@ else:
             player_2.exploded = True
         #Här konfigueras fps klockan till sextio frames per sekund
         clock.tick(60)#och här läggs det till till räknarna för att det ska gå långsammare att skjuta
-        bullet_counter1 = bullet_counter1 + 0.5
-        bullet_counter2 = bullet_counter2 + 0.5
+        bullet_counter1 = bullet_counter1 + 0.2
+        bullet_counter2 = bullet_counter2 + 0.2
         #Här ritas spelarnas stridsvagnar
         player_1.draw(screen)
         player_2.draw(screen)
