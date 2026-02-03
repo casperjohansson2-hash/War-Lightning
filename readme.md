@@ -13,9 +13,9 @@ This enemy is adaptive, relentless, and designed to test your limits.
 
 The outcome is uncertain.
 
-Will your opponent beg for mercy?
+- Will your opponent beg for mercy?
 
-Or will you be the one who fails?
+- Or will you be the one who fails?
 
 Only time will decide.
 
