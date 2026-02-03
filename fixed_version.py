@@ -267,6 +267,8 @@ pygame.display.init()
 
 WIDTH, HEIGHT = 800, 600
 screen = Screen(WIDTH, HEIGHT)
+pygame.display.set_caption("War Lightning")
+pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
 
 shoot_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
 normal_hit_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
