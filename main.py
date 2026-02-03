@@ -82,58 +82,60 @@ else:
             self.collision_rectangle = pygame.Rect(self.player1_x, self.player1_y, self.sprite_player1.get_width(), self.sprite_player1.get_height())
 
         def move(self, walls):
-            right_collision = False
-            left_collision = False
-            down_collision = False
-            up_collision = False
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_w] and player_1.health > 0 and up_collision != True:
-                player_1.player1_y -= player_1.speed
+            
+            # Skapa temporära variabler för hur mycket vi VILL flytta
+            dx = 0
+            dy = 0
+
+            # --- 1. Kolla Input ---
+            if keys[pygame.K_w] and self.health > 0:
+                dy = -self.speed
                 self.sprite_player1 = pygame.transform.rotate(self.original_image, 0)
                 self.direction = "UP"
-            elif keys[pygame.K_a] and player_1.health > 0 and left_collision != True:
-                player_1.player1_x -= player_1.speed
-                self.sprite_player1 = pygame.transform.rotate(self.original_image, 90)
-                self.direction = "LEFT"
-            elif keys[pygame.K_s] and player_1.health > 0 and down_collision != True:
-                player_1.player1_y += player_1.speed
+            elif keys[pygame.K_s] and self.health > 0:
+                dy = self.speed
                 self.sprite_player1 = pygame.transform.rotate(self.original_image, 180)
                 self.direction = "DOWN"
-            elif keys[pygame.K_d] and player_1.health > 0 and right_collision != True:
-                player_1.player1_x += player_1.speed
+            elif keys[pygame.K_a] and self.health > 0:
+                dx = -self.speed
+                self.sprite_player1 = pygame.transform.rotate(self.original_image, 90)
+                self.direction = "LEFT"
+            elif keys[pygame.K_d] and self.health > 0:
+                dx = self.speed
                 self.sprite_player1 = pygame.transform.rotate(self.original_image, 270)
                 self.direction = "RIGHT"
 
-            self.collision_rectangle.x += player_1.speed
-            for wall in walls:
-                if self.collision_rectangle.colliderect(wall):
-                    if self.direction == "RIGHT":  
-                        right_collision = True
-                        left_collision = False
-                        down_collision = False
-                        up_collision = False
-                    elif self.direction == "LEFT":  
-                        right_collision = False
-                        left_collision = True
-                        down_collision = False
-                        up_collision = False
-
+            # --- 2. Hantera X-rörelse och kollision ---
+            self.player1_x += dx
+            self.collision_rectangle.x = self.player1_x
             
-            self.collision_rectangle.y += player_1.speed
             for wall in walls:
                 if self.collision_rectangle.colliderect(wall):
-                    if self.direction == "DOWN":  
-                        right_collision = False
-                        left_collision = False
-                        down_collision = True
-                        up_collision = False
-                    elif self.direction == "UP":  
-                        right_collision = False
-                        left_collision = False
-                        down_collision = False
-                        up_collision = True
+                    if dx > 0: # Vi rörde oss HÖGER, så vi slog i väggens vänstra sida
+                        self.collision_rectangle.right = wall.left
+                    if dx < 0: # Vi rörde oss VÄNSTER, så vi slog i väggens högra sida
+                        self.collision_rectangle.left = wall.right
+                    
+                    # Uppdatera den faktiska positionen så den matchar hitboxen
+                    self.player1_x = self.collision_rectangle.x
 
-            self.collision_rectangle.topleft = (self.player1_x // 2, self.player1_y // 2)
+            # --- 3. Hantera Y-rörelse och kollision ---
+            self.player1_y += dy
+            self.collision_rectangle.y = self.player1_y
+            
+            for wall in walls:
+                if self.collision_rectangle.colliderect(wall):
+                    if dy > 0: # Vi rörde oss NER, slog i väggens ovansida
+                        self.collision_rectangle.bottom = wall.top
+                    if dy < 0: # Vi rörde oss UPP, slog i väggens undersida
+                        self.collision_rectangle.top = wall.bottom
+                    
+                    # Uppdatera den faktiska positionen så den matchar hitboxen
+                    self.player1_y = self.collision_rectangle.y
+
+            # Uppdatera till slut rect-koordinaten för säkerhets skull
+            self.collision_rectangle.topleft = (self.player1_x, self.player1_y)
 
         def draw(self, screen):
             if not self.exploded:
@@ -166,56 +168,58 @@ else:
 
             def move(self, walls):
                 keys = pygame.key.get_pressed()
-                right_collision = False
-                left_collision = False
-                down_collision = False
-                up_collision = False
-                if keys[pygame.K_UP] and player_2.health > 0 and up_collision != True:
-                    player_2.player2_y -= player_2.speed
+                
+                # Skapa temporära variabler för hur mycket vi VILL flytta
+                dx = 0
+                dy = 0
+
+                # --- 1. Kolla Input ---
+                if keys[pygame.K_UP] and self.health > 0:
+                    dy = -self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
                     self.direction = "UP"
-                elif keys[pygame.K_LEFT] and player_2.health > 0 and left_collision != True:
-                    player_2.player2_x -= player_2.speed
-                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
-                    self.direction = "LEFT"
-                elif keys[pygame.K_DOWN] and player_2.health > 0 and down_collision != True:
-                    player_2.player2_y += player_2.speed
+                elif keys[pygame.K_DOWN] and self.health > 0:
+                    dy = self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 180)
                     self.direction = "DOWN"
-                elif keys[pygame.K_RIGHT] and player_2.health > 0 and right_collision != True:
-                    player_2.player2_x += player_2.speed
+                elif keys[pygame.K_LEFT] and self.health > 0:
+                    dx = -self.speed
+                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
+                    self.direction = "LEFT"
+                elif keys[pygame.K_RIGHT] and self.health > 0:
+                    dx = self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
 
-                self.collision_rectangle.x += player_2.speed
-                for wall in walls:
-                    if self.collision_rectangle.colliderect(wall):
-                        if self.direction == "RIGHT":  
-                            right_collision = True
-                            left_collision = False
-                            down_collision = False
-                            up_collision = False
-                        elif self.direction == "LEFT":  
-                            right_collision = False
-                            left_collision = True
-                            down_collision = False
-                            up_collision = False
-
+                # --- 2. Hantera X-rörelse och kollision ---
+                self.player2_x += dx
+                self.collision_rectangle.x = self.player2_x
                 
-                self.collision_rectangle.y += player_2.speed
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
-                        if self.direction == "DOWN":  
-                            right_collision = False
-                            left_collision = False
-                            down_collision = True
-                            up_collision = False
-                        elif self.direction == "UP":  
-                            right_collision = False
-                            left_collision = False
-                            down_collision = False
-                            up_collision = True
+                        if dx > 0: # Vi rörde oss HÖGER, så vi slog i väggens vänstra sida
+                            self.collision_rectangle.right = wall.left
+                        if dx < 0: # Vi rörde oss VÄNSTER, så vi slog i väggens högra sida
+                            self.collision_rectangle.left = wall.right
+                        
+                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                        self.player2_x = self.collision_rectangle.x
 
+                # --- 3. Hantera Y-rörelse och kollision ---
+                self.player2_y += dy
+                self.collision_rectangle.y = self.player2_y
+                
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dy > 0: # Vi rörde oss NER, slog i väggens ovansida
+                            self.collision_rectangle.bottom = wall.top
+                        if dy < 0: # Vi rörde oss UPP, slog i väggens undersida
+                            self.collision_rectangle.top = wall.bottom
+                        
+                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                        self.player2_y = self.collision_rectangle.y
+
+                # Uppdatera till slut rect-koordinaten för säkerhets skull
                 self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
             def draw(self, screen):
@@ -251,56 +255,58 @@ else:
 
             def move(self, walls):
                 keys = pygame.key.get_pressed()
-                right_collision = False
-                left_collision = False
-                down_collision = False
-                up_collision = False
-                if keys[pygame.K_UP] and player_2.health > 0 and up_collision != True:
-                    player_2.player2_y -= player_2.speed
+                
+                # Skapa temporära variabler för hur mycket vi VILL flytta
+                dx = 0
+                dy = 0
+
+                # --- 1. Kolla Input ---
+                if keys[pygame.K_UP] and self.health > 0:
+                    dy = -self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
                     self.direction = "UP"
-                elif keys[pygame.K_LEFT] and player_2.health > 0 and left_collision != True:
-                    player_2.player2_x -= player_2.speed
-                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
-                    self.direction = "LEFT"
-                elif keys[pygame.K_DOWN] and player_2.health > 0 and down_collision != True:
-                    player_2.player2_y += player_2.speed
+                elif keys[pygame.K_DOWN] and self.health > 0:
+                    dy = self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 180)
                     self.direction = "DOWN"
-                elif keys[pygame.K_RIGHT] and player_2.health > 0 and right_collision != True:
-                    player_2.player2_x += player_2.speed
+                elif keys[pygame.K_LEFT] and self.health > 0:
+                    dx = -self.speed
+                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
+                    self.direction = "LEFT"
+                elif keys[pygame.K_RIGHT] and self.health > 0:
+                    dx = self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
 
-                self.collision_rectangle.x += player_2.speed
-                for wall in walls:
-                    if self.collision_rectangle.colliderect(wall):
-                        if self.direction == "RIGHT":  
-                            right_collision = True
-                            left_collision = False
-                            down_collision = False
-                            up_collision = False
-                        elif self.direction == "LEFT":  
-                            right_collision = False
-                            left_collision = True
-                            down_collision = False
-                            up_collision = False
-
+                # --- 2. Hantera X-rörelse och kollision ---
+                self.player2_x += dx
+                self.collision_rectangle.x = self.player2_x
                 
-                self.collision_rectangle.y += player_2.speed
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
-                        if self.direction == "DOWN":  
-                            right_collision = False
-                            left_collision = False
-                            down_collision = True
-                            up_collision = False
-                        elif self.direction == "UP":  
-                            right_collision = False
-                            left_collision = False
-                            down_collision = False
-                            up_collision = True
+                        if dx > 0: # Vi rörde oss HÖGER, så vi slog i väggens vänstra sida
+                            self.collision_rectangle.right = wall.left
+                        if dx < 0: # Vi rörde oss VÄNSTER, så vi slog i väggens högra sida
+                            self.collision_rectangle.left = wall.right
+                        
+                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                        self.player2_x = self.collision_rectangle.x
 
+                # --- 3. Hantera Y-rörelse och kollision ---
+                self.player2_y += dy
+                self.collision_rectangle.y = self.player2_y
+                
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dy > 0: # Vi rörde oss NER, slog i väggens ovansida
+                            self.collision_rectangle.bottom = wall.top
+                        if dy < 0: # Vi rörde oss UPP, slog i väggens undersida
+                            self.collision_rectangle.top = wall.bottom
+                        
+                        # Uppdatera den faktiska positionen så den matchar hitboxen
+                        self.player2_y = self.collision_rectangle.y
+
+                # Uppdatera till slut rect-koordinaten för säkerhets skull
                 self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
 
             def draw(self, screen):
