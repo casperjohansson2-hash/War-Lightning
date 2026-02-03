@@ -19,6 +19,7 @@ import ui
 shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
 normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
 crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
+dead = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank kaboom.mp3")
 pygame.mixer.music.load("assets/audio/Match-start.mp3")
 pygame.mixer.music.play()
 volume = ui.get_setting("volume")
@@ -428,6 +429,8 @@ else:
         def draw(self, screen):
             if self.lifetime > 0:
                 pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
+
+    primary_font = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25)
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
     player_2 = Player2()
@@ -439,7 +442,7 @@ else:
     bullet_list2 = []
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
     walls = [
-        pygame.Rect(10, 0, 50, height)
+        pygame.Rect(800, 20, 25, 180)
     ]
     while game:
         #Funktionerna för att de två spelarna ska kunna röra sig
@@ -472,8 +475,12 @@ else:
             bullet.move()
             bullet.draw(screen)
             
+            hit_wall = False
+            for wall in walls:
+                if bullet.collision_rectangle.colliderect(wall):
+                    hit_wall = True
             # Check if bullet went off screen
-            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
+            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
                 bullet_list1.remove(bullet)
             
             
@@ -486,7 +493,11 @@ else:
             bullet.move()
             bullet.draw(screen)
 
-            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
+            hit_wall = False
+            for wall in walls:
+                if bullet.collision_rectangle.colliderect(wall):
+                    hit_wall = True
+            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
                 bullet_list2.remove(bullet)
             
             
@@ -501,16 +512,33 @@ else:
         explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
         explosions = [e for e in explosions if len(e) > 0]
 
-        if player_1.health < 0:
+        if player_1.health < 0 or player_1.health == 0:
             player_1.exploded = True
-
-        if player_2.health < 0:
+            dead.play()
+            #######################
+            player_1.health = 100##
+            player_2.health = 100##
+            #######################
+        if player_2.health < 0 or player_2.health == 0:
             player_2.exploded = True
+            dead.play()
+            #######################
+            player_1.health = 100##
+            player_2.health = 100##
+            #######################
         #Här konfigueras fps klockan till sextio frames per sekund
         clock.tick(60)#och här läggs det till till räknarna för att det ska gå långsammare att skjuta
         bullet_counter1 = bullet_counter1 + 0.2
         bullet_counter2 = bullet_counter2 + 0.2
+
+
+        for wall in walls:
+            pygame.draw.rect(screen, (255, 0, 0), wall, 1)
         #Här ritas spelarnas stridsvagnar
+        text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
+        screen.blit(text_surf, text_surf.get_rect(topleft=(10, 10)))
+        text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
+        screen.blit(text_surf, text_surf.get_rect(topright=(width-10, 10)))
         player_1.draw(screen)
         player_2.draw(screen)
         #Och här så uppdateras hela pygame-skärmen
