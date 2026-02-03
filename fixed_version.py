@@ -76,7 +76,7 @@ class World:
         self.players = []
     
     def find_collisions(self, rect: pygame.Rect) -> Generator[pygame.Rect, Any, None]:
-        for obj in self.objects:
+        for obj in self.objects.copy():
             if obj.colliderect(rect):
                 yield obj
     
@@ -163,11 +163,18 @@ class Player:
         self.image.render(surface)
 
 class TankWorld(World):
+    breakables: List[pygame.Rect]
     bullets: List["Bullet"]
 
     def __init__(self, *objects: pygame.Rect) -> None:
         super().__init__(*objects)
         self.bullets = []
+    
+    def find_collisions(self, rect: pygame.Rect) -> Generator[pygame.Rect, Any, None]:
+        yield from super().find_collisions(rect)
+        for obj in self.breakables.copy():
+            if obj.colliderect(rect):
+                yield obj
 
 class Bullet:
     world: TankWorld
@@ -206,6 +213,8 @@ class Bullet:
             if ui.get_setting("particles"):
                 explosions.emit(*self.image.rect.center, 50)
             normal_hit_sound.play()
+            if collision in self.world.breakables:
+                self.world.breakables.remove(collision)
             return True
     
     def render(self, surface: pygame.Surface) -> None:
