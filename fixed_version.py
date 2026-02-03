@@ -195,6 +195,8 @@ class Bullet:
                 else:
                     normal_hit_sound.play()
                 player.health -= self.damage
+                if not player.is_alive:
+                    explosion_sound.play()
                 return True
         
         for collision in self.world.find_collisions(self.image.rect):
@@ -284,15 +286,17 @@ explosions = Particles(
     radius=(3, 9)
 )
 
-shoot_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
-normal_hit_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
-crit_hit_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
+shoot_sound = pygame.mixer.Sound("assets/audio/Tank shot.mp3")
+normal_hit_sound = pygame.mixer.Sound("assets/audio/Metal hit.mp3")
+crit_hit_sound = pygame.mixer.Sound("assets/audio/Metal pierce.mp3")
+explosion_sound = pygame.mixer.Sound("assets/audio/Tank kaboom.mp3")
 pygame.mixer.music.load("assets/audio/Match-start.mp3")
 
 volume = ui.get_setting("volume")
 shoot_sound.set_volume(volume)
 normal_hit_sound.set_volume(volume)
 crit_hit_sound.set_volume(volume)
+explosion_sound.set_volume(volume)
 pygame.mixer.music.set_volume(volume)
 
 pygame.mixer.music.play()
