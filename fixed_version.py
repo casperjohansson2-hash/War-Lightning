@@ -346,8 +346,27 @@ player2 = Tank(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bulle
 
 players = [player1, player2]
 
+other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
+dim = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+dim.fill((50, 50, 50, 150))
+countdown = 4
+
 @screen.run
 def main_loop(delta_time: float) -> Any:
+    global countdown
+    if countdown > 0:
+        for event in pygame.event.get(): ...
+        background.render(screen.surface)
+        screen.surface.blit(dim, (0, 0))
+
+        text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
+        screen.surface.blit(text_surf, text_surf.get_rect(center=(WIDTH//2, HEIGHT//2)))
+
+        pygame.display.flip()
+        countdown -= 1
+        time.sleep(1.0)
+        return
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return BREAK_LOOP
