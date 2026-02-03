@@ -436,6 +436,10 @@ else:
         #Här ritas spelarnas stridsvagnar
         player_1.draw(screen)
         player_2.draw(screen)
+        text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
+        screen.blit(text_surf, text_surf.get_rect(topleft=(10, 10)))
+        text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
+        screen.blit(text_surf, text_surf.get_rect(topright=(width-10, 10)))
         #Och här så uppdateras hela pygame-skärmen
         pygame.display.flip()
 
