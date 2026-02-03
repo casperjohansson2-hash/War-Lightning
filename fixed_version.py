@@ -299,11 +299,11 @@ death_explosions = Particles(
     radius=(6, 12)
 )
 
-shoot_sound = pygame.mixer.Sound("assets/audio/Tank shot.mp3")
-normal_hit_sound = pygame.mixer.Sound("assets/audio/Metal hit.mp3")
-crit_hit_sound = pygame.mixer.Sound("assets/audio/Metal pierce.mp3")
-explosion_sound = pygame.mixer.Sound("assets/audio/Tank kaboom.mp3")
-pygame.mixer.music.load("assets/audio/Match-start.mp3")
+shoot_sound = pygame.mixer.Sound("assets/audio/Tank_shot.mp3")
+normal_hit_sound = pygame.mixer.Sound("assets/audio/Metal_hit.mp3")
+crit_hit_sound = pygame.mixer.Sound("assets/audio/Metal_pierce.mp3")
+explosion_sound = pygame.mixer.Sound("assets/audio/Tank_kaboom.mp3")
+pygame.mixer.music.load("assets/audio/Match_start.mp3")
 
 volume = ui.get_setting("volume")
 shoot_sound.set_volume(volume)
