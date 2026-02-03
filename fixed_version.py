@@ -3,6 +3,7 @@
 from typing import (
     Tuple, List, Dict, Callable, Generator, Self, Final, Any
 )
+from particles import Particles
 import random
 import cv2
 import numpy as np
@@ -136,6 +137,7 @@ class Bullet:
         
         for player in self.players:
             if self.image.rect.colliderect(player.image.rect):
+                explosions.emit(*self.image.rect.center, 50)
                 if self.damage >= 0.2:
                     crit_hit_sound.play()
                 else:
@@ -144,6 +146,7 @@ class Bullet:
                 return True
         
         for collision in self.world.find_collisions(self.image.rect):
+            explosions.emit(*self.image.rect.center, 50)
             normal_hit_sound.play()
             return True
     
@@ -273,6 +276,18 @@ screen = Screen(WIDTH, HEIGHT)
 pygame.display.set_caption("War Lightning")
 pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
 
+explosions = Particles(
+    size=(WIDTH, HEIGHT),
+    vel_x=(-400, 400),
+    vel_y=(-400, 400),
+    acc_x=(-50, 50),
+    acc_y=(-50, 50),
+    decay_x=(0.5, 0.85),
+    decay_y=(0.5, 0.85),
+    decay_size=(0.75, 0.95),
+    radius=(3, 9)
+)
+
 shoot_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
 normal_hit_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
 crit_hit_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
@@ -324,6 +339,9 @@ def main_loop(delta_time: float) -> Any:
             return BREAK_LOOP
     
     background.render(screen.surface)
+
+    explosions.update(delta_time)
+    explosions.render(screen.surface)
 
     for bullet in world.bullets.copy():
         if bullet.update(delta_time):
