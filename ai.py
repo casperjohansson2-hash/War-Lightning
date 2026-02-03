@@ -36,7 +36,7 @@ current_ai_image = original_ai_image
 
 # 3. SKOTTET
 try:
-    raw_bullet = pygame.image.load("C:/War Lightning/War-Lightning/assets/bullets/bullet.png")
+    raw_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
     sprite_skott_bild = pygame.transform.scale(raw_bullet, (20, 20))
 except:
     sprite_skott_bild = pygame.Surface((20, 20))
