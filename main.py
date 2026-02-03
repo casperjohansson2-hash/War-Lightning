@@ -41,12 +41,14 @@ else:
 
     #Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
     original_background = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
-    sprite_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
+    original_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
     original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
     original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
     
 
+
     background = pygame.transform.smoothscale(original_background, (width, height))
+    sprite_bullet = pygame.transform.smoothscale(original_bullet, (original_bullet.get_width() + 1, original_bullet.get_height() + 1))
     sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
     sprite_player2 = pygame.transform.smoothscale(original_player2, (original_player2.get_width(), original_player2.get_height()))
     #Här defineras fps klockan för att begränsa till samma hastighet
@@ -84,16 +86,29 @@ else:
             self.sprite_player1 = self.original_image
             self.direction = "UP"
             self.exploded = False
-            self.collision_rectangle = pygame.Rect(self.player1_x, self.player1_y, self.sprite_player1.get_width(), self.sprite_player1.get_height())
+            hitbox_width = self.sprite_player1.get_width() - 20
+            hitbox_height = self.sprite_player1.get_height() - 20
+            
+            
+            self.offset_x = (self.sprite_player1.get_width() - hitbox_width) // 2
+            self.offset_y = (self.sprite_player1.get_height() - hitbox_height) // 2
+            
+            
+            self.collision_rectangle = pygame.Rect(
+                self.player1_x + self.offset_x, 
+                self.player1_y + self.offset_y, 
+                hitbox_width, 
+                hitbox_height
+            )
 
         def move(self, walls):
             keys = pygame.key.get_pressed()
             
-            # Skapa temporära variabler för hur mycket vi VILL flytta
+           
             dx = 0
             dy = 0
 
-            # --- 1. Kolla Input ---
+            
             if keys[pygame.K_w] and self.health > 0:
                 dy = -self.speed
                 self.sprite_player1 = pygame.transform.rotate(self.original_image, 0)
@@ -111,36 +126,40 @@ else:
                 self.sprite_player1 = pygame.transform.rotate(self.original_image, 270)
                 self.direction = "RIGHT"
 
-            # --- 2. Hantera X-rörelse och kollision ---
+            
             self.player1_x += dx
             self.collision_rectangle.x = self.player1_x
             
-            for wall in walls:
-                if self.collision_rectangle.colliderect(wall):
-                    if dx > 0: # Vi rörde oss HÖGER, så vi slog i väggens vänstra sida
-                        self.collision_rectangle.right = wall.left
-                    if dx < 0: # Vi rörde oss VÄNSTER, så vi slog i väggens högra sida
-                        self.collision_rectangle.left = wall.right
-                    
-                    # Uppdatera den faktiska positionen så den matchar hitboxen
-                    self.player1_x = self.collision_rectangle.x
-
-            # --- 3. Hantera Y-rörelse och kollision ---
-            self.player1_y += dy
-            self.collision_rectangle.y = self.player1_y
+            self.collision_rectangle.x = self.player1_x + self.offset_x
             
             for wall in walls:
                 if self.collision_rectangle.colliderect(wall):
-                    if dy > 0: # Vi rörde oss NER, slog i väggens ovansida
+                    if dx > 0: 
+                        self.collision_rectangle.right = wall.left
+                    if dx < 0: 
+                        self.collision_rectangle.left = wall.right
+                    
+                    
+                    self.player1_x = self.collision_rectangle.x - self.offset_x
+
+            
+            self.player1_y += dy
+            
+            
+            self.collision_rectangle.y = self.player1_y + self.offset_y
+            
+            for wall in walls:
+                if self.collision_rectangle.colliderect(wall):
+                    if dy > 0: 
                         self.collision_rectangle.bottom = wall.top
-                    if dy < 0: # Vi rörde oss UPP, slog i väggens undersida
+                    if dy < 0: 
                         self.collision_rectangle.top = wall.bottom
                     
-                    # Uppdatera den faktiska positionen så den matchar hitboxen
-                    self.player1_y = self.collision_rectangle.y
+                    
+                    self.player1_y = self.collision_rectangle.y - self.offset_y
 
-            # Uppdatera till slut rect-koordinaten för säkerhets skull
-            self.collision_rectangle.topleft = (self.player1_x, self.player1_y)
+           
+            self.collision_rectangle.topleft = (self.player1_x + self.offset_x, self.player1_y + self.offset_y)
 
         def draw(self, screen):
             if not self.exploded:
@@ -171,7 +190,20 @@ else:
                 self.exploded = False
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
-                self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
+                hitbox_width = self.sprite_player2.get_width() - 20
+                hitbox_height = self.sprite_player2.get_height() - 20
+            
+            
+                self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
+                self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
+                
+                
+                self.collision_rectangle = pygame.Rect(
+                    self.player2_x + self.offset_x, 
+                    self.player2_y + self.offset_y, 
+                    hitbox_width, 
+                    hitbox_height
+                )
 
             def move(self, walls):
                 keys = pygame.key.get_pressed()
@@ -202,32 +234,36 @@ else:
                 self.player2_x += dx
                 self.collision_rectangle.x = self.player2_x
                 
+                self.collision_rectangle.x = self.player2_x + self.offset_x
+                
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
                         if dx > 0: 
                             self.collision_rectangle.right = wall.left
-                        if dx < 0:
+                        if dx < 0: 
                             self.collision_rectangle.left = wall.right
                         
-                       
-                        self.player2_x = self.collision_rectangle.x
+                        
+                        self.player2_x = self.collision_rectangle.x - self.offset_x
 
                 
                 self.player2_y += dy
-                self.collision_rectangle.y = self.player2_y
+                
+                
+                self.collision_rectangle.y = self.player2_y + self.offset_y
                 
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
                         if dy > 0: 
                             self.collision_rectangle.bottom = wall.top
-                        if dy < 0:
+                        if dy < 0: 
                             self.collision_rectangle.top = wall.bottom
                         
                         
-                        self.player2_y = self.collision_rectangle.y
+                        self.player2_y = self.collision_rectangle.y - self.offset_y
 
-                
-                self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
+            
+                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
 
             def draw(self, screen):
                 if not self.exploded:
@@ -260,7 +296,20 @@ else:
                 self.exploded = False
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
-                self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
+                hitbox_width = self.sprite_player2.get_width() - 20
+                hitbox_height = self.sprite_player2.get_height() - 20
+            
+            
+                self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
+                self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
+                
+                
+                self.collision_rectangle = pygame.Rect(
+                    self.player2_x + self.offset_x, 
+                    self.player2_y + self.offset_y, 
+                    hitbox_width, 
+                    hitbox_height
+                )
 
             def move(self, walls):
                 keys = pygame.key.get_pressed()
@@ -269,7 +318,7 @@ else:
                 dx = 0
                 dy = 0
 
-                
+               
                 if keys[pygame.K_UP] and self.health > 0:
                     dy = -self.speed
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
@@ -291,19 +340,23 @@ else:
                 self.player2_x += dx
                 self.collision_rectangle.x = self.player2_x
                 
+                self.collision_rectangle.x = self.player2_x + self.offset_x
+                
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
                         if dx > 0: 
                             self.collision_rectangle.right = wall.left
-                        if dx < 0:
+                        if dx < 0: 
                             self.collision_rectangle.left = wall.right
                         
                         
-                        self.player2_x = self.collision_rectangle.x
+                        self.player2_x = self.collision_rectangle.x - self.offset_x
 
                 
                 self.player2_y += dy
-                self.collision_rectangle.y = self.player2_y
+                
+                
+                self.collision_rectangle.y = self.player2_y + self.offset_y
                 
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
@@ -313,10 +366,10 @@ else:
                             self.collision_rectangle.top = wall.bottom
                         
                         
-                        self.player2_y = self.collision_rectangle.y
+                        self.player2_y = self.collision_rectangle.y - self.offset_y
 
-                
-                self.collision_rectangle.topleft = (self.player2_x, self.player2_y)
+            
+                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
 
             def draw(self, screen):
                 if not self.exploded:
@@ -341,7 +394,7 @@ else:
         def __init__(self, x, y, direction):
             self.x = x
             self.y = y
-            self.speed = 10
+            self.speed = 20
             self.bild = sprite_bullet
             self.direction = direction
             self.collision_rectangle = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
@@ -448,7 +501,7 @@ else:
     #All kollision
     walls = [
         pygame.Rect(796, 21, 28, 90),
-        pygame.Rect(795, 170, 28, 90)
+        pygame.Rect(794, 169, 28, 90)
     ]
     while game:
         if countdown > 0:
