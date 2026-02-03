@@ -355,41 +355,8 @@ else:
                 screen.blit(self.bild, (self.x + 8, self.y))
             else:
                 screen.blit(self.bild, (self.x, self.y + 28))
-
-        
-
-    #Klassen som gör det möjligt för sprites att kunna rotera på sig så att det blir snyggare
-    class RotatingSprite(pygame.sprite.Sprite):
-        def __init__(self, x, y, image_path):
-            super().__init__()
-            
-            
-            self.original_image = pygame.image.load(image_path).convert_alpha()
-            
-            
-            self.image = self.original_image
-            
-            
-            self.rect = self.image.get_rect()
-            self.rect.center = (x, y)
-            
-            
-            self.angle = 0
-            self.rotation_speed = 2 
-
-        def update(self):
-        
-            self.angle += self.rotation_speed
-            
-            
-            self.angle = self.angle % 360 
-
-            self.image = pygame.transform.rotate(self.original_image, self.angle)
-            
-            
-            old_center = self.rect.center
-            self.rect = self.image.get_rect()
-            self.rect.center = old_center
+    
+    primary_font = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25)
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
     player_2 = Player2()
@@ -403,6 +370,7 @@ else:
     walls = [
         pygame.Rect(10, 0, 50, height)
     ]
+
     while game:
         #Funktionerna för att de två spelarna ska kunna röra sig
         player_1.move(walls)

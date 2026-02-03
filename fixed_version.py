@@ -247,39 +247,23 @@ class Tank(Player):
             self.world.bullets.append(bullet)
 
 
-def surface_to_gray(surface: pygame.Surface) -> np.ndarray:
-    surface = surface.convert()  # remove alpha
-    arr = pygame.surfarray.array3d(surface)
-    arr = arr.swapaxes(0, 1)
-    return cv2.cvtColor(arr, cv2.COLOR_RGB2GRAY)
+def surface_to_cv(surface: pygame.Surface) -> np.ndarray:
+    return pygame.surfarray.array3d(surface).swapaxes(0, 1)
 
-def merge_rects(rects: List[pygame.Rect], padding: int = 4) -> List[pygame.Rect]:
-    merged = []
-    for r in rects:
-        r = r.inflate(padding, padding)
-        for m in merged:
-            if r.colliderect(m):
-                break
-        else:
-            merged.append(r)
-    return merged
+def find_image(template: pygame.Surface, source: pygame.Surface, threshold: float = 0.05) -> List[pygame.Rect]:
+    tpl = surface_to_cv(template)
+    src = surface_to_cv(source)
 
-def find_image(
-    template: pygame.Surface,
-    source: pygame.Surface,
-    threshold: float = 0.15
-) -> list[pygame.Rect]:
+    result = cv2.matchTemplate(src, tpl, cv2.TM_CCOEFF_NORMED)
+    locations = np.where(result >= threshold)
 
-    tpl = surface_to_gray(template)
-    src = surface_to_gray(source)
-
-    result = cv2.matchTemplate(src, tpl, cv2.TM_SQDIFF_NORMED)
-    ys, xs = np.where(result <= threshold)
-
+    rects = []
     w, h = template.get_size()
-    rects = [pygame.Rect(x, y, w, h) for x, y in zip(xs, ys)]
 
-    return merge_rects(rects)
+    for pt in zip(*locations[::-1]):
+        rects.append(pygame.Rect(pt[0], pt[1], w, h))
+
+    return rects
 
 pygame.display.init()
 
@@ -313,10 +297,11 @@ pygame.mixer.music.set_volume(volume)
 
 pygame.mixer.music.play()
 
-background = Image.new_image("assets/tiles/map1.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
+background = Image.new_image("assets/tiles/mapmap.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
 wall = pygame.image.load("assets/tiles/wallwall.png").convert()
+wall2 = pygame.transform.smoothscale(wall, (86, 27))
 
-scales = [(100, 25)]
+scales = [(86, 27)]
 wall_rects = []
 
 for scale in scales:
@@ -351,6 +336,9 @@ def main_loop(delta_time: float) -> Any:
             return BREAK_LOOP
     
     background.render(screen.surface)
+
+    screen.surface.blit(wall2, (340, 115))
+    pygame.draw.rect(screen.surface, (255, 0, 0), wall2.get_rect(topleft=(340, 115)), 1)
 
     explosions.update(delta_time)
     explosions.render(screen.surface)
