@@ -253,7 +253,7 @@ class Tank(Player):
 def surface_to_cv(surface: pygame.Surface) -> np.ndarray:
     return pygame.surfarray.array3d(surface).swapaxes(0, 1)
 
-def find_image(template: pygame.Surface, source: pygame.Surface, threshold: float = 0.05) -> List[pygame.Rect]:
+def find_image(template: pygame.Surface, source: pygame.Surface, threshold: float = 0.5) -> List[pygame.Rect]:
     tpl = surface_to_cv(template)
     src = surface_to_cv(source)
 
@@ -359,6 +359,9 @@ def main_loop(delta_time: float) -> Any:
 
     explosions.update(delta_time)
     explosions.render(screen.surface)
+
+    death_explosions.update(delta_time)
+    death_explosions.render(screen.surface)
 
     for bullet in world.bullets.copy():
         if bullet.update(delta_time):
