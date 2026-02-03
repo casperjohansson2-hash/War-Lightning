@@ -241,7 +241,7 @@ class HealthBar:
 
         self.last_health = max_health
 
-        self.text.edit_text(f"{int(health())}/{int(self.max_health)}")
+        self.text.edit_text(f"{int(health())} HP")
     
     def update(self, dt: float) -> None:
         health = self.health()
@@ -273,7 +273,7 @@ class HealthBar:
         self.filler2.rect.width = int(self.current_width)
 
         # update text
-        self.text.edit_text(f"{int(health)}/{int(self.max_health)}")
+        self.text.edit_text(f"{int(health)} HP")
     
     def render(self, surface: pygame.Surface) -> None:
         self.background.render(surface)
@@ -353,7 +353,7 @@ screen = Screen(WIDTH, HEIGHT)
 pygame.display.set_caption("War Lightning")
 pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
 
-primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 25)
+primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 20)
 
 explosions = Particles(
     size=(WIDTH, HEIGHT),
