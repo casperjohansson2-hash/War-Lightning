@@ -368,7 +368,7 @@ else:
     bullet_list2 = []
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
     walls = [
-        pygame.Rect(10, 0, 50, height)
+        pygame.Rect(10, 0, 50, height),
     ]
 
     while game:
@@ -422,6 +422,10 @@ else:
             
             elif player_1.collide(bullet.collision_rectangle):
                 bullet_list2.remove(bullet)
+        
+
+        for wall in walls:
+            pygame.draw.rect(screen, (255, 0, 0), wall, 1)
             
 
         if player_1.health < 0:
