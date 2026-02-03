@@ -232,8 +232,6 @@ class HealthBar:
         self.filler1 = filler1
         self.filler2 = filler2
         self.text = text
-
-        self.text_rect = text.text_rect(center=overlay.rect.center)
         
         self.health = health
         self.max_health = max_health
@@ -281,7 +279,7 @@ class HealthBar:
         self.background.render(surface)
         self.filler2.render(surface)
         self.filler1.render(surface)
-        self.text.render(surface, self.text_rect)
+        self.text.render(surface, center=self.overlay.rect.center)
         self.overlay.render(surface)
 
 class Tank(Player):
