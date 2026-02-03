@@ -168,6 +168,7 @@ class TankWorld(World):
 
     def __init__(self, *objects: pygame.Rect) -> None:
         super().__init__(*objects)
+        self.breakables = []
         self.bullets = []
     
     def find_collisions(self, rect: pygame.Rect) -> Generator[pygame.Rect, Any, None]:
