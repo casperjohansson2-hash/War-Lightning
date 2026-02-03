@@ -545,7 +545,7 @@ SETTINGS\
     VOLUME_TEXT.text_rect(center=(550, 250)), VOLUME_TEXT
 ))\
 .add_element(Slider(
-    pygame.Rect(350, 240, 100, 25),
+    pygame.Rect(325, 240, 150, 25),
     SliderConfig(
         (150, 150, 250),
         (150, 150, 150),
