@@ -20,7 +20,7 @@ shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
 normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
 crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
 dead = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank kaboom.mp3")
-pygame.mixer.music.load("assets/audio/Match-start.mp3")
+pygame.mixer.music.load("assets/audio/Match start.mp3")
 pygame.mixer.music.play()
 volume = ui.get_setting("volume")
 pygame.mixer.music.set_volume(volume)
@@ -431,6 +431,10 @@ else:
                 pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
 
     primary_font = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25)
+    other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
+    dim = pygame.Surface((width, height), pygame.SRCALPHA)
+    dim.fill((50, 50, 50, 150))
+    countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
     player_2 = Player2()
@@ -441,10 +445,25 @@ else:
     bullet_list1 = []
     bullet_list2 = []
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
+    #All kollision
     walls = [
-        pygame.Rect(800, 20, 25, 180)
+        pygame.Rect(797, 21, 28, 92)
     ]
     while game:
+        if countdown > 0:
+            for event in pygame.event.get(): ...
+            screen.blit(background, (0, 0))
+            screen.blit(dim, (0, 0))
+
+            text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
+            screen.blit(text_surf, text_surf.get_rect(center=(width//2, height//2)))
+
+            pygame.display.flip()
+            countdown -= 1
+            time.sleep(1.0)
+            continue
+        
+        
         #Funktionerna för att de två spelarna ska kunna röra sig
         player_1.move(walls)
         player_2.move(walls)

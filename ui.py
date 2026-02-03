@@ -346,7 +346,7 @@ BACKGROUND_IMAGE = pygame.transform.smoothscale(pygame.image.load("assets/ui/tes
 DIM = pygame.Surface((800, 600), pygame.SRCALPHA)
 DIM.fill((50, 50, 50, 150))
 
-BUTTON_SOUND = pygame.mixer.Sound("assets/audio/press_button.mp3")
+BUTTON_SOUND = pygame.mixer.Sound("assets/audio/press button.mp3")
 
 HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
 PRIMARY_FONT = pygame.font.Font("assets/fonts/SEEKUW.ttf", 15)
