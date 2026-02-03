@@ -212,6 +212,7 @@ class Bullet:
         self.image.render(surface)
 
 class HealthBar:
+    background: Image
     overlay: Image
     filler1: Image
     filler2: Image
@@ -225,7 +226,8 @@ class HealthBar:
     full_width: float
     current_width: float
 
-    def __init__(self, overlay: Image, filler1: Image, filler2: Image, text: ui.Text, health: Callable[[], float], max_health: float) -> None:
+    def __init__(self, background: Image, overlay: Image, filler1: Image, filler2: Image, text: ui.Text, health: Callable[[], float], max_health: float) -> None:
+        self.background = background
         self.overlay = overlay
         self.filler1 = filler1
         self.filler2 = filler2
@@ -276,6 +278,7 @@ class HealthBar:
         self.text.edit_text(f"{int(health)}/{int(self.max_health)}")
     
     def render(self, surface: pygame.Surface) -> None:
+        self.background.render(surface)
         self.filler2.render(surface)
         self.filler1.render(surface)
         self.text.render(surface, self.text_rect)
@@ -423,6 +426,7 @@ player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(600, 300
 player1_keybinds = Keybinds(up=pygame.K_w, down=pygame.K_s, left=pygame.K_a, right=pygame.K_d, shoot=pygame.K_SPACE)
 player1 = Tank(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 player1_healthbar = HealthBar(
+    background = Image.new_image("assets/ui/hp_bar_back.png", pygame.Rect(10, 10, 215, 50)),
     overlay = Image.new_image("assets/ui/hp_bar_overlay.png", pygame.Rect(10, 10, 215, 50)), 
     filler1 = Image.new_image("assets/ui/hp_bar_health.png", pygame.Rect(10, 10, 215, 50)), 
     filler2 = Image.new_image("assets/ui/hp_bar_back.png", pygame.Rect(10, 10, 215, 50)),
@@ -434,6 +438,7 @@ player1_healthbar = HealthBar(
 player2_keybinds = Keybinds(up=pygame.K_UP, down=pygame.K_DOWN, left=pygame.K_LEFT, right=pygame.K_RIGHT, shoot=pygame.K_RETURN)
 player2 = Tank(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 player2_healthbar = HealthBar(
+    background = Image.new_image("assets/ui/hp_bar_back.png", pygame.Rect(WIDTH-225, 10, 215, 50)),
     overlay = Image.new_image("assets/ui/hp_bar_overlay.png", pygame.Rect(WIDTH-225, 10, 215, 50)), 
     filler1 = Image.new_image("assets/ui/hp_bar_health.png", pygame.Rect(WIDTH-225, 10, 215, 50)), 
     filler2 = Image.new_image("assets/ui/hp_bar_back.png", pygame.Rect(WIDTH-225, 10, 215, 50)),
@@ -502,10 +507,5 @@ def main_loop(delta_time: float) -> Any:
     player1_healthbar.render(screen.surface)
     player2_healthbar.update(delta_time)
     player2_healthbar.render(screen.surface)
-    
-    #text_surf = primary_font.render(f"{int(player1.health * 100)} hp", True, (255, 255, 255))
-    #screen.surface.blit(text_surf, text_surf.get_rect(topleft=(10, 10)))
-    #text_surf = primary_font.render(f"{int(player2.health * 100)} hp", True, (255, 255, 255))
-    #screen.surface.blit(text_surf, text_surf.get_rect(topright=(WIDTH - 10, 10)))
 
 pygame.quit()

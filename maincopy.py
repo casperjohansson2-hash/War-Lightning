@@ -16,10 +16,10 @@ import time
 import pygame
 import ui
 
-shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank_shot.mp3")
-normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal_hit.mp3")
-crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal_pierce.mp3")
-pygame.mixer.music.load("assets/audio/Match_start.mp3")
+shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
+normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
+crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
+pygame.mixer.music.load("assets/audio/Match start.mp3")
 pygame.mixer.music.play()
 volume = ui.get_setting("volume")
 pygame.mixer.music.set_volume(volume)
@@ -360,6 +360,19 @@ else:
     other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
     dim = pygame.Surface((width, height), pygame.SRCALPHA)
     dim.fill((50, 50, 50, 150))
+
+    original_hp_bar_back = pygame.image.load("assets/ui/hp_bar_back.png")
+    original_hp_bar_health = pygame.image.load("assets/ui/hp_bar_health.png")
+    original_hp_bar_overlay = pygame.image.load("assets/ui/hp_bar_overlay.png")
+    hp_bar_back = pygame.transform.smoothscale(original_hp_bar_back, (215, 50))
+    hp_bar_overlay = pygame.transform.smoothscale(original_hp_bar_overlay, (215, 50))
+    hp_bar_health1 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_health2 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_rect1 = pygame.Rect(10, 10, 215, 50)
+    hp_bar_rect2 = pygame.Rect(width-225, 10, 215, 50)
+    last_health1 = 100
+    last_health2 = 100
+
     countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
@@ -457,10 +470,29 @@ else:
         #Här ritas spelarnas stridsvagnar
         player_1.draw(screen)
         player_2.draw(screen)
+
+        if player_1.health < last_health1:
+            last_health1 = player_1.health
+            hp_bar_health1 = hp_bar_health1.subsurface(
+                pygame.Rect(0, 0, max(int(225 * (player_1.health / 100)), 1), hp_bar_rect1.height)
+            )
+
+        if player_2.health < last_health2:
+            last_health2 = player_2.health
+            hp_bar_health2 = hp_bar_health2.subsurface(
+                pygame.Rect(0, 0, max(int(225 * (player_2.health / 100)), 1), hp_bar_rect2.height)
+            )
+
+        screen.blit(hp_bar_back, hp_bar_rect1)
+        screen.blit(hp_bar_health1, hp_bar_rect1)
         text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
-        screen.blit(text_surf, text_surf.get_rect(topleft=(10, 10)))
+        screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect1.center))
+        screen.blit(hp_bar_overlay, hp_bar_rect1)
+        screen.blit(hp_bar_back, hp_bar_rect2)
+        screen.blit(hp_bar_health2, hp_bar_rect2)
         text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
-        screen.blit(text_surf, text_surf.get_rect(topright=(width-10, 10)))
+        screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect2.center))
+        screen.blit(hp_bar_overlay, hp_bar_rect2)
         #Och här så uppdateras hela pygame-skärmen
         pygame.display.flip()
 
