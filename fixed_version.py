@@ -70,12 +70,10 @@ class Screen:
 class World:
     objects: List[pygame.Rect]
     players: List["Player"]
-    bullets: List["Bullet"]
 
     def __init__(self, *objects: pygame.Rect) -> None:
         self.objects = list(objects)
         self.players = []
-        self.bullets = []
     
     def find_collisions(self, rect: pygame.Rect) -> Generator[pygame.Rect, Any, None]:
         for obj in self.objects:
@@ -117,73 +115,19 @@ class Image:
         scaled = pygame.transform.scale(image, (rect.size[0] + scale[0], rect.size[1] + scale[1]))
         return Image(scaled, rect)
 
-class Bullet:
-    world: World
-    image: Image
-    players: List["Player"]
-    velocity: Tuple[int, int]
-    damage: float
-
-    def __init__(self, world: World, image: Image, players: List["Player"], velocity: Tuple[int, int], damage: float) -> None:
-        self.world = world
-        self.image = image
-        self.players = players
-        self.velocity = velocity
-        self.damage = damage
-    
-    def update(self, dt: float) -> bool:
-        self.image.rect.x += self.velocity[0] * dt
-        self.image.rect.y += self.velocity[1] * dt
-        
-        for player in self.players:
-            if self.image.rect.colliderect(player.image.rect):
-                explosions.emit(*self.image.rect.center, 50)
-                if self.damage >= 0.2:
-                    crit_hit_sound.play()
-                else:
-                    normal_hit_sound.play()
-                player.health -= self.damage
-                return True
-        
-        for collision in self.world.find_collisions(self.image.rect):
-            explosions.emit(*self.image.rect.center, 50)
-            normal_hit_sound.play()
-            return True
-    
-    def render(self, surface: pygame.Surface) -> None:
-        self.image.render(surface)
-
 class Player:
     world: World
     image: Image
     keybinds: Keybinds
     speed: float
-    bullet_speed: float
-    health: float
-    shoot_interval: float
-    damage_func: Callable[[], float]
-    bullet_image: Image
 
-    last_shot: float
-
-    def __init__(self, world: World, image: Image, keybinds: Keybinds, speed: float, bullet_speed: float, health: float, shoot_interval: float, bullet_image: Image, damage_func: Callable[[], float]) -> None:
+    def __init__(self, world: World, image: Image, keybinds: Keybinds, speed: float) -> None:
         self.world = world
         self.image = image
         self.keybinds = keybinds
         self.speed = speed
-        self.bullet_speed = bullet_speed
-        self.health = health
-        self.shoot_interval = shoot_interval
-        self.damage_func = damage_func
-        self.bullet_image = bullet_image
-
-        self.last_shot = 0.0
 
         world.players.append(self)
-    
-    @property
-    def is_alive(self) -> bool:
-        return self.health > 0.0
     
     def update(self, dt: float) -> None:
         pressed_keys = self.keybinds.get_pressed()
@@ -214,6 +158,77 @@ class Player:
                     dummy.left = collision.right
             self.image.rect = dummy
 
+    
+    def render(self, surface: pygame.Surface) -> None:
+        self.image.render(surface)
+
+class TankWorld(World):
+    bullets: List["Bullet"]
+
+    def __init__(self, *objects: pygame.Rect) -> None:
+        super().__init__(self, *objects)
+        self.bullets = []
+
+class Bullet:
+    world: TankWorld
+    image: Image
+    players: List["Player"]
+    velocity: Tuple[int, int]
+    damage: float
+
+    def __init__(self, world: TankWorld, image: Image, players: List["Player"], velocity: Tuple[int, int], damage: float) -> None:
+        self.world = world
+        self.image = image
+        self.players = players
+        self.velocity = velocity
+        self.damage = damage
+    
+    def update(self, dt: float) -> bool:
+        self.image.rect.x += self.velocity[0] * dt
+        self.image.rect.y += self.velocity[1] * dt
+        
+        for player in self.players:
+            if self.image.rect.colliderect(player.image.rect):
+                explosions.emit(*self.image.rect.center, 50)
+                if self.damage >= 0.2:
+                    crit_hit_sound.play()
+                else:
+                    normal_hit_sound.play()
+                player.health -= self.damage
+                return True
+        
+        for collision in self.world.find_collisions(self.image.rect):
+            explosions.emit(*self.image.rect.center, 50)
+            normal_hit_sound.play()
+            return True
+    
+    def render(self, surface: pygame.Surface) -> None:
+        self.image.render(surface)
+
+class Tank(Player):
+    bullet_speed: float
+    health: float
+    shoot_interval: float
+    damage_func: Callable[[], float]
+    bullet_image: Image
+
+    def __init__(self, world: TankWorld, image: Image, keybinds: Keybinds, speed: float, bullet_speed: float, health: float, shoot_interval: float, bullet_image: Image, damage_func: Callable[[], float]) -> None:
+        super().__init__(world, image, keybinds, speed)
+        self.bullet_speed = bullet_speed
+        self.health = health
+        self.shoot_interval = shoot_interval
+        self.damage_func = damage_func
+        self.bullet_image = bullet_image
+
+        self.last_shot = 0.0
+    
+    @property
+    def is_alive(self) -> bool:
+        return self.health > 0.0
+    
+    def update(self, dt: float) -> None:
+        super().update(dt)
+        pressed_keys = self.keybinds.get_pressed()
         now = time.monotonic()
         if pressed_keys["shoot"] and now - self.last_shot > self.shoot_interval:
             shoot_sound.play()
@@ -231,9 +246,6 @@ class Player:
             bullet.image.rect.center = self.image.rect.center
             self.world.bullets.append(bullet)
 
-    
-    def render(self, surface: pygame.Surface) -> None:
-        self.image.render(surface)
 
 def surface_to_gray(surface: pygame.Surface) -> np.ndarray:
     surface = surface.convert()  # remove alpha
@@ -317,7 +329,7 @@ for scale in scales:
     tpl = pygame.transform.smoothscale(rotated_wall, (scale[1], scale[0]))
     wall_rects.extend(find_image(tpl, background.surface))
 
-world = World(*wall_rects)# + [pygame.Rect(0, 0, 100, 25)])
+world = TankWorld(*wall_rects)# + [pygame.Rect(0, 0, 100, 25)])
 
 bullet_image = Image.new_image("assets/bullets/bullet.png", pygame.Rect(0, 0, 10, 10))
 
@@ -325,10 +337,10 @@ player1_image = Image.new_image("assets/tanks/Player1.png", pygame.Rect(600, 300
 player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(600, 300, 30, 30), (20, 20))
 
 player1_keybinds = Keybinds(up=pygame.K_w, down=pygame.K_s, left=pygame.K_a, right=pygame.K_d, shoot=pygame.K_SPACE)
-player1 = Player(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
+player1 = Tank(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 
 player2_keybinds = Keybinds(up=pygame.K_UP, down=pygame.K_DOWN, left=pygame.K_LEFT, right=pygame.K_RIGHT, shoot=pygame.K_RETURN)
-player2 = Player(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
+player2 = Tank(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 
 players = [player1, player2]
 
