@@ -189,19 +189,22 @@ class Bullet:
         
         for player in self.players:
             if self.image.rect.colliderect(player.image.rect):
-                explosions.emit(*self.image.rect.center, 50)
+                if ui.get_setting("particles"):
+                    explosions.emit(*self.image.rect.center, 50)
                 if self.damage >= 0.2:
                     crit_hit_sound.play()
                 else:
                     normal_hit_sound.play()
                 player.health -= self.damage
                 if not player.is_alive:
-                    death_explosions.emit(*player.image.rect.center, 200)
+                    if ui.get_setting("particles"):
+                        death_explosions.emit(*player.image.rect.center, 200)
                     explosion_sound.play()
                 return True
         
         for collision in self.world.find_collisions(self.image.rect):
-            explosions.emit(*self.image.rect.center, 50)
+            if ui.get_setting("particles"):
+                explosions.emit(*self.image.rect.center, 50)
             normal_hit_sound.play()
             return True
     
