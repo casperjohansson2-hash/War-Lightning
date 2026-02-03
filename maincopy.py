@@ -356,7 +356,11 @@ else:
             else:
                 screen.blit(self.bild, (self.x, self.y + 28))
     
-    primary_font = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25)
+    primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 25)
+    other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
+    dim = pygame.Surface((width, height), pygame.SRCALPHA)
+    dim.fill((50, 50, 50, 150))
+    countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
     player_2 = Player2()
@@ -372,6 +376,19 @@ else:
     ]
 
     while game:
+        if countdown > 0:
+            for event in pygame.event.get(): ...
+            screen.blit(background, (0, 0))
+            screen.blit(dim, (0, 0))
+
+            text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
+            screen.blit(text_surf, text_surf.get_rect(center=(width//2, height//2)))
+
+            pygame.display.flip()
+            countdown -= 1
+            time.sleep(1.0)
+            continue
+
         #Funktionerna för att de två spelarna ska kunna röra sig
         player_1.move(walls)
         player_2.move(walls)
