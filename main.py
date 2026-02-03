@@ -57,6 +57,7 @@ else:
     game = True
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("War Lightning")
+    pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
     
 
 
@@ -76,7 +77,7 @@ else:
     #Klasserna för spelare 1 och spelare 2 som innehåller deras hälsa, skada, olika lägen, hastighet och alla deras funktioner
     class Player1:
         def __init__(self):
-            self.player1_x = width // 2
+            self.player1_x = 30
             self.player1_y = height // 2
             self.sprite_player1 = sprite_player1
             self.health = player_health
@@ -172,15 +173,16 @@ else:
         def collide(self, bullet_rect):
             if not player_1.exploded:
                 if self.collision_rectangle.colliderect(bullet_rect):
-                    explosion = [Particle(player_1.player1_x + 34, player_1.player1_y + 30) for _ in range(100)]
-                    explosions.append(explosion)
+                    if ui.get_setting("particles"):
+                        explosion = [Particle(player_1.player1_x + 34, player_1.player1_y + 30) for _ in range(100)]
+                        explosions.append(explosion)
                     player_1.health -= damage()
                     return True 
             return False 
     if ui.get_mode() == "solo":
         class Player2:
             def __init__(self):
-                self.player2_x = width // 2 
+                self.player2_x = width - 30
                 self.player2_y = height // 2
                 self.sprite_player2 = sprite_player2
                 self.health = player_health
@@ -277,8 +279,9 @@ else:
             def collide(self, bullet_rect):
                 if not player_2.exploded:
                     if self.collision_rectangle.colliderect(bullet_rect):
-                        explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
-                        explosions.append(explosion)
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
+                            explosions.append(explosion)
                         player_2.health -= damage()
                         return True 
                 return False 
@@ -286,7 +289,7 @@ else:
     elif ui.get_mode() == "vs":
         class Player2:
             def __init__(self):
-                self.player2_x = width // 2 
+                self.player2_x = width - 30
                 self.player2_y = height // 2
                 self.sprite_player2 = sprite_player2
                 self.health = player_health
@@ -383,8 +386,9 @@ else:
             def collide(self, bullet_rect):
                 if not player_2.exploded:
                     if self.collision_rectangle.colliderect(bullet_rect):
-                        explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
-                        explosions.append(explosion)
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
+                            explosions.append(explosion)
                         player_2.health -= damage()
                         return True 
                 return False 
@@ -468,10 +472,10 @@ else:
         def __init__(self, x, y):
             self.x = x
             self.y = y
-            self.lifetime = random.randint(20, 50)
+            self.lifetime = random.randint(20, 40)
             self.speed_x = random.uniform(-2, 2)
             self.speed_y = random.uniform(-2, 2)
-            self.radius = random.randint(3, 6)
+            self.radius = random.randint(1, 3)
             self.color = random.choice(color_list)
 
         def update(self):
@@ -483,7 +487,7 @@ else:
             if self.lifetime > 0:
                 pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
 
-    primary_font = pygame.font.SysFont("assets/fonts/SEEKUW.ttf", 25)
+    primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 20)
     other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
     dim = pygame.Surface((width, height), pygame.SRCALPHA)
     dim.fill((50, 50, 50, 150))
@@ -499,6 +503,19 @@ else:
     bullet_list2 = []
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
     #All kollision
+
+    original_hp_bar_back = pygame.image.load("assets/ui/hp_bar_back.png")
+    original_hp_bar_health = pygame.image.load("assets/ui/hp_bar_health.png")
+    original_hp_bar_overlay = pygame.image.load("assets/ui/hp_bar_overlay.png")
+    hp_bar_back = pygame.transform.smoothscale(original_hp_bar_back, (215, 50))
+    hp_bar_overlay = pygame.transform.smoothscale(original_hp_bar_overlay, (215, 50))
+    hp_bar_health1 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_health2 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_rect1 = pygame.Rect(10, 10, 215, 50)
+    hp_bar_rect2 = pygame.Rect(width-225, 10, 215, 50)
+    last_health1 = 100
+    last_health2 = 100
+
     walls = [
         pygame.Rect(796, 24, 28, 86),
         pygame.Rect(794, 169, 28, 86),
@@ -514,6 +531,26 @@ else:
         pygame.Rect(1135, 504, 28, 86),
         pygame.Rect(1136, 672, 28, 86),
         pygame.Rect(1135, 860, 28, 86),
+        pygame.Rect(1190, 815, 86, 28),
+        pygame.Rect(1360, 815, 86, 28),
+        pygame.Rect(1530, 815, 86, 28),
+        pygame.Rect(1020, 815, 86, 28),
+        pygame.Rect(850, 815, 86, 28),
+        pygame.Rect(680, 815, 86, 28),
+        pygame.Rect(510, 815, 86, 28),
+        pygame.Rect(340, 815, 86, 28),
+        pygame.Rect(424, 891, 86, 28),
+        pygame.Rect(596, 891, 86, 28),
+        pygame.Rect(1274, 891, 86, 28),
+        pygame.Rect(1444, 891, 86, 28),
+        pygame.Rect(1335, 420, 28, 86),
+        pygame.Rect(1420, 250, 28, 86),
+        pygame.Rect(1425, 672, 28, 86),
+        pygame.Rect(480, 420, 28, 86),
+        pygame.Rect(510, 252, 28, 86),
+        pygame.Rect(510, 672, 28, 86),
+        pygame.Rect(314, 506, 28, 86),
+        pygame.Rect(1582, 505, 28, 86),
     ]
     while game:
         if countdown > 0:
@@ -556,50 +593,15 @@ else:
                 bullet_counter2 = 0
 
         #Här så uppdateras varenda objekt i respektive lista
-        for bullet in reversed(bullet_list1):
-            bullet.move()
-            bullet.draw(screen)
-            
-            hit_wall = False
-            for wall in walls:
-                if bullet.collision_rectangle.colliderect(wall):
-                    hit_wall = True
-            # Check if bullet went off screen
-            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
-                bullet_list1.remove(bullet)
-            
-            
-            elif player_2.collide(bullet.collision_rectangle):
-                bullet_list1.remove(bullet)
-
-           
-        #Samma som ovan
-        for bullet in reversed(bullet_list2):
-            bullet.move()
-            bullet.draw(screen)
-
-            hit_wall = False
-            for wall in walls:
-                if bullet.collision_rectangle.colliderect(wall):
-                    hit_wall = True
-            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
-                bullet_list2.remove(bullet)
-            
-            
-            elif player_1.collide(bullet.collision_rectangle):
-                bullet_list2.remove(bullet)
-            
-        for explosion in explosions:
-            for particle in explosion:
-                particle.update()
-                particle.draw(screen)
-
-        explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
-        explosions = [e for e in explosions if len(e) > 0]
+        
 
         if player_1.health < 0 or player_1.health == 0:
             player_1.exploded = True
             dead.play()
+            if ui.get_setting("particles"):
+                    explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                    
+                    explosions.append(explosion)
             #######################
             player_1.health = 100##
             player_2.health = 100##
@@ -620,12 +622,84 @@ else:
         for wall in walls:
             pygame.draw.rect(screen, (255, 0, 0), wall, 1)
         #Här ritas spelarnas stridsvagnar
+        if player_1.health < last_health1:
+            last_health1 = player_1.health
+            hp_bar_health1 = hp_bar_health1.subsurface(
+                pygame.Rect(0, 0, max(int(225 * (player_1.health / 100)), 1), hp_bar_rect1.height)
+            )
+
+        if player_2.health < last_health2:
+            last_health2 = player_2.health
+            hp_bar_health2 = hp_bar_health2.subsurface(
+                pygame.Rect(0, 0, max(int(225 * (player_2.health / 100)), 1), hp_bar_rect2.height)
+            )
+
+        screen.blit(hp_bar_back, hp_bar_rect1)
+        screen.blit(hp_bar_health1, hp_bar_rect1)
         text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
-        screen.blit(text_surf, text_surf.get_rect(topleft=(10, 10)))
+        screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect1.center))
+        screen.blit(hp_bar_overlay, hp_bar_rect1)
+        screen.blit(hp_bar_back, hp_bar_rect2)
+        screen.blit(hp_bar_health2, hp_bar_rect2)
         text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
-        screen.blit(text_surf, text_surf.get_rect(topright=(width-10, 10)))
+        screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect2.center))
+        screen.blit(hp_bar_overlay, hp_bar_rect2)
         player_1.draw(screen)
         player_2.draw(screen)
+
+        for bullet in reversed(bullet_list1):
+            bullet.move()
+            bullet.draw(screen)
+            
+            hit_wall = False
+            for wall in walls:
+                if bullet.collision_rectangle.colliderect(wall):
+                    hit_wall = True
+            # Check if bullet went off screen
+            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
+                bullet_list1.remove(bullet)
+            
+            if hit_wall:
+                bullet_list1.remove(bullet)
+                if ui.get_setting("particles"):
+                    explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                    explosions.append(explosion)
+
+            
+            
+            elif player_2.collide(bullet.collision_rectangle):
+                bullet_list1.remove(bullet)
+
+           
+        #Samma som ovan
+        for bullet in reversed(bullet_list2):
+            bullet.move()
+            bullet.draw(screen)
+
+            hit_wall = False
+            for wall in walls:
+                if bullet.collision_rectangle.colliderect(wall):
+                    hit_wall = True
+            if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
+                bullet_list2.remove(bullet)
+
+            if hit_wall:
+                bullet_list2.remove(bullet)
+                if ui.get_setting("particles"):
+                    explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                    explosions.append(explosion)
+            
+            
+            elif player_1.collide(bullet.collision_rectangle):
+                bullet_list2.remove(bullet)
+            
+        for explosion in explosions:
+            for particle in explosion:
+                particle.update()
+                particle.draw(screen)
+
+        explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
+        explosions = [e for e in explosions if len(e) > 0]
         #Och här så uppdateras hela pygame-skärmen
         pygame.display.flip()
 
