@@ -3,6 +3,7 @@
 from typing import (
     Tuple, List, Dict, Callable, Generator, Self, Final, Any
 )
+from particles import Particles
 import random
 import cv2
 import numpy as np
@@ -136,11 +137,16 @@ class Bullet:
         
         for player in self.players:
             if self.image.rect.colliderect(player.image.rect):
-                crit_hit_sound.play()
+                explosions.emit(*self.image.rect.center, 50)
+                if self.damage >= 0.2:
+                    crit_hit_sound.play()
+                else:
+                    normal_hit_sound.play()
                 player.health -= self.damage
                 return True
         
         for collision in self.world.find_collisions(self.image.rect):
+            explosions.emit(*self.image.rect.center, 50)
             normal_hit_sound.play()
             return True
     
@@ -265,10 +271,22 @@ def find_image(
 
 pygame.display.init()
 
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1920, 1080
 screen = Screen(WIDTH, HEIGHT)
 pygame.display.set_caption("War Lightning")
 pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
+
+explosions = Particles(
+    size=(WIDTH, HEIGHT),
+    vel_x=(-400, 400),
+    vel_y=(-400, 400),
+    acc_x=(-50, 50),
+    acc_y=(-50, 50),
+    decay_x=(0.5, 0.85),
+    decay_y=(0.5, 0.85),
+    decay_size=(0.75, 0.95),
+    radius=(3, 9)
+)
 
 shoot_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
 normal_hit_sound = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
@@ -286,7 +304,7 @@ pygame.mixer.music.play()
 background = Image.new_image("assets/tiles/map1.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
 wall = pygame.image.load("assets/tiles/wallwall.png").convert()
 
-scales = [(40, 15), (45, 12)]
+scales = [(100, 25)]
 wall_rects = []
 
 for scale in scales:
@@ -299,7 +317,7 @@ for scale in scales:
     tpl = pygame.transform.smoothscale(rotated_wall, (scale[1], scale[0]))
     wall_rects.extend(find_image(tpl, background.surface))
 
-world = World(*wall_rects)
+world = World(*wall_rects)# + [pygame.Rect(0, 0, 100, 25)])
 
 bullet_image = Image.new_image("assets/bullets/bullet.png", pygame.Rect(0, 0, 10, 10))
 
@@ -307,10 +325,10 @@ player1_image = Image.new_image("assets/tanks/Player1.png", pygame.Rect(600, 300
 player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(600, 300, 30, 30), (20, 20))
 
 player1_keybinds = Keybinds(up=pygame.K_w, down=pygame.K_s, left=pygame.K_a, right=pygame.K_d, shoot=pygame.K_SPACE)
-player1 = Player(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.1 if random.random() < 0.3 else 0.0)
+player1 = Player(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 
 player2_keybinds = Keybinds(up=pygame.K_UP, down=pygame.K_DOWN, left=pygame.K_LEFT, right=pygame.K_RIGHT, shoot=pygame.K_RETURN)
-player2 = Player(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.1 if random.random() < 0.3 else 0.0)
+player2 = Player(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 
 players = [player1, player2]
 
@@ -321,6 +339,9 @@ def main_loop(delta_time: float) -> Any:
             return BREAK_LOOP
     
     background.render(screen.surface)
+
+    explosions.update(delta_time)
+    explosions.render(screen.surface)
 
     for bullet in world.bullets.copy():
         if bullet.update(delta_time):
