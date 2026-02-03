@@ -359,7 +359,7 @@ def main_loop(delta_time: float) -> Any:
         background.render(screen.surface)
         screen.surface.blit(dim, (0, 0))
 
-        text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
+        text_surf = other_font.render(f"{countdown-1}" if countdown > 1 else "Fight!", True, (255, 255, 255))
         screen.surface.blit(text_surf, text_surf.get_rect(center=(WIDTH//2, HEIGHT//2)))
 
         pygame.display.flip()
