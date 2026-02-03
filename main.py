@@ -447,7 +447,8 @@ else:
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
     #All kollision
     walls = [
-        pygame.Rect(797, 21, 28, 92)
+        pygame.Rect(796, 21, 28, 90),
+        pygame.Rect(795, 170, 28, 90)
     ]
     while game:
         if countdown > 0:
