@@ -303,16 +303,19 @@ shoot_sound = pygame.mixer.Sound("assets/audio/Tank_shot.mp3")
 normal_hit_sound = pygame.mixer.Sound("assets/audio/Metal_hit.mp3")
 crit_hit_sound = pygame.mixer.Sound("assets/audio/Metal_pierce.mp3")
 explosion_sound = pygame.mixer.Sound("assets/audio/Tank_kaboom.mp3")
-pygame.mixer.music.load("assets/audio/Match_start.mp3")
+intro_sound = pygame.mixer.Sound("assets/audio/Match_start.mp3")
+#pygame.mixer.music.load("assets/audio/Match_start.mp3")
 
 volume = ui.get_setting("volume")
 shoot_sound.set_volume(volume)
 normal_hit_sound.set_volume(volume)
 crit_hit_sound.set_volume(volume)
 explosion_sound.set_volume(volume)
-pygame.mixer.music.set_volume(volume)
+intro_sound.set_volume(volume)
+#pygame.mixer.music.set_volume(volume)
 
-pygame.mixer.music.play()
+intro_sound.play()
+#pygame.mixer.music.play(-1)
 
 background = Image.new_image("assets/tiles/map1.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
 wall = pygame.image.load("assets/tiles/wallwall.png").convert()
@@ -346,8 +349,27 @@ player2 = Tank(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bulle
 
 players = [player1, player2]
 
+other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
+dim = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+dim.fill((50, 50, 50, 150))
+countdown = 4
+
 @screen.run
 def main_loop(delta_time: float) -> Any:
+    global countdown
+    if countdown > 0:
+        for event in pygame.event.get(): ...
+        background.render(screen.surface)
+        screen.surface.blit(dim, (0, 0))
+
+        text_surf = other_font.render(f"{countdown-1}" if countdown > 1 else "Fight!", True, (255, 255, 255))
+        screen.surface.blit(text_surf, text_surf.get_rect(center=(WIDTH//2, HEIGHT//2)))
+
+        pygame.display.flip()
+        countdown -= 1
+        time.sleep(1.0)
+        return
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return BREAK_LOOP
