@@ -16,10 +16,10 @@ import time
 import pygame
 import ui
 
-shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
-normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
-crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
-pygame.mixer.music.load("assets/audio/Match-start.mp3")
+shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank_shot.mp3")
+normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal_hit.mp3")
+crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal_pierce.mp3")
+pygame.mixer.music.load("assets/audio/Match_start.mp3")
 pygame.mixer.music.play()
 volume = ui.get_setting("volume")
 pygame.mixer.music.set_volume(volume)
