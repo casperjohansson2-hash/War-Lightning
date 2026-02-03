@@ -314,7 +314,7 @@ pygame.mixer.music.set_volume(volume)
 
 pygame.mixer.music.play()
 
-background = Image.new_image("assets/tiles/mapmap.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
+background = Image.new_image("assets/tiles/map1.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
 wall = pygame.image.load("assets/tiles/wallwall.png").convert()
 wall2 = pygame.transform.smoothscale(wall, (86, 27))
 
