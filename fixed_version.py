@@ -77,7 +77,7 @@ class World:
         self.bullets = []
     
     def find_collisions(self, rect: pygame.Rect) -> Generator[pygame.Rect, Any, None]:
-        for obj in self.objects + [player.image.rect for player in self.players]:
+        for obj in self.objects:
             if obj.colliderect(rect):
                 yield obj
     
