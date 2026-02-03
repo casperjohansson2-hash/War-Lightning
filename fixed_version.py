@@ -417,25 +417,25 @@ player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(600, 300
 
 player1_keybinds = Keybinds(up=pygame.K_w, down=pygame.K_s, left=pygame.K_a, right=pygame.K_d, shoot=pygame.K_SPACE)
 player1 = Tank(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
-player1_healthbar = HealthBar(
-    background = ..., 
-    filler1 = ...,
-    filler2 = ..., 
-    text = ui.Text(primary_font, "health", (255, 255, 255)),
-    health = lambda: player1.health,
-    max_health = 1.0
-)
+#player1_healthbar = HealthBar(
+#    background = ..., 
+#    filler1 = ...,
+#    filler2 = ..., 
+#    text = ui.Text(primary_font, "health", (255, 255, 255)),
+#    health = lambda: player1.health,
+#    max_health = 1.0
+#)
 
 player2_keybinds = Keybinds(up=pygame.K_UP, down=pygame.K_DOWN, left=pygame.K_LEFT, right=pygame.K_RIGHT, shoot=pygame.K_RETURN)
 player2 = Tank(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
-player2_healthbar = HealthBar(
-    background = ..., 
-    filler1 = ...,
-    filler2 = ..., 
-    text = ui.Text(primary_font, "health", (255, 255, 255)),
-    health = lambda: player1.health,
-    max_health = 1.0
-)
+#player2_healthbar = HealthBar(
+#    background = ..., 
+#    filler1 = ...,
+#    filler2 = ..., 
+#    text = ui.Text(primary_font, "health", (255, 255, 255)),
+#    health = lambda: player1.health,
+#    max_health = 1.0
+#)
 
 players = [player1, player2]
 
@@ -480,8 +480,8 @@ def main_loop(delta_time: float) -> Any:
             world.bullets.remove(bullet)
         bullet.render(screen.surface)
 
-    player1_healthbar.render(screen.surface)
-    player2_healthbar.render(screen.surface)
+    #player1_healthbar.render(screen.surface)
+    #player2_healthbar.render(screen.surface)
 
     if player1.is_alive:
         player1.update(delta_time)
