@@ -136,7 +136,10 @@ class Bullet:
         
         for player in self.players:
             if self.image.rect.colliderect(player.image.rect):
-                crit_hit_sound.play()
+                if self.damage >= 0.2:
+                    crit_hit_sound.play()
+                else:
+                    normal_hit_sound.play()
                 player.health -= self.damage
                 return True
         
@@ -265,7 +268,7 @@ def find_image(
 
 pygame.display.init()
 
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1920, 1080
 screen = Screen(WIDTH, HEIGHT)
 pygame.display.set_caption("War Lightning")
 pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
@@ -286,7 +289,7 @@ pygame.mixer.music.play()
 background = Image.new_image("assets/tiles/map1.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
 wall = pygame.image.load("assets/tiles/wallwall.png").convert()
 
-scales = [(40, 15), (45, 12)]
+scales = [(100, 25)]
 wall_rects = []
 
 for scale in scales:
@@ -299,7 +302,7 @@ for scale in scales:
     tpl = pygame.transform.smoothscale(rotated_wall, (scale[1], scale[0]))
     wall_rects.extend(find_image(tpl, background.surface))
 
-world = World(*wall_rects)
+world = World(*wall_rects)# + [pygame.Rect(0, 0, 100, 25)])
 
 bullet_image = Image.new_image("assets/bullets/bullet.png", pygame.Rect(0, 0, 10, 10))
 
@@ -307,10 +310,10 @@ player1_image = Image.new_image("assets/tanks/Player1.png", pygame.Rect(600, 300
 player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(600, 300, 30, 30), (20, 20))
 
 player1_keybinds = Keybinds(up=pygame.K_w, down=pygame.K_s, left=pygame.K_a, right=pygame.K_d, shoot=pygame.K_SPACE)
-player1 = Player(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.1 if random.random() < 0.3 else 0.0)
+player1 = Player(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 
 player2_keybinds = Keybinds(up=pygame.K_UP, down=pygame.K_DOWN, left=pygame.K_LEFT, right=pygame.K_RIGHT, shoot=pygame.K_RETURN)
-player2 = Player(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.1 if random.random() < 0.3 else 0.0)
+player2 = Player(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
 
 players = [player1, player2]
 
