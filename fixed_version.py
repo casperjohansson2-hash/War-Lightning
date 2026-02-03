@@ -211,47 +211,6 @@ class Bullet:
     def render(self, surface: pygame.Surface) -> None:
         self.image.render(surface)
 
-class Tank(Player):
-    bullet_speed: float
-    health: float
-    shoot_interval: float
-    damage_func: Callable[[], float]
-    bullet_image: Image
-
-    def __init__(self, world: TankWorld, image: Image, keybinds: Keybinds, speed: float, bullet_speed: float, health: float, shoot_interval: float, bullet_image: Image, damage_func: Callable[[], float]) -> None:
-        super().__init__(world, image, keybinds, speed)
-        self.bullet_speed = bullet_speed
-        self.health = health
-        self.shoot_interval = shoot_interval
-        self.damage_func = damage_func
-        self.bullet_image = bullet_image
-
-        self.last_shot = 0.0
-    
-    @property
-    def is_alive(self) -> bool:
-        return self.health > 0.0
-    
-    def update(self, dt: float) -> None:
-        super().update(dt)
-        pressed_keys = self.keybinds.get_pressed()
-        now = time.monotonic()
-        if pressed_keys["shoot"] and now - self.last_shot > self.shoot_interval:
-            shoot_sound.play()
-            self.last_shot = now
-            if self.image.rotation == 0:
-                vel = (0, -self.bullet_speed)
-            elif self.image.rotation == 270:
-                vel = (self.bullet_speed, 0)
-            elif self.image.rotation == 180:
-                vel = (0, self.bullet_speed)
-            elif self.image.rotation == 90:
-                vel = (-self.bullet_speed, 0)
-            players = [player for player in self.world.players if player.is_alive and not player is self]
-            bullet = Bullet(self.world, self.bullet_image.copy(), players, vel, self.damage_func())
-            bullet.image.rect.center = self.image.rect.center
-            self.world.bullets.append(bullet)
-
 class HealthBar:
     background: Image
     filler1: Image
@@ -319,6 +278,49 @@ class HealthBar:
         self.filler1.render(surface)
         self.filler2.render(surface)
         self.text.render(surface, self.text_rect)
+
+class Tank(Player):
+    bullet_speed: float
+    health: float
+    shoot_interval: float
+    damage_func: Callable[[], float]
+    bullet_image: Image
+
+    last_shot: float
+
+    def __init__(self, world: TankWorld, image: Image, keybinds: Keybinds, speed: float, bullet_speed: float, health: float, shoot_interval: float, bullet_image: Image, damage_func: Callable[[], float]) -> None:
+        super().__init__(world, image, keybinds, speed)
+        self.bullet_speed = bullet_speed
+        self.health = health
+        self.shoot_interval = shoot_interval
+        self.damage_func = damage_func
+        self.bullet_image = bullet_image
+
+        self.last_shot = 0.0
+    
+    @property
+    def is_alive(self) -> bool:
+        return self.health > 0.0
+    
+    def update(self, dt: float) -> None:
+        super().update(dt)
+        pressed_keys = self.keybinds.get_pressed()
+        now = time.monotonic()
+        if pressed_keys["shoot"] and now - self.last_shot > self.shoot_interval:
+            shoot_sound.play()
+            self.last_shot = now
+            if self.image.rotation == 0:
+                vel = (0, -self.bullet_speed)
+            elif self.image.rotation == 270:
+                vel = (self.bullet_speed, 0)
+            elif self.image.rotation == 180:
+                vel = (0, self.bullet_speed)
+            elif self.image.rotation == 90:
+                vel = (-self.bullet_speed, 0)
+            players = [player for player in self.world.players if player.is_alive and not player is self]
+            bullet = Bullet(self.world, self.bullet_image.copy(), players, vel, self.damage_func())
+            bullet.image.rect.center = self.image.rect.center
+            self.world.bullets.append(bullet)
 
 def surface_to_cv(surface: pygame.Surface) -> np.ndarray:
     return pygame.surfarray.array3d(surface).swapaxes(0, 1)
@@ -415,9 +417,25 @@ player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(600, 300
 
 player1_keybinds = Keybinds(up=pygame.K_w, down=pygame.K_s, left=pygame.K_a, right=pygame.K_d, shoot=pygame.K_SPACE)
 player1 = Tank(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
+player1_healthbar = HealthBar(
+    background = ..., 
+    filler1 = ...,
+    filler2 = ..., 
+    text = ui.Text(primary_font, "health", (255, 255, 255)),
+    health = lambda: player1.health,
+    max_health = 1.0
+)
 
 player2_keybinds = Keybinds(up=pygame.K_UP, down=pygame.K_DOWN, left=pygame.K_LEFT, right=pygame.K_RIGHT, shoot=pygame.K_RETURN)
 player2 = Tank(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
+player2_healthbar = HealthBar(
+    background = ..., 
+    filler1 = ...,
+    filler2 = ..., 
+    text = ui.Text(primary_font, "health", (255, 255, 255)),
+    health = lambda: player1.health,
+    max_health = 1.0
+)
 
 players = [player1, player2]
 
@@ -461,6 +479,9 @@ def main_loop(delta_time: float) -> Any:
         if bullet.update(delta_time):
             world.bullets.remove(bullet)
         bullet.render(screen.surface)
+
+    player1_healthbar.render(screen.surface)
+    player2_healthbar.render(screen.surface)
 
     if player1.is_alive:
         player1.update(delta_time)
