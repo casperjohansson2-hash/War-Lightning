@@ -252,6 +252,73 @@ class Tank(Player):
             bullet.image.rect.center = self.image.rect.center
             self.world.bullets.append(bullet)
 
+class HealthBar:
+    background: Image
+    filler1: Image
+    filler2: Image
+    text: ui.Text
+
+    text_rect: pygame.Rect
+
+    health: Callable[[], float]
+    max_health: float
+
+    full_width: float
+    current_width: float
+
+    def __init__(self, background: Image, filler1: Image, filler2: Image, text: ui.Text, health: Callable[[], float], max_health: float) -> None:
+        self.background = background
+        self.filler1 = filler1
+        self.filler2 = filler2
+        self.text = text
+
+        self.text_rect = text.text_rect(center=background.rect.center)
+        
+        self.health = health
+        self.max_health = max_health
+
+        self.full_width = self.filler1.rect.width
+        self.current_width = self.full_width
+
+        self.last_health = max_health
+    
+    def update(self, dt: float) -> None:
+        health = self.health()
+        if not self.last_health > health:
+            return
+        
+        # health ratio
+        ratio = max(0.0, min(1.0, health / self.max_health))
+        target_width = int(self.full_width * ratio)
+
+        # optional smoothing for filler2 (damage lag effect)
+        speed = 300 * dt
+        if self.current_width > target_width:
+            self.current_width = max(target_width, self.current_width - speed)
+        else:
+            self.current_width = target_width
+
+        # --- CUT IMAGES ---
+        self.filler1.surface = self.filler1.base_surface.subsurface(
+            pygame.Rect(0, 0, target_width, self.filler1.rect.height)
+        )
+
+        self.filler2.surface = self.filler2.base_surface.subsurface(
+            pygame.Rect(0, 0, int(self.current_width), self.filler2.rect.height)
+        )
+
+        # keep bars aligned left
+        self.filler1.rect.width = target_width
+        self.filler2.rect.width = int(self.current_width)
+
+        # update text
+        self.text.edit_text(f"{int(health)}/{int(self.max_health)}")
+    
+    def render(self, surface: pygame.Surface) -> None:
+        self.background.render(surface)
+        self.filler1.render(surface)
+        self.filler2.render(surface)
+        self.text.render(surface, self.text_rect)
 
 def surface_to_cv(surface: pygame.Surface) -> np.ndarray:
     return pygame.surfarray.array3d(surface).swapaxes(0, 1)
@@ -277,6 +344,8 @@ WIDTH, HEIGHT = 1920, 1080
 screen = Screen(WIDTH, HEIGHT)
 pygame.display.set_caption("War Lightning")
 pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
+
+primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 25)
 
 explosions = Particles(
     size=(WIDTH, HEIGHT),
