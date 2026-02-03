@@ -422,7 +422,7 @@ player1 = Tank(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bulle
 #    filler1 = ...,
 #    filler2 = ..., 
 #    text = ui.Text(primary_font, "health", (255, 255, 255)),
-#    health = lambda: player1.health,
+#    health = lambda: int(player1.health * 100),
 #    max_health = 1.0
 #)
 
@@ -433,7 +433,7 @@ player2 = Tank(world, player2_image, player2_keybinds, 200, 500, 1.0, 1.0, bulle
 #    filler1 = ...,
 #    filler2 = ..., 
 #    text = ui.Text(primary_font, "health", (255, 255, 255)),
-#    health = lambda: player1.health,
+#    health = lambda: int(player1.health * 100),
 #    max_health = 1.0
 #)
 
@@ -495,5 +495,10 @@ def main_loop(delta_time: float) -> Any:
         pygame.draw.rect(screen.surface, (0, 0, 255), player1.image.rect, 1)
         pygame.draw.rect(screen.surface, (0, 0, 255), player2.image.rect, 1)
         world.draw_boxes(screen.surface)
+    
+    text_surf = primary_font.render(f"{int(player1.health * 100)} hp", True, (255, 255, 255))
+    screen.surface.blit(text_surf, text_surf.get_rect(topleft=(10, 10)))
+    text_surf = primary_font.render(f"{int(player2.health * 100)} hp", True, (255, 255, 255))
+    screen.surface.blit(text_surf, text_surf.get_rect(topright=(WIDTH - 10, 10)))
 
 pygame.quit()
