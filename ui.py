@@ -327,7 +327,8 @@ class AppState:
     mode: Optional[str] = None
     settings: Dict[str, Any] = {
         "hitboxes": False,
-        "volume": 1.0
+        "volume": 1.0,
+        "particles": True
     }
 
 @cache # Faster retrieval
@@ -362,6 +363,7 @@ SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (255, 255, 255))
 CRED_TITLE = Text(HEADER_FONT, "Creds", (255, 255, 255))
 
 HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
+PARTICLE_TEXT = Text(PRIMARY_FONT, "Enabled", (255, 255, 255))
 VOLUME_TEXT = Text(PRIMARY_FONT, "Volume: 100%", (255, 255, 255))
 
 class Menu:
@@ -396,6 +398,12 @@ class Menu:
         BUTTON_SOUND.set_volume(volume)
         pygame.mixer.music.set_volume(volume)
         VOLUME_TEXT.edit_text(f"Volume: {round(volume * 100)}%")
+    
+    def toggle_particles(self) -> None:
+        BUTTON_SOUND.play()
+        was_active = AppState.settings["particles"]
+        AppState.settings["particles"] = not was_active
+        PARTICLE_TEXT.edit_text("Disabled" if was_active else "Enabled")
 
     def back_to_start(self) -> None:
         BUTTON_SOUND.play()
@@ -556,6 +564,20 @@ SETTINGS\
     1.0,
     (0.0, 1.0),
     lambda vol: menu.edit_volume(vol)
+))\
+.add_element(Label(
+    PARTICLE_TEXT.text_rect(center=(550, 300)), PARTICLE_TEXT
+))\
+.add_element(Button(
+    pygame.Rect(325, 280, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Toggle Particles", (200, 235, 220)),
+    lambda: menu.toggle_particles()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
