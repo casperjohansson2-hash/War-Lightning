@@ -5,8 +5,6 @@ from typing import (
 )
 from particles import Particles
 import random
-import cv2
-import numpy as np
 import pygame
 import time
 import ui
@@ -338,24 +336,6 @@ class Tank(Player):
             bullet.image.rect.center = self.image.rect.center
             self.world.bullets.append(bullet)
 
-def surface_to_cv(surface: pygame.Surface) -> np.ndarray:
-    return pygame.surfarray.array3d(surface).swapaxes(0, 1)
-
-def find_image(template: pygame.Surface, source: pygame.Surface, threshold: float = 0.5) -> List[pygame.Rect]:
-    tpl = surface_to_cv(template)
-    src = surface_to_cv(source)
-
-    result = cv2.matchTemplate(src, tpl, cv2.TM_CCOEFF_NORMED)
-    locations = np.where(result >= threshold)
-
-    rects = []
-    w, h = template.get_size()
-
-    for pt in zip(*locations[::-1]):
-        rects.append(pygame.Rect(pt[0], pt[1], w, h))
-
-    return rects
-
 pygame.display.init()
 
 WIDTH, HEIGHT = 1920, 1080
@@ -409,22 +389,47 @@ intro_sound.play()
 
 background = Image.new_image("assets/tiles/map1.png", pygame.Rect(0, 0, WIDTH, HEIGHT))
 wall = pygame.image.load("assets/tiles/wallwall.png").convert()
-wall2 = pygame.transform.smoothscale(wall, (86, 27))
 
-scales = [(86, 27)]
-wall_rects = []
+world = TankWorld(
+    pygame.Rect(796, 24, 28, 86),
+    pygame.Rect(794, 169, 28, 86),
+    pygame.Rect(794, 336, 28, 86),
+    pygame.Rect(822, 394, 172, 28),
+    pygame.Rect(880, 730, 172, 28),
+    pygame.Rect(794, 504, 28, 86),
+    pygame.Rect(795, 672, 28, 86),
+    pygame.Rect(794, 862, 28, 86),
+    pygame.Rect(1135, 24, 28, 86),
+    pygame.Rect(1135, 169, 28, 86),
+    pygame.Rect(1135, 336, 28, 86),
+    pygame.Rect(1135, 504, 28, 86),
+    pygame.Rect(1136, 672, 28, 86),
+    pygame.Rect(1135, 860, 28, 86),
+    pygame.Rect(1190, 815, 86, 28),
+    pygame.Rect(1360, 815, 86, 28),
+    pygame.Rect(1530, 815, 86, 28),
+    pygame.Rect(1020, 815, 86, 28),
+    pygame.Rect(850, 815, 86, 28),
+    pygame.Rect(680, 815, 86, 28),
+    pygame.Rect(510, 815, 86, 28),
+    pygame.Rect(340, 815, 86, 28),
+    pygame.Rect(424, 891, 86, 28),
+    pygame.Rect(596, 891, 86, 28),
+    pygame.Rect(1274, 891, 86, 28),
+    pygame.Rect(1444, 891, 86, 28),
+    pygame.Rect(1335, 420, 28, 86),
+    pygame.Rect(1420, 250, 28, 86),
+    pygame.Rect(1425, 672, 28, 86),
+    pygame.Rect(480, 420, 28, 86),
+    pygame.Rect(510, 252, 28, 86),
+    pygame.Rect(510, 672, 28, 86),
+    pygame.Rect(314, 506, 28, 86),
+    pygame.Rect(1582, 505, 28, 86)
+)
 
-for scale in scales:
-    tpl = pygame.transform.smoothscale(wall, scale)
-    wall_rects.extend(find_image(tpl, background.surface))
-
-rotated_wall = pygame.transform.rotate(wall, 90)
-
-for scale in scales:
-    tpl = pygame.transform.smoothscale(rotated_wall, (scale[1], scale[0]))
-    wall_rects.extend(find_image(tpl, background.surface))
-
-world = TankWorld(*wall_rects)# + [pygame.Rect(0, 0, 100, 25)])
+world.breakables = [
+    
+]
 
 bullet_image = Image.new_image("assets/bullets/bullet.png", pygame.Rect(0, 0, 10, 10))
 
@@ -483,9 +488,6 @@ def main_loop(delta_time: float) -> Any:
             return BREAK_LOOP
     
     background.render(screen.surface)
-
-    screen.surface.blit(wall2, (340, 115))
-    pygame.draw.rect(screen.surface, (255, 0, 0), wall2.get_rect(topleft=(340, 115)), 1)
 
     explosions.update(delta_time)
     explosions.render(screen.surface)
