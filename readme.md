@@ -1,10 +1,44 @@
-# War Lightning
+# ⚡ War Lightning
 
-Hello, soldier. Today is your first day to serve the military.
-To do so, you have been given a tank and just a few instructions; all of whom is to kill your enemy. 
+**War Lightning** is a tank-based combat experience where survival is the only measure of success.
 
-Be successful and win tremendous rewards — be undefeated and be named a warrior who knows no end. 
-But only you can bare witness to your own survival. And, well... maybe just your opponent nextdoor.
+You are a newly deployed soldier, issued a tank and a single objective: **destroy the enemy**.
 
-See, using advanced technology in AI, Donaldus Trumpus has successfully made a worthy mutual enemy. 
-Will he beg for his life, or are you going to fail us all? It is only by time, and we will see.
+Victory earns prestige and reward. Remain undefeated, and your name will stand among warriors without end. Defeat leaves no record—except, perhaps, in the memory of the opponent next door.
+
+# 🪖 Premise
+
+Through advanced AI technology, *Donaldus Trumpus* has engineered a powerful, mutual adversary.
+This enemy is adaptive, relentless, and designed to test your limits.
+
+The outcome is uncertain.
+
+Will your opponent beg for mercy?
+
+Or will you be the one who fails?
+
+Only time will decide.
+
+# 🎯 Objective
+
+- Operate your tank
+
+- Engage the enemy
+
+- Survive
+
+- Win
+
+There are no secondary goals. There are no spectators.
+Only you and the battlefield.
+
+# 🧠 Notes
+
+- This project emphasizes AI-driven opposition
+
+- The experience is intentionally minimal and unforgiving
+
+- Every encounter is a test of strategy and endurance
+
+Prepare yourself.
+The war begins now.
