@@ -196,6 +196,7 @@ class Bullet:
                     normal_hit_sound.play()
                 player.health -= self.damage
                 if not player.is_alive:
+                    death_explosions.emit(*player.image.rect.center, 200)
                     explosion_sound.play()
                 return True
         
@@ -284,6 +285,18 @@ explosions = Particles(
     decay_y=(0.5, 0.85),
     decay_size=(0.75, 0.95),
     radius=(3, 9)
+)
+
+death_explosions = Particles(
+    size=(WIDTH, HEIGHT),
+    vel_x=(-800, 800),
+    vel_y=(-800, 800),
+    acc_x=(-50, 50),
+    acc_y=(-50, 50),
+    decay_x=(0.3, 0.85),
+    decay_y=(0.3, 0.85),
+    decay_size=(0.65, 0.95),
+    radius=(6, 12)
 )
 
 shoot_sound = pygame.mixer.Sound("assets/audio/Tank shot.mp3")
