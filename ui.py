@@ -325,6 +325,7 @@ m = Central.get("Menu")
 
 class AppState:
     mode: Optional[str] = None
+    kind: Optional[str] = None
     settings: Dict[str, Any] = {
         "hitboxes": False,
         "volume": 1.0,
@@ -354,6 +355,7 @@ PRIMARY_FONT = pygame.font.Font("assets/fonts/SEEKUW.ttf", 15)
 
 MAIN_MENU = UI("Menu")
 MODE_MENU = UI("Modes")
+KIND_MENU = UI("Kinds")
 SETTINGS = UI("Settings")
 CREDIBILITY = UI("Cred")
 
@@ -411,13 +413,23 @@ class Menu:
 
     def select_solo(self) -> None:
         BUTTON_SOUND.play()
-        self.active = False
+        self.ui = KIND_MENU
         AppState.mode = "solo"
 
     def select_vs(self) -> None:
         BUTTON_SOUND.play()
-        self.active = False
+        self.ui = KIND_MENU
         AppState.mode = "vs"
+    
+    def select_kingofhill(self) -> None:
+        BUTTON_SOUND.play()
+        self.active = False
+        AppState.kind = "king of hill"
+    
+    def select_deathmatch(self) -> None:
+        BUTTON_SOUND.play()
+        self.active = False
+        AppState.kind = "king of hill"
 
     def quit(self) -> None:
         BUTTON_SOUND.play()
@@ -518,6 +530,44 @@ MODE_MENU\
     ),
     Text(PRIMARY_FONT, "Versus", (200, 235, 220)),
     lambda: menu.select_vs()
+))\
+.add_element(Button(
+    pygame.Rect(350, 500, 100, 25),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
+    lambda: menu.back_to_start()
+))
+
+KIND_MENU\
+.add_element(Label(
+    SELECT_MODE_TITLE.text_rect(center=(400, 30)), SELECT_MODE_TITLE
+))\
+.add_element(Button(
+    pygame.Rect(125, 300, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "Deathmatch", (200, 235, 220)),
+    lambda: menu.select_deathmatch()
+))\
+.add_element(Button(
+    pygame.Rect(525, 300, 150, 38),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 15, 2
+    ),
+    Text(PRIMARY_FONT, "King Of The Hill", (200, 235, 220)),
+    lambda: menu.select_kingofhill()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
