@@ -434,7 +434,7 @@ class Menu:
     def select_deathmatch(self) -> None:
         BUTTON_SOUND.play()
         self.active = False
-        AppState.kind = "king of hill"
+        AppState.kind = "deathmatch"
 
     def quit(self) -> None:
         BUTTON_SOUND.play()
