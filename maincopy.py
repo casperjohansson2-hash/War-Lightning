@@ -420,6 +420,12 @@ else:
 
     ]
 
+    winner = None
+    original_win_screen1 = pygame.image.load("assets/ui/p1_win.png")
+    original_win_screen2 = pygame.image.load("assets/ui/p2_win.png")
+    win_screen1 = pygame.transform.scale(original_win_screen1, (width, height))
+    win_screen2 = pygame.transform.scale(original_win_screen2, (width, height))
+
     while game:
         if countdown > 0:
             for event in pygame.event.get(): ...
@@ -434,6 +440,17 @@ else:
             time.sleep(1.0)
             continue
 
+        if winner:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    game = False
+
+            if winner == "player1":
+                screen.blit(win_screen1, (0, 0))
+
+            pygame.display.flip()
+            continue
+
         #Funktionerna för att de två spelarna ska kunna röra sig
         player_1.move(walls)
         player_2.move(walls)
@@ -443,6 +460,11 @@ else:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game = False
+        
+        if player_1.kingpoints >= 100 or player_1.health <= 0:
+            winner = "player1"
+        if player_2.kingpoints >= 100 or player_2.health <= 0:
+            winner = "player2"
 
         
         keys = pygame.key.get_pressed()
