@@ -323,6 +323,7 @@ class Tank(Player):
         if pressed_keys["shoot"] and now - self.last_shot > self.shoot_interval:
             shoot_sound.play()
             self.last_shot = now
+            image = self.bullet_image.copy()
             if self.image.rotation == 0:
                 vel = (0, -self.bullet_speed)
             elif self.image.rotation == 270:
@@ -331,8 +332,9 @@ class Tank(Player):
                 vel = (0, self.bullet_speed)
             elif self.image.rotation == 90:
                 vel = (-self.bullet_speed, 0)
+            image.rotate(self.image.rotation)
             players = [player for player in self.world.players if player.is_alive and not player is self]
-            bullet = Bullet(self.world, self.bullet_image.copy(), players, vel, self.damage_func())
+            bullet = Bullet(self.world, image, players, vel, self.damage_func())
             bullet.image.rect.center = self.image.rect.center
             self.world.bullets.append(bullet)
 
