@@ -440,13 +440,15 @@ else:
             time.sleep(1.0)
             continue
 
-        if winner:
+        if not winner is None:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     game = False
 
             if winner == "player1":
                 screen.blit(win_screen1, (0, 0))
+            elif winner == "player2":
+                screen.blit(win_screen2, (0, 0))
 
             pygame.display.flip()
             continue
