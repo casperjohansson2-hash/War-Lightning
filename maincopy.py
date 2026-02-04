@@ -414,6 +414,9 @@ else:
     walls = [
         pygame.Rect(10, 0, 50, height),
     ]
+    pickups = [
+
+    ]
 
     while game:
         if countdown > 0:
@@ -483,6 +486,9 @@ else:
 
         for wall in walls:
             pygame.draw.rect(screen, (255, 0, 0), wall, 1)
+        
+        if random.random() < 0.25: # (25%)
+            pickups.append(Pickup(...))
             
 
         if player_1.health < 0:
