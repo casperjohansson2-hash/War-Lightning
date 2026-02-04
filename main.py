@@ -28,6 +28,7 @@ pygame.mixer.music.set_volume(volume)
 color_list = [(255, 50, 50), (255, 150, 50), (255, 255, 50)]
 explosions = []
 
+
 if ui.get_mode() == "exit":
     pygame.quit()
 else:
@@ -59,6 +60,7 @@ else:
     clock = pygame.time.Clock()
     #Det som håller spelet igång och startar upp fönstret
     game = True
+    maps = [background1, background2]
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("War Lightning")
     pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
@@ -82,7 +84,7 @@ else:
     class Player1:
         def __init__(self):
             self.player1_x = 30
-            self.player1_y = height // 2
+            self.player1_y = (height // 2) - 20
             self.sprite_player1 = sprite_player1
             self.health = player_health
             self.damage = damage()
@@ -94,7 +96,7 @@ else:
             hitbox_width = self.sprite_player1.get_width() - 25
             hitbox_height = self.sprite_player1.get_height() - 25
             self.kingpoints = 0
-            
+            self.sprite_player1 = pygame.transform.rotate(self.original_image, 270)
             
             self.offset_x = (self.sprite_player1.get_width() - hitbox_width) // 2
             self.offset_y = (self.sprite_player1.get_height() - hitbox_height) // 2
@@ -187,8 +189,8 @@ else:
     if ui.get_mode() == "solo":
         class Player2:
             def __init__(self):
-                self.player2_x = width - 30
-                self.player2_y = height // 2
+                self.player2_x = width - 90
+                self.player2_y = (height // 2) - 20
                 self.sprite_player2 = sprite_player2
                 self.health = player_health
                 self.damage = damage()
@@ -200,7 +202,7 @@ else:
                 hitbox_width = self.sprite_player2.get_width() - 25
                 hitbox_height = self.sprite_player2.get_height() - 25
                 self.kingpoints = 0
-            
+                self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
             
                 self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
                 self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
@@ -295,8 +297,8 @@ else:
     elif ui.get_mode() == "vs":
         class Player2:
             def __init__(self):
-                self.player2_x = width - 30
-                self.player2_y = height // 2
+                self.player2_x = width - 90
+                self.player2_y = (height // 2) - 20
                 self.sprite_player2 = sprite_player2
                 self.health = player_health
                 self.damage = damage()
@@ -308,6 +310,7 @@ else:
                 hitbox_width = self.sprite_player2.get_width() - 25
                 hitbox_height = self.sprite_player2.get_height() - 25
                 self.kingpoints = 0
+                self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
             
             
                 self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
@@ -501,39 +504,18 @@ else:
     countdown = 4
 
 
-    if ui.get_setting() == "idrilyn":
+    if ui.get_map() == "Idrilyn":
         background = background1
-    elif ui.get_setting() == "nebrodu":
+    elif ui.get_map() == "Nebrodu":
         background = background2
-    # Här defineras de två spelarna utifrån deras klasser
-    player_1 = Player1()
-    if ui.get_kind() == "king of hill":
-        last_kingpoints1 = 0
-    player_2 = Player2()
-    if ui.get_kind() == "king of hill":
-        last_kingpoints2 = 0
-    #Och här definieras skott räknarna som gör att man inte kan skjuta för snabbt
-    bullet_counter1 = 0
-    bullet_counter2 = 0
-    #Listor som håller koll på de olika objekten som avfyrats från båda spelarna under en runda
-    bullet_list1 = []
-    bullet_list2 = []
-    #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
-    #All kollision
+    elif ui.get_map() == "Random":
+        background = random.choice(maps)
 
-    original_hp_bar_back = pygame.image.load("assets/ui/hp_bar_back.png")
-    original_hp_bar_health = pygame.image.load("assets/ui/hp_bar_health.png")
-    original_hp_bar_overlay = pygame.image.load("assets/ui/hp_bar_overlay.png")
-    hp_bar_back = pygame.transform.smoothscale(original_hp_bar_back, (215, 50))
-    hp_bar_overlay = pygame.transform.smoothscale(original_hp_bar_overlay, (215, 50))
-    hp_bar_health1 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
-    hp_bar_health2 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
-    hp_bar_rect1 = pygame.Rect(10, 10, 215, 50)
-    hp_bar_rect2 = pygame.Rect(width-225, 10, 215, 50)
-    last_health1 = 100
-    last_health2 = 100
+        
+            
+    
 
-    if ui.get_setting() == "idrilyn":
+    if background == background1:
         walls = [
             pygame.Rect(796, 24, 28, 86),
             pygame.Rect(794, 169, 28, 86),
@@ -584,7 +566,46 @@ else:
             pygame.Rect(width - 27, 0, 28, height),
             pygame.Rect(0, height - 27, width, 28),
             pygame.Rect(-1, 0, 28, height),
-        ]   
+            ]
+    elif background == background2:
+        walls = [
+            pygame.Rect(0, 0, width, 28),
+            pygame.Rect(width - 27, 0, 28, height),
+            pygame.Rect(0, height - 27, width, 28),
+            pygame.Rect(-1, 0, 28, height),
+            ]   
+    # Här defineras de två spelarna utifrån deras klasser
+    player_1 = Player1()
+    if ui.get_kind() == "king of hill":
+        last_kingpoints1 = 0
+    player_2 = Player2()
+    if ui.get_kind() == "king of hill":
+        last_kingpoints2 = 0
+    #Och här definieras skott räknarna som gör att man inte kan skjuta för snabbt
+    bullet_counter1 = 0
+    bullet_counter2 = 0
+    #Listor som håller koll på de olika objekten som avfyrats från båda spelarna under en runda
+    bullet_list1 = []
+    bullet_list2 = []
+    #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
+    #All kollision
+
+    original_hp_bar_back = pygame.image.load("assets/ui/hp_bar_back.png")
+    original_hp_bar_health = pygame.image.load("assets/ui/hp_bar_health.png")
+    original_hp_bar_overlay = pygame.image.load("assets/ui/hp_bar_overlay.png")
+    hp_bar_back = pygame.transform.smoothscale(original_hp_bar_back, (215, 50))
+    hp_bar_overlay = pygame.transform.smoothscale(original_hp_bar_overlay, (215, 50))
+    hp_bar_health1 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_health2 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_rect1 = pygame.Rect(10, 10, 215, 50)
+    hp_bar_rect2 = pygame.Rect(width-225, 10, 215, 50)
+    last_health1 = 100
+    last_health2 = 100
+
+    
+           
+    
+        
     if ui.get_kind() == "deathmatch":
         while game:
             if countdown > 0:
