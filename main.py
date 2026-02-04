@@ -42,14 +42,16 @@ else:
     
 
     #Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
-    original_background = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
+    original_background1 = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
+    original_background2 = pygame.image.load("C:/War Lightning/assets/tiles/map2.png")
     original_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
     original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
     original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
     
+    
 
-
-    background = pygame.transform.smoothscale(original_background, (width, height))
+    background1 = pygame.transform.smoothscale(original_background1, (width, height))
+    background2 = pygame.transform.smoothscale(original_background2, (width, height))
     sprite_bullet = pygame.transform.smoothscale(original_bullet, (original_bullet.get_width() + 1, original_bullet.get_height() + 1))
     sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
     sprite_player2 = pygame.transform.smoothscale(original_player2, (original_player2.get_width(), original_player2.get_height()))
@@ -497,6 +499,12 @@ else:
     dim = pygame.Surface((width, height), pygame.SRCALPHA)
     dim.fill((50, 50, 50, 150))
     countdown = 4
+
+
+    if ui.get_setting() == "idrilyn":
+        background = background1
+    elif ui.get_setting() == "nebrodu":
+        background = background2
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
     if ui.get_kind() == "king of hill":
@@ -525,57 +533,58 @@ else:
     last_health1 = 100
     last_health2 = 100
 
-    walls = [
-        pygame.Rect(796, 24, 28, 86),
-        pygame.Rect(794, 169, 28, 86),
-        pygame.Rect(794, 336, 28, 86),
-        pygame.Rect(822, 394, 172, 28),
-        pygame.Rect(880, 730, 172, 28),
-        pygame.Rect(794, 504, 28, 86),
-        pygame.Rect(795, 672, 28, 86),
-        pygame.Rect(794, 862, 28, 86),
-        pygame.Rect(1135, 24, 28, 86),
-        pygame.Rect(1135, 169, 28, 86),
-        pygame.Rect(1135, 336, 28, 86),
-        pygame.Rect(1135, 504, 28, 86),
-        pygame.Rect(1136, 672, 28, 86),
-        pygame.Rect(1105, 842, 28, 86),
-        pygame.Rect(1190, 815, 86, 28),
-        pygame.Rect(1360, 815, 86, 28),
-        pygame.Rect(1530, 815, 86, 28),
-        pygame.Rect(1020, 815, 86, 28),
-        pygame.Rect(850, 815, 86, 28),
-        pygame.Rect(680, 815, 86, 28),
-        pygame.Rect(510, 815, 86, 28),
-        pygame.Rect(340, 815, 86, 28),
-        pygame.Rect(424, 891, 86, 28),
-        pygame.Rect(596, 891, 86, 28),
-        pygame.Rect(1274, 891, 86, 28),
-        pygame.Rect(1444, 891, 86, 28),
-        pygame.Rect(1335, 420, 28, 86),
-        pygame.Rect(1420, 250, 28, 86),
-        pygame.Rect(1425, 672, 28, 86),
-        pygame.Rect(480, 420, 28, 86),
-        pygame.Rect(510, 252, 28, 86),
-        pygame.Rect(510, 672, 28, 86),
-        pygame.Rect(314, 506, 28, 86),
-        pygame.Rect(1582, 505, 28, 86),
-        pygame.Rect(-1, 479, 172, 28),
-        pygame.Rect(-1, 588, 172, 28),
-        pygame.Rect(1747, 479, 172, 28),
-        pygame.Rect(1747, 588, 172, 28),
-        pygame.Rect(1590, 24, 28, 86),
-        pygame.Rect(254, 24, 28, 86),
-        pygame.Rect(340, 141, 86, 28),
-        pygame.Rect(1445, 141, 86, 28),
-        pygame.Rect(1020, 970, 28, 86),
-        pygame.Rect(909, 970, 28, 86),
-        pygame.Rect(267, 970, 28, 86),
-        pygame.Rect(0, 0, width, 28),
-        pygame.Rect(width - 27, 0, 28, height),
-        pygame.Rect(0, height - 27, width, 28),
-        pygame.Rect(-1, 0, 28, height),
-    ]   
+    if ui.get_setting() == "idrilyn":
+        walls = [
+            pygame.Rect(796, 24, 28, 86),
+            pygame.Rect(794, 169, 28, 86),
+            pygame.Rect(794, 336, 28, 86),
+            pygame.Rect(822, 394, 172, 28),
+            pygame.Rect(880, 730, 172, 28),
+            pygame.Rect(794, 504, 28, 86),
+            pygame.Rect(795, 672, 28, 86),
+            pygame.Rect(794, 862, 28, 86),
+            pygame.Rect(1135, 24, 28, 86),
+            pygame.Rect(1135, 169, 28, 86),
+            pygame.Rect(1135, 336, 28, 86),
+            pygame.Rect(1135, 504, 28, 86),
+            pygame.Rect(1136, 672, 28, 86),
+            pygame.Rect(1105, 842, 28, 86),
+            pygame.Rect(1190, 815, 86, 28),
+            pygame.Rect(1360, 815, 86, 28),
+            pygame.Rect(1530, 815, 86, 28),
+            pygame.Rect(1020, 815, 86, 28),
+            pygame.Rect(850, 815, 86, 28),
+            pygame.Rect(680, 815, 86, 28),
+            pygame.Rect(510, 815, 86, 28),
+            pygame.Rect(340, 815, 86, 28),
+            pygame.Rect(424, 891, 86, 28),
+            pygame.Rect(596, 891, 86, 28),
+            pygame.Rect(1274, 891, 86, 28),
+            pygame.Rect(1444, 891, 86, 28),
+            pygame.Rect(1335, 420, 28, 86),
+            pygame.Rect(1420, 250, 28, 86),
+            pygame.Rect(1425, 672, 28, 86),
+            pygame.Rect(480, 420, 28, 86),
+            pygame.Rect(510, 252, 28, 86),
+            pygame.Rect(510, 672, 28, 86),
+            pygame.Rect(314, 506, 28, 86),
+            pygame.Rect(1582, 505, 28, 86),
+            pygame.Rect(-1, 479, 172, 28),
+            pygame.Rect(-1, 588, 172, 28),
+            pygame.Rect(1747, 479, 172, 28),
+            pygame.Rect(1747, 588, 172, 28),
+            pygame.Rect(1590, 24, 28, 86),
+            pygame.Rect(254, 24, 28, 86),
+            pygame.Rect(340, 141, 86, 28),
+            pygame.Rect(1445, 141, 86, 28),
+            pygame.Rect(1020, 970, 28, 86),
+            pygame.Rect(909, 970, 28, 86),
+            pygame.Rect(267, 970, 28, 86),
+            pygame.Rect(0, 0, width, 28),
+            pygame.Rect(width - 27, 0, 28, height),
+            pygame.Rect(0, height - 27, width, 28),
+            pygame.Rect(-1, 0, 28, height),
+        ]   
     if ui.get_kind() == "deathmatch":
         while game:
             if countdown > 0:
@@ -737,7 +746,7 @@ else:
                 screen.blit(background, (0, 0))
                 screen.blit(dim, (0, 0))
 
-                text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
+                text_surf = other_font.render(f"{countdown-1}".replace("0", "Capture!"), True, (255, 255, 255))
                 screen.blit(text_surf, text_surf.get_rect(center=(width//2, height//2)))
 
                 pygame.display.flip()
