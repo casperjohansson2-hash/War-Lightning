@@ -1,4 +1,4 @@
-"""Thank me later, and don't thank maxi for making every wall different sizes!"""
+
 
 from typing import (
     Tuple, List, Dict, Callable, Generator, Self, Final, Any
