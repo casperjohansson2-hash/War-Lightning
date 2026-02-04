@@ -323,13 +323,19 @@ menu.render(screen el. surface)
 m = Central.get("Menu")
 """
 
+MAP_NAMES = [
+    "Random", "Idrilyn", "Nebrodu"
+]
+MAP_COUNT = len(MAP_NAMES) - 1
+
 class AppState:
     mode: Optional[str] = None
     kind: Optional[str] = None
     settings: Dict[str, Any] = {
         "hitboxes": False,
         "volume": 1.0,
-        "particles": True
+        "particles": True,
+        "map": 0
     }
 
 @cache # Faster retrieval
@@ -346,6 +352,11 @@ def get_kind() -> str:
 def get_setting(name: str) -> Dict[str, Any]:
     """Import this method and call it to retireve the settings."""
     return AppState.settings[name]
+
+@cache
+def get_map() -> str:
+    """Import this method and call it to retireve the map name."""
+    return MAP_NAMES[AppState.settings["map"]]
 
 pygame.mixer.music.load("assets/music/menu.mp3")
 
@@ -372,6 +383,11 @@ CRED_TITLE = Text(HEADER_FONT, "Creds", (255, 255, 255))
 HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
 PARTICLE_TEXT = Text(PRIMARY_FONT, "Enabled", (255, 255, 255))
 VOLUME_TEXT = Text(PRIMARY_FONT, "Volume: 100%", (255, 255, 255))
+MAP_TEXT = Text(PRIMARY_FONT, "Random", (255, 255, 255))
+
+MAP_LABEL = Label(
+    MAP_TEXT.text_rect(center=(400, 350)), MAP_TEXT
+)
 
 class Menu:
     def __init__(self, screen: pygame.Surface) -> None:
@@ -411,6 +427,32 @@ class Menu:
         was_active = AppState.settings["particles"]
         AppState.settings["particles"] = not was_active
         PARTICLE_TEXT.edit_text("Disabled" if was_active else "Enabled")
+    
+    def prev_map(self) -> None:
+        BUTTON_SOUND.play()
+        map = AppState.settings["map"]
+        map -= 1
+        if map < 0:
+            AppState.settings["map"] = MAP_COUNT
+            name = MAP_NAMES[MAP_COUNT]
+        else:
+            AppState.settings["map"] = map
+            name = MAP_NAMES[map]
+        MAP_TEXT.edit_text(name)
+        MAP_LABEL.rect = MAP_TEXT.text_rect(center=(400, 350))
+    
+    def next_map(self) -> None:
+        BUTTON_SOUND.play()
+        map = AppState.settings["map"]
+        map += 1
+        if map > MAP_COUNT:
+            AppState.settings["map"] = 0
+            name = MAP_NAMES[0]
+        else:
+            AppState.settings["map"] = map
+            name = MAP_NAMES[map]
+        MAP_TEXT.edit_text(name)
+        MAP_LABEL.rect = MAP_TEXT.text_rect(center=(400, 350))
 
     def back_to_start(self) -> None:
         BUTTON_SOUND.play()
@@ -633,6 +675,29 @@ SETTINGS\
     ),
     Text(PRIMARY_FONT, "Toggle Particles", (200, 235, 220)),
     lambda: menu.toggle_particles()
+))\
+.add_element(MAP_LABEL)\
+.add_element(Button(
+    pygame.Rect(450, 334, 30, 30), # 150 - 30 = 120
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 5, 2
+    ),
+    Text(PRIMARY_FONT, ">", (200, 235, 220)),
+    lambda: menu.next_map()
+))\
+.add_element(Button(
+    pygame.Rect(320, 334, 30, 30),
+    ButtonConfig(
+        (150, 150, 150),
+        (100, 100, 100),
+        (255, 0, 0),
+        200, 5, 2
+    ),
+    Text(PRIMARY_FONT, "<", (200, 235, 220)),
+    lambda: menu.prev_map()
 ))\
 .add_element(Button(
     pygame.Rect(350, 500, 100, 25),
