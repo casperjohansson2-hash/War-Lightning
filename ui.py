@@ -338,6 +338,11 @@ def get_mode() -> str:
     return AppState.mode
 
 @cache
+def get_kind() -> str:
+    """Import this method and call it to retrieve what kind the user has selected."""
+    return AppState.kind
+
+@cache
 def get_setting(name: str) -> Dict[str, Any]:
     """Import this method and call it to retireve the settings."""
     return AppState.settings[name]
