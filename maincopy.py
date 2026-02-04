@@ -363,6 +363,20 @@ else:
             else:
                 screen.blit(self.bild, (self.x, self.y + 28))
     
+    class Pickup:
+        def __init__(self, image, effect, tag):
+            self.x = random.randint(0, width)
+            self.y = random.randint(0, height)
+            self.image = image # pygame.image.load()
+            self.effect = effect # 0 -> 1000 ?
+            self.tag = tag # "health" el. "strength"
+        
+        def collides(self, player):
+            return player.collisionrectangle.collidesrect(self.image.get_rect(topleft=(self.x, self.y)))
+        
+        def draw(self, screen):
+            screen.blit(self.image, (self.x, self.y))
+    
     primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 25)
     other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
     dim = pygame.Surface((width, height), pygame.SRCALPHA)
