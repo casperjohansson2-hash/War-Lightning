@@ -3,13 +3,14 @@ import pygame
 
 # --- INSTÄLLNINGAR ---
 SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 920
+SCREEN_HEIGHT = 1080
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Tank War - Du mot AI")
 
 clock = pygame.time.Clock()
+
 
 # --- BILDER ---
 
@@ -33,6 +34,10 @@ except:
     original_ai_image.fill((255, 0, 0)) # Röd
 
 current_ai_image = original_ai_image
+
+map_1 = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
+background = pygame.transform.smoothscale(map_1, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
 
 # 3. SKOTTET
 try:
@@ -77,6 +82,71 @@ ai_angle = 0
 ai_skott_lista = []
 ai_skott_räknare = 0
 
+
+walls = [
+    pygame.Rect(796, 24, 28, 86),
+    pygame.Rect(794, 169, 28, 86),
+    pygame.Rect(794, 336, 28, 86),
+    pygame.Rect(822, 394, 172, 28),
+    pygame.Rect(880, 730, 172, 28),
+    pygame.Rect(794, 504, 28, 86),
+    pygame.Rect(795, 672, 28, 86),
+    pygame.Rect(794, 862, 28, 86),
+    pygame.Rect(1135, 24, 28, 86),
+    pygame.Rect(1135, 169, 28, 86),
+    pygame.Rect(1135, 336, 28, 86),
+    pygame.Rect(1135, 504, 28, 86),
+    pygame.Rect(1136, 672, 28, 86),
+    pygame.Rect(1105, 842, 28, 86),
+    pygame.Rect(1190, 815, 86, 28),
+    pygame.Rect(1360, 815, 86, 28),
+    pygame.Rect(1530, 815, 86, 28),
+    pygame.Rect(1020, 815, 86, 28),
+    pygame.Rect(850, 815, 86, 28),
+    pygame.Rect(680, 815, 86, 28),
+    pygame.Rect(510, 815, 86, 28),
+    pygame.Rect(340, 815, 86, 28),
+    pygame.Rect(424, 891, 86, 28),
+    pygame.Rect(596, 891, 86, 28),
+    pygame.Rect(1274, 891, 86, 28),
+    pygame.Rect(1444, 891, 86, 28),
+    pygame.Rect(1335, 420, 28, 86),
+    pygame.Rect(1420, 250, 28, 86),
+    pygame.Rect(1425, 672, 28, 86),
+    pygame.Rect(480, 420, 28, 86),
+    pygame.Rect(510, 252, 28, 86),
+    pygame.Rect(510, 672, 28, 86),
+    pygame.Rect(314, 506, 28, 86),
+    pygame.Rect(1582, 505, 28, 86),
+    pygame.Rect(-1, 479, 172, 28),
+    pygame.Rect(-1, 588, 172, 28),
+    pygame.Rect(1747, 479, 172, 28),
+    pygame.Rect(1747, 588, 172, 28),
+    pygame.Rect(1590, 24, 28, 86),
+    pygame.Rect(254, 24, 28, 86),
+    pygame.Rect(340, 141, 86, 28),
+    pygame.Rect(1445, 141, 86, 28),
+    pygame.Rect(1020, 970, 28, 86),
+    pygame.Rect(909, 970, 28, 86),
+    pygame.Rect(267, 970, 28, 86),
+    pygame.Rect(0, 0, SCREEN_WIDTH, 28),
+    pygame.Rect(SCREEN_WIDTH - 27, 0, 28, SCREEN_HEIGHT),
+    pygame.Rect(0, SCREEN_HEIGHT - 27, SCREEN_WIDTH, 28),
+    pygame.Rect(-1, 0, 28, SCREEN_HEIGHT),
+        ]   
+
+
+
+
+
+
+
+
+
+
+
+
+
 game_plays = True
 
 while game_plays:
@@ -89,6 +159,8 @@ while game_plays:
     # 1. STYR SPELAREN (WASD)
     # ==========================
     keys = pygame.key.get_pressed()
+    
+    
     
     # Vi sparar om vi rör oss för att veta vilken bild vi ska visa
     moving = False
@@ -240,7 +312,7 @@ while game_plays:
     # ==========================
     # 4. RITA ALLT
     # ==========================
-    screen.fill((0, 0, 30))
+    screen.blit(background, (0, 0))
     
     # Rita tankarna
     screen.blit(current_p1_image, (p1_x, p1_y))
@@ -252,6 +324,10 @@ while game_plays:
         
     for skott in ai_skott_lista:
         skott.rita(screen)
+
+
+    
+
 
     pygame.display.update()
     clock.tick(60)
