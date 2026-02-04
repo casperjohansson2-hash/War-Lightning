@@ -424,7 +424,14 @@ world = TankWorld(
     pygame.Rect(510, 252, 28, 86),
     pygame.Rect(510, 672, 28, 86),
     pygame.Rect(314, 506, 28, 86),
-    pygame.Rect(1582, 505, 28, 86)
+    pygame.Rect(1582, 505, 28, 86),
+    pygame.Rect(-1, 479, 172, 28),
+    pygame.Rect(-1, 588, 172, 28),
+    pygame.Rect(1747, 479, 172, 28),
+    pygame.Rect(1747, 588, 172, 28),
+    pygame.Rect(1590, 24, 28, 86),
+    pygame.Rect(254, 24, 28, 86),
+    pygame.Rect(340, 142, 86, 28)
 )
 
 world.breakables = [
@@ -433,8 +440,8 @@ world.breakables = [
 
 bullet_image = Image.new_image("assets/bullets/bullet.png", pygame.Rect(0, 0, 10, 10))
 
-player1_image = Image.new_image("assets/tanks/Player1.png", pygame.Rect(50, 500, 30, 30), (20, 20))
-player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(WIDTH - 80, 500, 30, 30), (20, 20))
+player1_image = Image.new_image("assets/tanks/Player1.png", pygame.Rect(50, 525, 30, 30), (20, 20))
+player2_image = Image.new_image("assets/tanks/Player2.png", pygame.Rect(WIDTH - 80, 525, 30, 30), (20, 20))
 
 player1_keybinds = Keybinds(up=pygame.K_w, down=pygame.K_s, left=pygame.K_a, right=pygame.K_d, shoot=pygame.K_SPACE)
 player1 = Tank(world, player1_image, player1_keybinds, 200, 500, 1.0, 1.0, bullet_image, lambda: 0.2 if random.random() < 0.3 else 0.1)
