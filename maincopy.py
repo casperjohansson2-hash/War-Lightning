@@ -423,8 +423,8 @@ else:
     winner = None
     original_win_screen1 = pygame.image.load("assets/ui/p1_win.png")
     original_win_screen2 = pygame.image.load("assets/ui/p2_win.png")
-    win_screen1 = pygame.transform.scale(original_win_screen1, (width, height))
-    win_screen2 = pygame.transform.scale(original_win_screen2, (width, height))
+    win_screen1 = pygame.transform.smoothscale(original_win_screen1, (width, height))
+    win_screen2 = pygame.transform.smoothscale(original_win_screen2, (width, height))
 
     while game:
         if countdown > 0:
