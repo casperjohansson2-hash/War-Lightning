@@ -82,6 +82,8 @@ else:
             self.exploded = False
             self.collision_rectangle = pygame.Rect(self.player1_x, self.player1_y, self.sprite_player1.get_width(), self.sprite_player1.get_height())
 
+            self.kingpoints = 0
+
         def move(self, walls):
             right_collision = False
             left_collision = False
@@ -164,6 +166,8 @@ else:
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
                 self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
+
+                self.kingpoints = 0
 
             def move(self, walls):
                 keys = pygame.key.get_pressed()
@@ -249,6 +253,8 @@ else:
                 self.original_image = sprite_player2
                 self.sprite_player2 = self.original_image
                 self.collision_rectangle = pygame.Rect(self.player2_x, self.player2_y, self.sprite_player2.get_width(), self.sprite_player2.get_height())
+
+                self.kingpoints = 0
 
             def move(self, walls):
                 keys = pygame.key.get_pressed()
@@ -377,8 +383,8 @@ else:
     center_x = width//2
     center_y = height//2
 
-    last_king_points1 = 0.0
-    last_king_points2 = 0.0
+    last_kingpoints1 = 0.0
+    last_kingpoints2 = 0.0
 
     countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
@@ -478,15 +484,23 @@ else:
         player_1.draw(screen)
         player_2.draw(screen)
 
-        #now = time.monotonic()
+        now = time.monotonic()
         dx = (player_1.player1_x - center_x)
         dy = (player_1.player1_y - center_y)
-        distance = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
-        #print(distance)
-        #if distance < 100:
-        #    if now - last_king_points1 >= 1.0: # Seconds
-        #        last_king_points1 = now
-                #player_1.king_points += 100
+        distance1 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+        dx = (player_2.player2_x - center_x)
+        dy = (player_2.player2_y - center_y)
+        distance2 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+
+        if distance1 < 100 and not distance2 < 100:
+            if now - last_kingpoints1 >= 1.0: # Seconds
+                last_kingpoints1 = now
+                player_1.kingpoints += 1
+        
+        if distance2 < 100 and not distance1 < 100:
+            if now - last_kingpoints2 >= 1.0: # Seconds
+                last_kingpoints2 = now
+                player_2.kingpoints += 1
 
         if player_1.health < last_health1:
             last_health1 = player_1.health
@@ -499,6 +513,11 @@ else:
             hp_bar_health2 = hp_bar_health2.subsurface(
                 pygame.Rect(0, 0, max(int(225 * (player_2.health / 100)), 1), hp_bar_rect2.height)
             )
+
+        text_surf = primary_font.render(f"{player_1.kingpoints} pts", True, (255, 255, 255))
+        screen.blit(text_surf, text_surf.get_rect(center=(center_x - 50, 30)))
+        text_surf = primary_font.render(f"{player_2.kingpoints} pts", True, (255, 255, 255))
+        screen.blit(text_surf, text_surf.get_rect(center=(center_x + 50, 30)))
 
         screen.blit(hp_bar_back, hp_bar_rect1)
         screen.blit(hp_bar_health1, hp_bar_rect1)
