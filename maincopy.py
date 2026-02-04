@@ -532,10 +532,10 @@ else:
         now = time.monotonic()
         dx = (player_1.player1_x - center_x)
         dy = (player_1.player1_y - center_y)
-        distance1 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+        distance1 = math.hypot(dx, dy)
         dx = (player_2.player2_x - center_x)
         dy = (player_2.player2_y - center_y)
-        distance2 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+        distance2 = math.hypot(dx, dy)
 
         if distance1 < 100 and not distance2 < 100:
             if now - last_kingpoints1 >= 1.0: # Seconds
