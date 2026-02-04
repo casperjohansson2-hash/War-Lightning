@@ -14,6 +14,7 @@
 import random
 import time
 import pygame
+import math
 import ui
 
 shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
@@ -373,6 +374,12 @@ else:
     last_health1 = 100
     last_health2 = 100
 
+    center_x = width//2
+    center_y = height//2
+
+    last_king_points1 = 0.0
+    last_king_points2 = 0.0
+
     countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
@@ -470,6 +477,16 @@ else:
         #Här ritas spelarnas stridsvagnar
         player_1.draw(screen)
         player_2.draw(screen)
+
+        #now = time.monotonic()
+        dx = (player_1.player1_x - center_x)
+        dy = (player_1.player1_y - center_y)
+        distance = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+        #print(distance)
+        #if distance < 100:
+        #    if now - last_king_points1 >= 1.0: # Seconds
+        #        last_king_points1 = now
+                #player_1.king_points += 100
 
         if player_1.health < last_health1:
             last_health1 = player_1.health
