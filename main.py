@@ -109,7 +109,7 @@ else:
                 hitbox_height
             )
 
-        def move(self, walls):
+        def move(self, walls, broken_walls):
             keys = pygame.key.get_pressed()
             
            
@@ -150,6 +150,17 @@ else:
                     
                     self.player1_x = self.collision_rectangle.x - self.offset_x
 
+            for broken_wall in broken_walls:
+                if self.collision_rectangle.colliderect(broken_wall):
+                    if dx > 0: 
+                        self.collision_rectangle.right = broken_wall.left
+                    if dx < 0: 
+                        self.collision_rectangle.left = broken_wall.right
+                    
+                    
+                    self.player1_x = self.collision_rectangle.x - self.offset_x
+
+
             
             self.player1_y += dy
             
@@ -166,7 +177,16 @@ else:
                     
                     self.player1_y = self.collision_rectangle.y - self.offset_y
 
-           
+            for broken_wall in broken_walls:
+                if self.collision_rectangle.colliderect(broken_wall):
+                    if dy > 0: 
+                        self.collision_rectangle.bottom = broken_wall.top
+                    if dy < 0: 
+                        self.collision_rectangle.top = broken_wall.bottom
+                    
+                    
+                    self.player1_y = self.collision_rectangle.y - self.offset_y
+
             self.collision_rectangle.topleft = (self.player1_x + self.offset_x, self.player1_y + self.offset_y)
 
         def draw(self, screen):
@@ -215,7 +235,7 @@ else:
                     hitbox_height
                 )
 
-            def move(self, walls):
+            def move(self, walls, broken_walls):
                 keys = pygame.key.get_pressed()
                 
                 
@@ -256,7 +276,15 @@ else:
                         
                         self.player2_x = self.collision_rectangle.x - self.offset_x
 
-                
+                for broken_wall in broken_walls:
+                    if self.collision_rectangle.colliderect(broken_wall):
+                        if dx > 0: 
+                            self.collision_rectangle.right = broken_wall.left
+                        if dx < 0: 
+                            self.collision_rectangle.left = broken_wall.right
+                        
+                        
+                        self.player2_x = self.collision_rectangle.x - self.offset_x
                 self.player2_y += dy
                 
                 
@@ -268,6 +296,16 @@ else:
                             self.collision_rectangle.bottom = wall.top
                         if dy < 0: 
                             self.collision_rectangle.top = wall.bottom
+                        
+                        
+                        self.player2_y = self.collision_rectangle.y - self.offset_y
+
+                for broken_wall in broken_walls:
+                    if self.collision_rectangle.colliderect(broken_wall):
+                        if dy > 0: 
+                            self.collision_rectangle.bottom = broken_wall.top
+                        if dy < 0: 
+                            self.collision_rectangle.top = broken_wall.bottom
                         
                         
                         self.player2_y = self.collision_rectangle.y - self.offset_y
@@ -324,7 +362,7 @@ else:
                     hitbox_height
                 )
 
-            def move(self, walls):
+            def move(self, walls, broken_walls):
                 keys = pygame.key.get_pressed()
                 
                 
@@ -365,7 +403,15 @@ else:
                         
                         self.player2_x = self.collision_rectangle.x - self.offset_x
 
-                
+                for broken_wall in broken_walls:
+                    if self.collision_rectangle.colliderect(broken_wall):
+                        if dx > 0: 
+                            self.collision_rectangle.right = broken_wall.left
+                        if dx < 0: 
+                            self.collision_rectangle.left = broken_wall.right
+                        
+                        
+                        self.player2_x = self.collision_rectangle.x - self.offset_x
                 self.player2_y += dy
                 
                 
@@ -377,6 +423,16 @@ else:
                             self.collision_rectangle.bottom = wall.top
                         if dy < 0: 
                             self.collision_rectangle.top = wall.bottom
+                        
+                        
+                        self.player2_y = self.collision_rectangle.y - self.offset_y
+
+                for broken_wall in broken_walls:
+                    if self.collision_rectangle.colliderect(broken_wall):
+                        if dy > 0: 
+                            self.collision_rectangle.bottom = broken_wall.top
+                        if dy < 0: 
+                            self.collision_rectangle.top = broken_wall.bottom
                         
                         
                         self.player2_y = self.collision_rectangle.y - self.offset_y
@@ -511,10 +567,6 @@ else:
     elif ui.get_map() == "Random":
         background = random.choice(maps)
 
-        
-            
-    
-
     if background == background1:
         walls = [
             pygame.Rect(796, 24, 28, 86),
@@ -567,13 +619,19 @@ else:
             pygame.Rect(0, height - 27, width, 28),
             pygame.Rect(-1, 0, 28, height),
             ]
+        broken_walls = [
+
+            ]
     elif background == background2:
         walls = [
             pygame.Rect(0, 0, width, 28),
             pygame.Rect(width - 27, 0, 28, height),
             pygame.Rect(0, height - 27, width, 28),
             pygame.Rect(-1, 0, 28, height),
-            ]   
+            ]  
+        broken_walls = [
+
+            ] 
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
     if ui.get_kind() == "king of hill":
@@ -601,6 +659,8 @@ else:
     hp_bar_rect2 = pygame.Rect(width-225, 10, 215, 50)
     last_health1 = 100
     last_health2 = 100
+    last_death1 = 0.0
+    last_death2 = 0.0
 
     
            
@@ -623,8 +683,8 @@ else:
             
             
             #Funktionerna för att de två spelarna ska kunna röra sig
-            player_1.move(walls)
-            player_2.move(walls)
+            player_1.move(walls, broken_walls)
+            player_2.move(walls, broken_walls)
             #Här ritas bakgrunden
             screen.blit(background, (0, 0))
             #Här görs det så att man kan stänga fönstret och döda systemet
@@ -676,7 +736,10 @@ else:
 
             for wall in walls:
                 pygame.draw.rect(screen, (255, 0, 0), wall, 1)
-            #Här ritas spelarnas stridsvagnar
+
+            for broken_wall in broken_walls:
+                pygame.draw.rect(screen, (0, 0, 255), broken_wall, 1)
+
             if player_1.health < last_health1:
                 last_health1 = player_1.health
                 hp_bar_health1 = hp_bar_health1.subsurface(
@@ -705,11 +768,16 @@ else:
             for bullet in reversed(bullet_list1):
                 bullet.move()
                 bullet.draw(screen)
-                
+
+                hit_broken_wall = False
                 hit_wall = False
                 for wall in walls:
                     if bullet.collision_rectangle.colliderect(wall):
                         hit_wall = True
+
+                for broken_wall in broken_walls:
+                    if bullet.collision_rectangle.colliderect(broken_wall):
+                        hit_broken_wall = True
                 # Check if bullet went off screen
                 if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                     bullet_list1.remove(bullet)
@@ -719,10 +787,16 @@ else:
                     if ui.get_setting("particles"):
                         explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                         explosions.append(explosion)
+                    
+                if hit_broken_wall:
+                    bullet_list1.remove(bullet)
+                    if ui.get_setting("particles"):
+                        explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                        explosions.append(explosion)
 
+                    broken_walls.remove(broken_wall)
                 
-                
-                elif player_2.collide(bullet.collision_rectangle):
+                if player_2.collide(bullet.collision_rectangle):
                     bullet_list1.remove(bullet)
 
             
@@ -731,10 +805,15 @@ else:
                 bullet.move()
                 bullet.draw(screen)
 
+                hit_broken_wall = False
                 hit_wall = False
                 for wall in walls:
                     if bullet.collision_rectangle.colliderect(wall):
                         hit_wall = True
+
+                for broken_wall in broken_walls:
+                    if bullet.collision_rectangle.colliderect(broken_wall):
+                        hit_broken_wall = True
                 if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                     bullet_list2.remove(bullet)
 
@@ -744,8 +823,15 @@ else:
                         explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                         explosions.append(explosion)
                 
-                
-                elif player_1.collide(bullet.collision_rectangle):
+                if hit_broken_wall:
+                    bullet_list2.remove(bullet)
+                    if ui.get_setting("particles"):
+                        explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                        explosions.append(explosion)
+
+                    broken_walls.remove(broken_wall)
+
+                if player_1.collide(bullet.collision_rectangle):
                     bullet_list2.remove(bullet)
                 
             for explosion in explosions:
@@ -760,6 +846,14 @@ else:
 
         #här så stängs pygame och stänger fönstret
         pygame.quit()
+
+
+
+
+
+
+
+
     elif ui.get_kind() == "king of hill":
         while game:
             if countdown > 0:
@@ -777,8 +871,8 @@ else:
             
             
             #Funktionerna för att de två spelarna ska kunna röra sig
-            player_1.move(walls)
-            player_2.move(walls)
+            player_1.move(walls, broken_walls)
+            player_2.move(walls, broken_walls)
             #Här ritas bakgrunden
             screen.blit(background, (0, 0))
             #Här görs det så att man kan stänga fönstret och döda systemet
@@ -804,21 +898,36 @@ else:
             #Här så uppdateras varenda objekt i respektive lista
             
 
-            if player_1.health < 0 or player_1.health == 0:
+            if (player_1.health <= 0) and (not player_1.exploded):
                 player_1.exploded = True
                 dead.play()
                 if ui.get_setting("particles"):
                         explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
-                        
                         explosions.append(explosion)
-                #######################
-                player_1.health = 100##
                 
-            if player_2.health < 0 or player_2.health == 0:
+
+                hp_bar_health1 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+                last_health1 = 100
+                
+                player_1.health = 0
+                player_1.player1_x = 30
+                player_1.player1_y = (height // 2) - 20
+                last_death1 = time.monotonic()
+                
+            if (player_2.health <= 0) and (not player_2.exploded):
                 player_2.exploded = True
                 dead.play()
-                player_2.health = 100##
-                #######################
+                if ui.get_setting("particles"):
+                    explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                    explosions.append(explosion)
+                
+                hp_bar_health2 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+                last_health2 = 100
+
+                player_2.health = 0
+                player_2.player2_x = width - 90
+                player_2.player2_y = (height // 2) - 20
+                last_death2 = time.monotonic()
             #Här konfigueras fps klockan till sextio frames per sekund
             clock.tick(60)#och här läggs det till till räknarna för att det ska gå långsammare att skjuta
             bullet_counter1 = bullet_counter1 + 0.2
@@ -827,6 +936,9 @@ else:
 
             for wall in walls:
                 pygame.draw.rect(screen, (255, 0, 0), wall, 1)
+
+            for broken_wall in broken_walls:
+                pygame.draw.rect(screen, (0, 0, 255), broken_wall, 1)
             #Här ritas spelarnas stridsvagnar
             if player_1.health < last_health1:
                 last_health1 = player_1.health
@@ -854,31 +966,51 @@ else:
             now = time.monotonic()
             dx = (player_1.player1_x - center_x)
             dy = (player_1.player1_y - center_y)
-            distance1 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+            distance1 = math.hypot(dx, dy)
             dx = (player_2.player2_x - center_x)
             dy = (player_2.player2_y - center_y)
-            distance2 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
-            if distance1 < 100 and not distance2 < 100:
+            distance2 = math.hypot(dx, dy)
+            if distance1 < 200 and not distance2 < 200:
                 if now - last_kingpoints1 >= 1.0:
                     last_kingpoints1 = now
                     player_1.kingpoints += 1
             
-            if distance2 < 100 and not distance1 < 100:
+            if distance2 < 200 and not distance1 < 200:
                 if now - last_kingpoints2 >= 1.0:
                     last_kingpoints2 = now
                     player_2.kingpoints += 1
 
+            if player_1.exploded:
+                if now - last_death1 >= 3:
+                    player_1.exploded = False
+                    player_1.health = 100
+
+            if player_2.exploded:
+                if now - last_death2 >= 3:
+                    player_2.exploded = False
+                    player_2.health = 100
+
+            
             player_1.draw(screen)
             player_2.draw(screen)
+            text_surf = primary_font.render(f"{player_1.kingpoints} %", True, (0, 0, 255))
+            screen.blit(text_surf, text_surf.get_rect(center=(center_x - 50, 30)))
+            text_surf = primary_font.render(f"{player_2.kingpoints} %", True, (255, 0, 0))
+            screen.blit(text_surf, text_surf.get_rect(center=(center_x + 50, 30)))
 
             for bullet in reversed(bullet_list1):
                 bullet.move()
                 bullet.draw(screen)
-                
+
+                hit_broken_wall = False
                 hit_wall = False
                 for wall in walls:
                     if bullet.collision_rectangle.colliderect(wall):
                         hit_wall = True
+
+                for broken_wall in broken_walls:
+                    if bullet.collision_rectangle.colliderect(broken_wall):
+                        hit_broken_wall = True
                 # Check if bullet went off screen
                 if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                     bullet_list1.remove(bullet)
@@ -888,10 +1020,16 @@ else:
                     if ui.get_setting("particles"):
                         explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                         explosions.append(explosion)
+                    
+                if hit_broken_wall:
+                    bullet_list1.remove(bullet)
+                    if ui.get_setting("particles"):
+                        explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                        explosions.append(explosion)
 
+                    broken_walls.remove(broken_wall)
                 
-                
-                elif player_2.collide(bullet.collision_rectangle):
+                if player_2.collide(bullet.collision_rectangle):
                     bullet_list1.remove(bullet)
 
             
@@ -900,10 +1038,15 @@ else:
                 bullet.move()
                 bullet.draw(screen)
 
+                hit_broken_wall = False
                 hit_wall = False
                 for wall in walls:
                     if bullet.collision_rectangle.colliderect(wall):
                         hit_wall = True
+
+                for broken_wall in broken_walls:
+                    if bullet.collision_rectangle.colliderect(broken_wall):
+                        hit_broken_wall = True
                 if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                     bullet_list2.remove(bullet)
 
@@ -913,9 +1056,21 @@ else:
                         explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                         explosions.append(explosion)
                 
-                
-                elif player_1.collide(bullet.collision_rectangle):
+                if hit_broken_wall:
                     bullet_list2.remove(bullet)
+                    if ui.get_setting("particles"):
+                        explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                        explosions.append(explosion)
+
+                    broken_walls.remove(broken_wall)
+
+                if player_1.collide(bullet.collision_rectangle):
+                    bullet_list2.remove(bullet)
+                
+            for explosion in explosions:
+                for particle in explosion:
+                    particle.update()
+                    particle.draw(screen)
                 
             for explosion in explosions:
                 for particle in explosion:
@@ -929,3 +1084,6 @@ else:
 
         #här så stängs pygame och stänger fönstret
         pygame.quit()
+
+
+    
