@@ -400,6 +400,8 @@ else:
     last_kingpoints1 = 0.0
     last_kingpoints2 = 0.0
 
+    frames = 0
+
     countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
@@ -487,8 +489,9 @@ else:
         for wall in walls:
             pygame.draw.rect(screen, (255, 0, 0), wall, 1)
         
-        if random.random() < 0.25: # (25%)
-            pickups.append(Pickup(...))
+        if frames % 10 == 0:
+            if random.random() < 0.25: # (25%)
+                pickups.append(Pickup(...))
             
 
         if player_1.health < 0:
@@ -551,6 +554,7 @@ else:
         screen.blit(hp_bar_overlay, hp_bar_rect2)
         #Och här så uppdateras hela pygame-skärmen
         pygame.display.flip()
+        frames += 1
 
     #här så stängs pygame och stänger fönstret
     pygame.quit()
