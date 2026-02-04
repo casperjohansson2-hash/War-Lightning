@@ -363,6 +363,20 @@ else:
             else:
                 screen.blit(self.bild, (self.x, self.y + 28))
     
+    class Pickup:
+        def __init__(self, image, effect, tag):
+            self.x = random.randint(0, width)
+            self.y = random.randint(0, height)
+            self.image = image # pygame.image.load()
+            self.effect = effect # 0 -> 1000 ?
+            self.tag = tag # "health" el. "strength"
+        
+        def collides(self, player):
+            return player.collisionrectangle.collidesrect(self.image.get_rect(topleft=(self.x, self.y)))
+        
+        def draw(self, screen):
+            screen.blit(self.image, (self.x, self.y))
+    
     primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 25)
     other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
     dim = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -386,6 +400,8 @@ else:
     last_kingpoints1 = 0.0
     last_kingpoints2 = 0.0
 
+    frames = 0
+
     countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
@@ -399,6 +415,9 @@ else:
     #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
     walls = [
         pygame.Rect(10, 0, 50, height),
+    ]
+    pickups = [
+
     ]
 
     while game:
@@ -469,6 +488,10 @@ else:
 
         for wall in walls:
             pygame.draw.rect(screen, (255, 0, 0), wall, 1)
+        
+        if frames % 10 == 0:
+            if random.random() < 0.25: # (25%)
+                pickups.append(Pickup(...))
             
 
         if player_1.health < 0:
@@ -531,6 +554,7 @@ else:
         screen.blit(hp_bar_overlay, hp_bar_rect2)
         #Och här så uppdateras hela pygame-skärmen
         pygame.display.flip()
+        frames += 1
 
     #här så stängs pygame och stänger fönstret
     pygame.quit()
