@@ -14,6 +14,7 @@ import random
 import time
 import pygame
 import ui
+import math
 
 shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
 normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
@@ -36,6 +37,8 @@ else:
     height = 1080
     #Spelarnas stats
     player_health = 100
+    center_y = height // 2
+    center_x = width // 2
     
 
     #Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
@@ -88,6 +91,7 @@ else:
             self.exploded = False
             hitbox_width = self.sprite_player1.get_width() - 25
             hitbox_height = self.sprite_player1.get_height() - 25
+            self.kingpoints = 0
             
             
             self.offset_x = (self.sprite_player1.get_width() - hitbox_width) // 2
@@ -193,6 +197,7 @@ else:
                 self.sprite_player2 = self.original_image
                 hitbox_width = self.sprite_player2.get_width() - 25
                 hitbox_height = self.sprite_player2.get_height() - 25
+                self.kingpoints = 0
             
             
                 self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
@@ -300,6 +305,7 @@ else:
                 self.sprite_player2 = self.original_image
                 hitbox_width = self.sprite_player2.get_width() - 25
                 hitbox_height = self.sprite_player2.get_height() - 25
+                self.kingpoints = 0
             
             
                 self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
@@ -493,7 +499,11 @@ else:
     countdown = 4
     # Här defineras de två spelarna utifrån deras klasser
     player_1 = Player1()
+    if ui.get_kind() == "king of hill":
+        last_kingpoints1 = 0
     player_2 = Player2()
+    if ui.get_kind() == "king of hill":
+        last_kingpoints2 = 0
     #Och här definieras skott räknarna som gör att man inte kan skjuta för snabbt
     bullet_counter1 = 0
     bullet_counter2 = 0
@@ -550,7 +560,13 @@ else:
         pygame.Rect(510, 672, 28, 86),
         pygame.Rect(314, 506, 28, 86),
         pygame.Rect(1582, 505, 28, 86),
-        pygame.Rect(60, 479, 172, 28),
+        pygame.Rect(-1, 479, 172, 28),
+        pygame.Rect(-1, 588, 172, 28),
+        pygame.Rect(1747, 479, 172, 28),
+        pygame.Rect(1747, 588, 172, 28),
+        pygame.Rect(1590, 24, 28, 86),
+        pygame.Rect(254, 24, 28, 86),
+        pygame.Rect(340, 142, 86, 28),
     ]
     if ui.get_kind() == "deathmatch":
         while game:
@@ -759,13 +775,10 @@ else:
                         explosions.append(explosion)
                 #######################
                 player_1.health = 100##
-                player_2.health = 100##
-                #######################
+                
             if player_2.health < 0 or player_2.health == 0:
                 player_2.exploded = True
                 dead.play()
-                #######################
-                player_1.health = 100##
                 player_2.health = 100##
                 #######################
             #Här konfigueras fps klockan till sextio frames per sekund
@@ -799,6 +812,24 @@ else:
             text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
             screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect2.center))
             screen.blit(hp_bar_overlay, hp_bar_rect2)
+
+            now = time.monotonic()
+            dx = (player_1.player1_x - center_x)
+            dy = (player_1.player1_y - center_y)
+            distance1 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+            dx = (player_2.player2_x - center_x)
+            dy = (player_2.player2_y - center_y)
+            distance2 = math.sqrt(dx ** 2 + dy ** 2) if dx != 0 and dy != 0 else 0
+            if distance1 < 100 and not distance2 < 100:
+                if now - last_kingpoints1 >= 1.0:
+                    last_kingpoints1 = now
+                    player_1.kingpoints += 1
+            
+            if distance2 < 100 and not distance1 < 100:
+                if now - last_kingpoints2 >= 1.0:
+                    last_kingpoints2 = now
+                    player_2.kingpoints += 1
+
             player_1.draw(screen)
             player_2.draw(screen)
 
