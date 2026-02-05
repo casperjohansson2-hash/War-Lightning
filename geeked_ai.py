@@ -1,0 +1,749 @@
+#Få tankarna att röra på sig  KLART
+#Få dem att skjuta KLART
+#Få dom att krocka med hinder KLART
+#Gör så att de kan skada varandra med skott KLART
+#pickups
+
+#Importerar
+import random
+import time
+import pygame
+import ui
+import math
+
+# --- LJUDINSTÄLLNINGAR ---
+try:
+    shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
+    normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
+    crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
+    dead = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank kaboom.mp3")
+    pygame.mixer.music.load("assets/audio/Match start.mp3")
+    pygame.mixer.music.play()
+    volume = ui.get_setting("volume")
+    pygame.mixer.music.set_volume(volume)
+except:
+    pass # Om ljud saknas kör vi ändå
+
+color_list = [(255, 50, 50), (255, 150, 50), (255, 255, 50)]
+explosions = []
+
+if ui.get_mode() == "exit":
+    pygame.quit()
+else:
+    pygame.init()
+    #Skärm inställningar
+    width = 1920
+    height = 1080
+    #Spelarnas stats
+    player_health = 100
+    center_y = height // 2
+    center_x = width // 2
+    
+    # --- BILDER ---
+    try:
+        original_background1 = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
+        original_background2 = pygame.image.load("C:/War Lightning/assets/tiles/map2.png")
+        original_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
+        original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
+        original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
+    except:
+        # Fallback om bilder saknas
+        original_background1 = pygame.Surface((width, height))
+        original_background2 = pygame.Surface((width, height))
+        original_bullet = pygame.Surface((10, 10))
+        original_player1 = pygame.Surface((50, 50))
+        original_player1.fill((0, 255, 0))
+        original_player2 = pygame.Surface((50, 50))
+        original_player2.fill((255, 0, 0))
+    
+    background1 = pygame.transform.smoothscale(original_background1, (width, height))
+    background2 = pygame.transform.smoothscale(original_background2, (width, height))
+    sprite_bullet = pygame.transform.smoothscale(original_bullet, (original_bullet.get_width() + 1, original_bullet.get_height() + 1))
+    sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
+    sprite_player2 = pygame.transform.smoothscale(original_player2, (original_player2.get_width(), original_player2.get_height()))
+    
+    clock = pygame.time.Clock()
+    game = True
+    maps = [background1, background2]
+    screen = pygame.display.set_mode((width, height))
+    pygame.display.set_caption("War Lightning")
+    try:
+        pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
+    except:
+        pass
+
+    def damage():
+        chans = random.randint(1, 3)
+        if chans == 1:
+            player_damage = 20
+            crit_hit.play()
+        else:
+            player_damage = 10
+            normal_hit.play()
+        return player_damage
+    
+    # --- GEMENSAMMA KLASSER (Bullet, Particle, Player1) ---
+
+    class Particle:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+            self.lifetime = random.randint(20, 40)
+            self.speed_x = random.uniform(-2, 2)
+            self.speed_y = random.uniform(-2, 2)
+            self.radius = random.randint(1, 3)
+            self.color = random.choice(color_list)
+
+        def update(self):
+            self.x += self.speed_x
+            self.y += self.speed_y
+            self.lifetime -= 1
+
+        def draw(self, screen):
+            if self.lifetime > 0:
+                pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
+
+    class Bullet:
+        def __init__(self, x, y, direction):
+            self.x = x
+            self.y = y
+            self.speed = 20
+            self.bild = sprite_bullet
+            self.direction = direction
+            self.collision_rectangle = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
+            self.collision = False
+
+            if self.direction == "LEFT":
+                self.bild = pygame.transform.rotate(sprite_bullet, 90)
+            elif self.direction == "DOWN":
+                self.bild = pygame.transform.rotate(sprite_bullet, 180)
+            elif self.direction == "RIGHT":
+                self.bild = pygame.transform.rotate(sprite_bullet, -90)
+
+        def move(self):
+            if self.direction == "UP":
+                self.y -= self.speed
+            elif self.direction == "DOWN":
+                self.y += self.speed
+            elif self.direction == "LEFT":
+                self.x -= self.speed
+            elif self.direction == "RIGHT":
+                self.x += self.speed
+
+            self.collision_rectangle.topleft = (self.x, self.y)
+
+        def draw(self, screen):
+            if self.direction == "UP" or self.direction == "DOWN":
+                screen.blit(self.bild, (self.x + 8, self.y))
+            else:
+                screen.blit(self.bild, (self.x, self.y + 28))
+
+    class Player1:
+        def __init__(self):
+            self.player1_x = 30
+            self.player1_y = (height // 2) - 20
+            self.sprite_player1 = sprite_player1
+            self.health = player_health
+            self.damage = damage()
+            self.speed = 5 # Lite snabbare för att undvika AI
+            self.original_image = sprite_player1
+            self.sprite_player1 = self.original_image
+            self.direction = "UP"
+            self.exploded = False
+            hitbox_width = self.sprite_player1.get_width() - 25
+            hitbox_height = self.sprite_player1.get_height() - 25
+            self.kingpoints = 0
+            self.sprite_player1 = pygame.transform.rotate(self.original_image, 270)
+            
+            self.offset_x = (self.sprite_player1.get_width() - hitbox_width) // 2
+            self.offset_y = (self.sprite_player1.get_height() - hitbox_height) // 2
+            
+            self.collision_rectangle = pygame.Rect(
+                self.player1_x + self.offset_x, 
+                self.player1_y + self.offset_y, 
+                hitbox_width, 
+                hitbox_height
+            )
+
+        def move(self, walls):
+            keys = pygame.key.get_pressed()
+            dx = 0
+            dy = 0
+            
+            if keys[pygame.K_w] and self.health > 0:
+                dy = -self.speed
+                self.sprite_player1 = pygame.transform.rotate(self.original_image, 0)
+                self.direction = "UP"
+            elif keys[pygame.K_s] and self.health > 0:
+                dy = self.speed
+                self.sprite_player1 = pygame.transform.rotate(self.original_image, 180)
+                self.direction = "DOWN"
+            elif keys[pygame.K_a] and self.health > 0:
+                dx = -self.speed
+                self.sprite_player1 = pygame.transform.rotate(self.original_image, 90)
+                self.direction = "LEFT"
+            elif keys[pygame.K_d] and self.health > 0:
+                dx = self.speed
+                self.sprite_player1 = pygame.transform.rotate(self.original_image, 270)
+                self.direction = "RIGHT"
+            
+            self.player1_x += dx
+            self.collision_rectangle.x = self.player1_x + self.offset_x
+            
+            for wall in walls:
+                if self.collision_rectangle.colliderect(wall):
+                    if dx > 0: self.collision_rectangle.right = wall.left
+                    if dx < 0: self.collision_rectangle.left = wall.right
+                    self.player1_x = self.collision_rectangle.x - self.offset_x
+
+            self.player1_y += dy
+            self.collision_rectangle.y = self.player1_y + self.offset_y
+            
+            for wall in walls:
+                if self.collision_rectangle.colliderect(wall):
+                    if dy > 0: self.collision_rectangle.bottom = wall.top
+                    if dy < 0: self.collision_rectangle.top = wall.bottom
+                    self.player1_y = self.collision_rectangle.y - self.offset_y
+
+            self.collision_rectangle.topleft = (self.player1_x + self.offset_x, self.player1_y + self.offset_y)
+
+        def draw(self, screen):
+            if not self.exploded:
+                screen.blit(self.sprite_player1, (self.player1_x, self.player1_y))
+                if ui.get_setting("hitboxes"):
+                    pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
+             
+        def collide(self, bullet_rect):
+            if not player_1.exploded:
+                if self.collision_rectangle.colliderect(bullet_rect):
+                    if ui.get_setting("particles"):
+                        explosion = [Particle(player_1.player1_x + 34, player_1.player1_y + 30) for _ in range(100)]
+                        explosions.append(explosion)
+                    player_1.health -= damage()
+                    return True 
+            return False 
+
+    # --- UI & BAKGRUND SETUP ---
+    primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 20)
+    other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
+    dim = pygame.Surface((width, height), pygame.SRCALPHA)
+    dim.fill((50, 50, 50, 150))
+    countdown = 4
+
+    if ui.get_map() == "Idrilyn":
+        background = background1
+    elif ui.get_map() == "Nebrodu":
+        background = background2
+    elif ui.get_map() == "Random":
+        background = random.choice(maps)
+
+    # --- VÄGGAR ---
+    if background == background1:
+        walls = [
+            pygame.Rect(796, 24, 28, 86), pygame.Rect(794, 169, 28, 86), pygame.Rect(794, 336, 28, 86),
+            pygame.Rect(822, 394, 172, 28), pygame.Rect(880, 730, 172, 28), pygame.Rect(794, 504, 28, 86),
+            pygame.Rect(795, 672, 28, 86), pygame.Rect(794, 862, 28, 86), pygame.Rect(1135, 24, 28, 86),
+            pygame.Rect(1135, 169, 28, 86), pygame.Rect(1135, 336, 28, 86), pygame.Rect(1135, 504, 28, 86),
+            pygame.Rect(1136, 672, 28, 86), pygame.Rect(1105, 842, 28, 86), pygame.Rect(1190, 815, 86, 28),
+            pygame.Rect(1360, 815, 86, 28), pygame.Rect(1530, 815, 86, 28), pygame.Rect(1020, 815, 86, 28),
+            pygame.Rect(850, 815, 86, 28), pygame.Rect(680, 815, 86, 28), pygame.Rect(510, 815, 86, 28),
+            pygame.Rect(340, 815, 86, 28), pygame.Rect(424, 891, 86, 28), pygame.Rect(596, 891, 86, 28),
+            pygame.Rect(1274, 891, 86, 28), pygame.Rect(1444, 891, 86, 28), pygame.Rect(1335, 420, 28, 86),
+            pygame.Rect(1420, 250, 28, 86), pygame.Rect(1425, 672, 28, 86), pygame.Rect(480, 420, 28, 86),
+            pygame.Rect(510, 252, 28, 86), pygame.Rect(510, 672, 28, 86), pygame.Rect(314, 506, 28, 86),
+            pygame.Rect(1582, 505, 28, 86), pygame.Rect(-1, 479, 172, 28), pygame.Rect(-1, 588, 172, 28),
+            pygame.Rect(1747, 479, 172, 28), pygame.Rect(1747, 588, 172, 28), pygame.Rect(1590, 24, 28, 86),
+            pygame.Rect(254, 24, 28, 86), pygame.Rect(340, 141, 86, 28), pygame.Rect(1445, 141, 86, 28),
+            pygame.Rect(1020, 970, 28, 86), pygame.Rect(909, 970, 28, 86), pygame.Rect(267, 970, 28, 86),
+            pygame.Rect(0, 0, width, 28), pygame.Rect(width - 27, 0, 28, height),
+            pygame.Rect(0, height - 27, width, 28), pygame.Rect(-1, 0, 28, height),
+        ]
+    elif background == background2:
+        walls = [
+            pygame.Rect(0, 0, width, 28),
+            pygame.Rect(width - 27, 0, 28, height),
+            pygame.Rect(0, height - 27, width, 28),
+            pygame.Rect(-1, 0, 28, height),
+        ]   
+
+    # --- HP BARS & SETUP ---
+    original_hp_bar_back = pygame.image.load("assets/ui/hp_bar_back.png")
+    original_hp_bar_health = pygame.image.load("assets/ui/hp_bar_health.png")
+    original_hp_bar_overlay = pygame.image.load("assets/ui/hp_bar_overlay.png")
+    hp_bar_back = pygame.transform.smoothscale(original_hp_bar_back, (215, 50))
+    hp_bar_overlay = pygame.transform.smoothscale(original_hp_bar_overlay, (215, 50))
+    hp_bar_health1 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_health2 = pygame.transform.smoothscale(original_hp_bar_health, (215, 50))
+    hp_bar_rect1 = pygame.Rect(10, 10, 215, 50)
+    hp_bar_rect2 = pygame.Rect(width-225, 10, 215, 50)
+    last_health1 = 100
+    last_health2 = 100
+
+    bullet_counter1 = 0
+    bullet_counter2 = 0
+    bullet_list1 = []
+    bullet_list2 = []
+
+
+    # =========================================================================
+    # SPELLÄGE: SOLO (MED DEN SMARTA AI:N)
+    # =========================================================================
+    if ui.get_mode() == "solo":
+        player_1 = Player1()
+        
+        # --- HÄR ÄR DEN NYA PATRULLERANDE AI-KLASSEN ---
+        class Player2:
+            def __init__(self):
+                self.player2_x = width - 90
+                self.player2_y = (height // 2) - 20
+                self.health = player_health
+                self.damage = damage()
+                self.speed = 3 # Lite snabbare
+                self.direction = "UP"
+                self.exploded = False
+                
+                # Bilder
+                self.original_image = sprite_player2
+                self.sprite_player2 = self.original_image
+                
+                # Hitbox
+                hitbox_width = self.sprite_player2.get_width() - 25
+                hitbox_height = self.sprite_player2.get_height() - 25
+                self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
+                self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
+                
+                self.collision_rectangle = pygame.Rect(
+                    self.player2_x + self.offset_x, 
+                    self.player2_y + self.offset_y, 
+                    hitbox_width, 
+                    hitbox_height
+                )
+                
+                # AI LOGIK: PATRULLERING STARTAR
+                self.patrol_target_x = random.randint(50, width - 50)
+                self.patrol_target_y = random.randint(50, height - 50)
+                self.mode = "PATROL" 
+
+            def move(self, walls, target_player_x, target_player_y):
+                if self.health <= 0: return
+
+                dx = 0
+                dy = 0
+                
+                # 1. KOLLA AVSTÅND
+                dist_to_player_x = self.player2_x - target_player_x
+                dist_to_player_y = self.player2_y - target_player_y
+                total_distance = math.sqrt(dist_to_player_x**2 + dist_to_player_y**2)
+
+                # 2. VÄLJ MÅL (Jaga eller Patrullera)
+                if total_distance < 500: # JAGA OM NÄRA
+                    self.mode = "CHASE"
+                    target_x = target_player_x
+                    target_y = target_player_y
+                else: # PATRULLERA ANNARS
+                    self.mode = "PATROL"
+                    target_x = self.patrol_target_x
+                    target_y = self.patrol_target_y
+                    
+                    # Om framme, välj nytt mål
+                    if abs(self.player2_x - self.patrol_target_x) < 50 and abs(self.player2_y - self.patrol_target_y) < 50:
+                        self.patrol_target_x = random.randint(50, width - 50)
+                        self.patrol_target_y = random.randint(50, height - 50)
+
+                # 3. RÖR DIG MOT MÅLET
+                diff_x = self.player2_x - target_x
+                diff_y = self.player2_y - target_y
+
+                if abs(diff_x) > abs(diff_y):
+                    if diff_x > 0:
+                        dx = -self.speed
+                        self.direction = "LEFT"
+                        self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
+                    else:
+                        dx = self.speed
+                        self.direction = "RIGHT"
+                        self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
+                else:
+                    if diff_y > 0:
+                        dy = -self.speed
+                        self.direction = "UP"
+                        self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
+                    else:
+                        dy = self.speed
+                        self.direction = "DOWN"
+                        self.sprite_player2 = pygame.transform.rotate(self.original_image, 180)
+
+                # 4. KOLLISION & "STUDS" I PATRULL
+                # X
+                self.player2_x += dx
+                self.collision_rectangle.x = self.player2_x + self.offset_x
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dx > 0: self.collision_rectangle.right = wall.left
+                        if dx < 0: self.collision_rectangle.left = wall.right
+                        self.player2_x = self.collision_rectangle.x - self.offset_x
+                        if self.mode == "PATROL": # KROCKADE? BYT MÅL!
+                            self.patrol_target_x = random.randint(50, width - 50)
+                            self.patrol_target_y = random.randint(50, height - 50)
+
+                # Y
+                self.player2_y += dy
+                self.collision_rectangle.y = self.player2_y + self.offset_y
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dy > 0: self.collision_rectangle.bottom = wall.top
+                        if dy < 0: self.collision_rectangle.top = wall.bottom
+                        self.player2_y = self.collision_rectangle.y - self.offset_y
+                        if self.mode == "PATROL": # KROCKADE? BYT MÅL!
+                            self.patrol_target_x = random.randint(50, width - 50)
+                            self.patrol_target_y = random.randint(50, height - 50)
+
+                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
+
+            def draw(self, screen):
+                if not self.exploded:
+                    screen.blit(self.sprite_player2, (self.player2_x, self.player2_y))
+                    if ui.get_setting("hitboxes"):
+                        pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
+
+            def collide(self, bullet_rect):
+                if not self.exploded:
+                    if self.collision_rectangle.colliderect(bullet_rect):
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(self.player2_x + 34, self.player2_y + 30) for _ in range(100)]
+                            explosions.append(explosion)
+                        self.health -= damage()
+                        return True 
+                return False 
+
+        player_2 = Player2()
+
+        while game:
+            if countdown > 0:
+                for event in pygame.event.get(): 
+                    if event.type == pygame.QUIT: game = False
+                screen.blit(background, (0, 0))
+                screen.blit(dim, (0, 0))
+                text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
+                screen.blit(text_surf, text_surf.get_rect(center=(width//2, height//2)))
+                pygame.display.flip()
+                countdown -= 1
+                time.sleep(1.0)
+                continue
+            
+            # UPPDATERA RÖRELSE
+            player_1.move(walls)
+            player_2.move(walls, player_1.player1_x, player_1.player1_y) 
+
+            screen.blit(background, (0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    game = False
+            
+            keys = pygame.key.get_pressed()
+            
+            # SPELARE 1 SKJUTER
+            if keys[pygame.K_SPACE] and player_1.exploded == False:
+                if (bullet_counter1 > 20):
+                    shot.play()
+                    bullet_list1.append(Bullet(player_1.player1_x + 20, player_1.player1_y, player_1.direction))
+                    bullet_counter1 = 0
+
+            # AI SKJUTER AUTOMATISKT
+            dist_x = abs(player_1.player1_x - player_2.player2_x)
+            dist_y = abs(player_1.player1_y - player_2.player2_y)
+            # Om AI lever, laddat klart, och är nära (600 pixlar)
+            if not player_2.exploded and bullet_counter2 > 40 and (dist_x + dist_y) < 600:
+                shot.play()
+                # Centrera skottet för AI
+                bx, by = player_2.player2_x, player_2.player2_y
+                # Justera startpositionen lite för att det ska se snyggt ut
+                if player_2.direction == "UP": bx += 20; by -= 10
+                elif player_2.direction == "DOWN": bx += 20; by += 40
+                elif player_2.direction == "LEFT": bx -= 10; by += 20
+                elif player_2.direction == "RIGHT": bx += 40; by += 20
+                
+                bullet_list2.append(Bullet(bx, by, player_2.direction))
+                bullet_counter2 = 0
+
+            # HÄLSA & DÖD
+            if player_1.health <= 0:
+                player_1.exploded = True
+                dead.play()
+                if ui.get_setting("particles"):
+                    explosion = [Particle(player_1.player1_x, player_1.player1_y) for _ in range(100)]
+                    explosions.append(explosion)
+                player_1.health = 100
+                player_2.health = 100
+
+            if player_2.health <= 0:
+                player_2.exploded = True
+                dead.play()
+                player_1.health = 100
+                player_2.health = 100
+
+            clock.tick(60)
+            bullet_counter1 += 0.5
+            bullet_counter2 += 0.3 # AI laddar lite långsammare än spelaren
+
+            for wall in walls:
+                pygame.draw.rect(screen, (255, 0, 0), wall, 1)
+
+            # RITA HP BARS
+            if player_1.health < last_health1:
+                last_health1 = player_1.health
+                hp_bar_health1 = hp_bar_health1.subsurface(pygame.Rect(0, 0, max(int(225 * (player_1.health / 100)), 1), hp_bar_rect1.height))
+            if player_2.health < last_health2:
+                last_health2 = player_2.health
+                hp_bar_health2 = hp_bar_health2.subsurface(pygame.Rect(0, 0, max(int(225 * (player_2.health / 100)), 1), hp_bar_rect2.height))
+
+            screen.blit(hp_bar_back, hp_bar_rect1)
+            screen.blit(hp_bar_health1, hp_bar_rect1)
+            text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
+            screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect1.center))
+            screen.blit(hp_bar_overlay, hp_bar_rect1)
+            
+            screen.blit(hp_bar_back, hp_bar_rect2)
+            screen.blit(hp_bar_health2, hp_bar_rect2)
+            text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
+            screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect2.center))
+            screen.blit(hp_bar_overlay, hp_bar_rect2)
+
+            player_1.draw(screen)
+            player_2.draw(screen)
+
+            # UPPDATERA SKOTT & KOLLISION
+            for bullet in reversed(bullet_list1):
+                bullet.move()
+                bullet.draw(screen)
+                hit_wall = False
+                for wall in walls:
+                    if bullet.collision_rectangle.colliderect(wall): hit_wall = True
+                
+                if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
+                    bullet_list1.remove(bullet)
+                    if hit_wall and ui.get_setting("particles"):
+                        explosions.append([Particle(bullet.x, bullet.y) for _ in range(100)])
+                elif player_2.collide(bullet.collision_rectangle):
+                    bullet_list1.remove(bullet)
+
+            for bullet in reversed(bullet_list2):
+                bullet.move()
+                bullet.draw(screen)
+                hit_wall = False
+                for wall in walls:
+                    if bullet.collision_rectangle.colliderect(wall): hit_wall = True
+                
+                if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
+                    bullet_list2.remove(bullet)
+                    if hit_wall and ui.get_setting("particles"):
+                        explosions.append([Particle(bullet.x, bullet.y) for _ in range(100)])
+                elif player_1.collide(bullet.collision_rectangle):
+                    bullet_list2.remove(bullet)
+                
+            for explosion in explosions:
+                for particle in explosion:
+                    particle.update()
+                    particle.draw(screen)
+
+            explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
+            explosions = [e for e in explosions if len(e) > 0]
+            pygame.display.flip()
+
+        pygame.quit()
+
+    # =========================================================================
+    # SPELLÄGE: VS (SPELARE MOT SPELARE) - HÄR ÄR DIN GAMLA KOD KVAR
+    # =========================================================================
+    elif ui.get_mode() == "vs":
+        player_1 = Player1()
+        class Player2:
+            def __init__(self):
+                self.player2_x = width - 90
+                self.player2_y = (height // 2) - 20
+                self.sprite_player2 = sprite_player2
+                self.health = player_health
+                self.damage = damage()
+                self.speed = 5
+                self.direction = "UP"
+                self.exploded = False
+                self.original_image = sprite_player2
+                self.sprite_player2 = self.original_image
+                hitbox_width = self.sprite_player2.get_width() - 25
+                hitbox_height = self.sprite_player2.get_height() - 25
+                self.kingpoints = 0
+                self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
+                self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
+                self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
+                self.collision_rectangle = pygame.Rect(self.player2_x + self.offset_x, self.player2_y + self.offset_y, hitbox_width, hitbox_height)
+
+            def move(self, walls):
+                keys = pygame.key.get_pressed()
+                dx = 0
+                dy = 0
+                if keys[pygame.K_UP] and self.health > 0:
+                    dy = -self.speed
+                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
+                    self.direction = "UP"
+                elif keys[pygame.K_DOWN] and self.health > 0:
+                    dy = self.speed
+                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 180)
+                    self.direction = "DOWN"
+                elif keys[pygame.K_LEFT] and self.health > 0:
+                    dx = -self.speed
+                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
+                    self.direction = "LEFT"
+                elif keys[pygame.K_RIGHT] and self.health > 0:
+                    dx = self.speed
+                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
+                    self.direction = "RIGHT"
+                
+                self.player2_x += dx
+                self.collision_rectangle.x = self.player2_x + self.offset_x
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dx > 0: self.collision_rectangle.right = wall.left
+                        if dx < 0: self.collision_rectangle.left = wall.right
+                        self.player2_x = self.collision_rectangle.x - self.offset_x
+                
+                self.player2_y += dy
+                self.collision_rectangle.y = self.player2_y + self.offset_y
+                for wall in walls:
+                    if self.collision_rectangle.colliderect(wall):
+                        if dy > 0: self.collision_rectangle.bottom = wall.top
+                        if dy < 0: self.collision_rectangle.top = wall.bottom
+                        self.player2_y = self.collision_rectangle.y - self.offset_y
+                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
+
+            def draw(self, screen):
+                if not self.exploded:
+                    screen.blit(self.sprite_player2, (self.player2_x, self.player2_y))
+                    if ui.get_setting("hitboxes"):
+                        pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
+                
+            def collide(self, bullet_rect):
+                if not player_2.exploded:
+                    if self.collision_rectangle.colliderect(bullet_rect):
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
+                            explosions.append(explosion)
+                        player_2.health -= damage()
+                        return True 
+                return False 
+
+        player_2 = Player2()
+
+        while game:
+            if countdown > 0:
+                for event in pygame.event.get(): ...
+                screen.blit(background, (0, 0))
+                screen.blit(dim, (0, 0))
+                text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
+                screen.blit(text_surf, text_surf.get_rect(center=(width//2, height//2)))
+                pygame.display.flip()
+                countdown -= 1
+                time.sleep(1.0)
+                continue
+            
+            player_1.move(walls)
+            player_2.move(walls)
+            screen.blit(background, (0, 0))
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    game = False
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE] and player_1.exploded == False:
+                if (bullet_counter1 > 20):
+                    shot.play()
+                    bullet_list1.append(Bullet(player_1.player1_x + 20, player_1.player1_y, player_1.direction))
+                    bullet_counter1 = 0
+
+            if keys[pygame.K_RETURN] and player_2.exploded == False:
+                if (bullet_counter2 > 20):
+                    shot.play()
+                    bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y, player_2.direction))
+                    bullet_counter2 = 0
+            
+            # Hantera död och respawn
+            if player_1.health <= 0:
+                player_1.exploded = True
+                dead.play()
+                player_1.health = 100
+                player_2.health = 100
+                
+            if player_2.health <= 0:
+                player_2.exploded = True
+                dead.play()
+                player_1.health = 100
+                player_2.health = 100
+
+            clock.tick(60)
+            bullet_counter1 += 0.2
+            bullet_counter2 += 0.2
+
+            for wall in walls:
+                pygame.draw.rect(screen, (255, 0, 0), wall, 1)
+
+            # UI
+            if player_1.health < last_health1:
+                last_health1 = player_1.health
+                hp_bar_health1 = hp_bar_health1.subsurface(pygame.Rect(0, 0, max(int(225 * (player_1.health / 100)), 1), hp_bar_rect1.height))
+            if player_2.health < last_health2:
+                last_health2 = player_2.health
+                hp_bar_health2 = hp_bar_health2.subsurface(pygame.Rect(0, 0, max(int(225 * (player_2.health / 100)), 1), hp_bar_rect2.height))
+
+            screen.blit(hp_bar_back, hp_bar_rect1)
+            screen.blit(hp_bar_health1, hp_bar_rect1)
+            text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
+            screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect1.center))
+            screen.blit(hp_bar_overlay, hp_bar_rect1)
+            screen.blit(hp_bar_back, hp_bar_rect2)
+            screen.blit(hp_bar_health2, hp_bar_rect2)
+            text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
+            screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect2.center))
+            screen.blit(hp_bar_overlay, hp_bar_rect2)
+
+            player_1.draw(screen)
+            player_2.draw(screen)
+
+            # Bullet Logic
+            for bullet in reversed(bullet_list1):
+                bullet.move()
+                bullet.draw(screen)
+                hit_wall = False
+                for wall in walls:
+                    if bullet.collision_rectangle.colliderect(wall): hit_wall = True
+                if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
+                    bullet_list1.remove(bullet)
+                    if hit_wall and ui.get_setting("particles"):
+                        explosions.append([Particle(bullet.x, bullet.y) for _ in range(100)])
+                elif player_2.collide(bullet.collision_rectangle):
+                    bullet_list1.remove(bullet)
+
+            for bullet in reversed(bullet_list2):
+                bullet.move()
+                bullet.draw(screen)
+                hit_wall = False
+                for wall in walls:
+                    if bullet.collision_rectangle.colliderect(wall): hit_wall = True
+                if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
+                    bullet_list2.remove(bullet)
+                    if hit_wall and ui.get_setting("particles"):
+                        explosions.append([Particle(bullet.x, bullet.y) for _ in range(100)])
+                elif player_1.collide(bullet.collision_rectangle):
+                    bullet_list2.remove(bullet)
+            
+            for explosion in explosions:
+                for particle in explosion:
+                    particle.update()
+                    particle.draw(screen)
+            explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
+            explosions = [e for e in explosions if len(e) > 0]
+            pygame.display.flip()
+        pygame.quit()
+
+    elif ui.get_kind() == "king of hill":
+        # (Behåll King of Hill som det var, om du använder det)
+        pass
