@@ -418,10 +418,16 @@ else:
         pygame.Rect(10, 0, 50, height),
     ]
     pickups = [
-
+        Pickup(pygame.image.load("assets/ui/war_lightning.png"), 25, "health")
     ]
 
-    p = Pickup(pygame.image.load("assets/ui/war_lightning.png"), 25, "health")
+    dim2 = pygame.Surface((200, 200), pygame.SRCALPHA)
+    original_flag_p0 = pygame.image.load("assets/ui/flag_p0.png")
+    original_flag_p1 = pygame.image.load("assets/ui/flag_p1.png")
+    original_flag_p2 = pygame.image.load("assets/ui/flag_p2.png")
+    flag_p0 = pygame.transform.smoothscale(original_flag_p0, (100, 100))
+    flag_p1 = pygame.transform.smoothscale(original_flag_p1, (100, 100))
+    flag_p2 = pygame.transform.smoothscale(original_flag_p2, (100, 100))
 
     winner = None
     original_win_screen1 = pygame.image.load("assets/ui/p1_win.png")
@@ -486,9 +492,9 @@ else:
                 shot.play()
                 bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y, player_2.direction))
                 bullet_counter2 = 0
-        
-        print(p.collides(player_1))
-        p.draw(screen)
+
+        for pickup in pickups:
+            ...
 
         #Här så uppdateras varenda objekt i respektive lista
         for bullet in reversed(bullet_list1):
@@ -547,14 +553,28 @@ else:
         distance2 = math.hypot(dx, dy)
 
         if distance1 < 100 and not distance2 < 100:
+            dim2.fill((255, 200, 200, 150))
+            pygame.draw.rect(dim2, (255, 240, 240), dim2.get_rect(topleft=(0, 0)), 1)
+            screen.blit(dim2, (center_x - 100, center_y - 100))
+            screen.blit(flag_p1, (center_x - 50, center_y - 50))
             if now - last_kingpoints1 >= 1.0: # Seconds
                 last_kingpoints1 = now
                 player_1.kingpoints += 1
         
-        if distance2 < 100 and not distance1 < 100:
+        elif distance2 < 100 and not distance1 < 100:
+            dim2.fill((200, 200, 255, 150))
+            pygame.draw.rect(dim2, (240, 240, 255), dim2.get_rect(topleft=(0, 0)), 1)
+            screen.blit(dim2, (center_x - 100, center_y - 100))
+            screen.blit(flag_p2, (center_x - 50, center_y - 50))
             if now - last_kingpoints2 >= 1.0: # Seconds
                 last_kingpoints2 = now
                 player_2.kingpoints += 1
+        
+        else:
+            dim2.fill((200, 200, 200, 150))
+            pygame.draw.rect(dim2, (240, 240, 240), dim2.get_rect(topleft=(0, 0)), 1)
+            screen.blit(dim2, (center_x - 100, center_y - 100))
+            screen.blit(flag_p0, (center_x - 50, center_y - 50))
 
         if player_1.health < last_health1:
             last_health1 = player_1.health
