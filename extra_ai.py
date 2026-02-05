@@ -242,7 +242,7 @@ while whole_game:
                     self.player2_y = (height // 2) - 20
                     self.health = player_health
                     self.damage = damage()
-                    self.speed = 1 # AI HAR HASTIGHET 1
+                    self.speed = 1.5 # AI HAR HASTIGHET 1.5 för att vara farligare
                     self.direction = "UP"
                     self.exploded = False
                     self.original_image = sprite_player2
@@ -274,15 +274,14 @@ while whole_game:
                         dist_to_center = math.sqrt((self.player2_x - center_x)**2 + (self.player2_y - center_y)**2)
                         dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
                         
-                        # 1. Om spelaren är JÄTTENÄRA (250px) -> JAGA (Attackera inkräktaren)
+                        # 1. Om spelaren är JÄTTENÄRA (250px) -> JAGA
                         if dist_to_player < 250:
                             target_x = target_player_x
                             target_y = target_player_y
                         
-                        # 2. Om spelaren är LÅNGT BORT och vi är i mitten -> STANNA (Vakta)
+                        # 2. Om vi är i mitten -> STANNA
                         elif dist_to_center < 10:
-                            # Vi står stilla. Avbryt funktionen här så rör vi oss inte.
-                            self.player2_x = center_x # Snappa till mitten för snygghetens skull
+                            self.player2_x = center_x 
                             self.player2_y = center_y
                             self.collision_rectangle.x = self.player2_x + self.offset_x
                             self.collision_rectangle.y = self.player2_y + self.offset_y
@@ -310,27 +309,14 @@ while whole_game:
                                 self.patrol_target_y = random.randint(50, height - 50)
                                 self.patrol_timer = 0
 
-                    # GEMENSAM RÖRELSELOGIK (FÖR ATT INTE FASTNA I VÄGGAR)
+                    # --- FIXAD RÖRELSELOGIK (SLIDE PÅ VÄGGAR) ---
                     diff_x = target_x - self.player2_x
                     diff_y = target_y - self.player2_y
                     
-                    # I KotH vill vi inte ha "bias", vi vill raka vägen till mitten.
-                    bias_x = 0
-                    bias_y = 0
-                    if not is_koth:
-                        if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
-                        if self.direction in ["UP", "DOWN"]: bias_y = 60    
-                    else:
-                        # Även i KotH, slå av tröghet om vi är nära mitten så den kan finjustera
-                        center_x_koth = 960
-                        center_y_koth = 540
-                        dist_to_center_koth = math.sqrt((self.player2_x - center_x_koth)**2 + (self.player2_y - center_y_koth)**2)
-                        if dist_to_center_koth > 150:
-                             if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
-                             if self.direction in ["UP", "DOWN"]: bias_y = 60  
-
+                    # Prioritera axeln med längst avstånd
+                    # Om vi krockar på den axeln, byt OMEDELBART till den andra axeln.
                     moves_to_try = []
-                    if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
+                    if abs(diff_x) > abs(diff_y):
                         moves_to_try = [("X", diff_x), ("Y", diff_y)]
                     else:
                         moves_to_try = [("Y", diff_y), ("X", diff_x)]
@@ -339,7 +325,7 @@ while whole_game:
                     
                     for axis, value in moves_to_try:
                         if moved_successfully: break 
-                        if abs(value) < 2: continue 
+                        if abs(value) < 2: continue # Redan framme på denna axel
 
                         test_dx = 0
                         test_dy = 0
@@ -353,6 +339,7 @@ while whole_game:
                             if value > 0: test_dy = self.speed; dir_str = "DOWN"; angle = 180
                             else: test_dy = -self.speed; dir_str = "UP"; angle = 0
                         
+                        # Försök flytta
                         self.player2_x += test_dx
                         self.player2_y += test_dy
                         self.collision_rectangle.x = self.player2_x + self.offset_x
@@ -362,6 +349,7 @@ while whole_game:
                         for wall in walls:
                             if self.collision_rectangle.colliderect(wall):
                                 hit = True
+                                # Ångra flytt om krock
                                 self.player2_x -= test_dx
                                 self.player2_y -= test_dy
                                 self.collision_rectangle.x = self.player2_x + self.offset_x
@@ -369,11 +357,16 @@ while whole_game:
                                 break 
                         
                         if not hit:
+                            # Om ingen krock, behåll flytten
                             self.direction = dir_str
                             self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
                             moved_successfully = True
+                        else:
+                            # Om vi krockade, loopa vidare till nästa axel i 'moves_to_try'
+                            # Detta gör att den "glider" längs väggen istället för att stanna.
+                            continue
 
-                    # Om vi fastnar i vanligt läge, byt patrullmål
+                    # Om vi fastnar helt (båda axlar blockerade) i Patrol Mode, byt mål
                     if not moved_successfully and self.mode == "PATROL":
                         self.patrol_timer += 50
 
@@ -461,7 +454,7 @@ while whole_game:
 
                 dist_x = abs(player_1.player1_x - player_2.player2_x)
                 dist_y = abs(player_1.player1_y - player_2.player2_y)
-                # AI Skjuter om nära (i KotH skjuter den också om spelaren kommer nära)
+                # AI Skjuter om nära
                 if not player_2.exploded and bullet_counter2 > 40 and (dist_x + dist_y) < 600:
                     shot.play()
                     bx, by = player_2.player2_x, player_2.player2_y
