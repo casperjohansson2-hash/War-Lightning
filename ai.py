@@ -124,7 +124,7 @@ while whole_game:
                 else:
                     screen.blit(self.bild, (self.x, self.y + 28))
 
-        # --- PLAYER 1 KLASS (Används av alla, men hastighet sätts olika) ---
+        # --- PLAYER 1 KLASS ---
         class Player1:
             def __init__(self, speed_val):
                 self.player1_x = 30
@@ -230,12 +230,13 @@ while whole_game:
         bullet_list2 = []
 
         # =====================================================================
-        # SOLO MODE (Mot AI) - UPPDATERAD MED SMART AI (INGA DIAGONALER/FASTNA)
+        # SOLO MODE (Mot AI) - HÄR ÄR ÄNDRINGARNA
         # =====================================================================
         if ui.get_mode() == "solo":
             player_1 = Player1(speed_val=2) # SPELARENS HASTIGHET ÄR 2
             
-            class Player2:
+            # --- HÄR ÄR DEN NYA KLASSENAMNET: Ai ---
+            class Ai:
                 def __init__(self):
                     self.player2_x = width - 90
                     self.player2_y = (height // 2) - 20
@@ -260,7 +261,6 @@ while whole_game:
                 def move(self, walls, target_player_x, target_player_y):
                     if self.health <= 0: return
 
-                    # 1. VÄLJ MÅL
                     dist_to_player_x = self.player2_x - target_player_x
                     dist_to_player_y = self.player2_y - target_player_y
                     total_distance = math.sqrt(dist_to_player_x**2 + dist_to_player_y**2)
@@ -282,13 +282,12 @@ while whole_game:
                             self.patrol_target_y = random.randint(50, height - 50)
                             self.patrol_timer = 0 
 
-                    # 2. RÖRELSE - MED TRÖGHET (INGEN SICK-SACK)
+                    # Rörelse (Ingen sicksack)
                     diff_x = target_x - self.player2_x
                     diff_y = target_y - self.player2_y
                     
                     bias_x = 0
                     bias_y = 0
-                    # Om vi redan åker i en riktning, fortsätt hellre än att byta hela tiden
                     if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
                     if self.direction in ["UP", "DOWN"]: bias_y = 60    
                     
@@ -316,7 +315,6 @@ while whole_game:
                             if value > 0: test_dy = self.speed; dir_str = "DOWN"; angle = 180
                             else: test_dy = -self.speed; dir_str = "UP"; angle = 0
                         
-                        # Flytta och kolla krock
                         self.player2_x += test_dx
                         self.player2_y += test_dy
                         self.collision_rectangle.x = self.player2_x + self.offset_x
@@ -326,7 +324,6 @@ while whole_game:
                         for wall in walls:
                             if self.collision_rectangle.colliderect(wall):
                                 hit = True
-                                # Backa tillbaka
                                 self.player2_x -= test_dx
                                 self.player2_y -= test_dy
                                 self.collision_rectangle.x = self.player2_x + self.offset_x
@@ -338,7 +335,6 @@ while whole_game:
                             self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
                             moved_successfully = True
 
-                    # 3. OM FAST I PATRULL -> BYT MÅL
                     if not moved_successfully and self.mode == "PATROL":
                         self.patrol_timer += 50
 
@@ -357,7 +353,7 @@ while whole_game:
                             return True
                     return False
 
-            player_2 = Player2()
+            player_2 = Ai()
 
             while game:
                 if countdown > 0:
@@ -883,9 +879,13 @@ while whole_game:
 
                 screen.blit(hp_bar_back, hp_bar_rect1)
                 screen.blit(hp_bar_health1, hp_bar_rect1)
+                text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
+                screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect1.center))
                 screen.blit(hp_bar_overlay, hp_bar_rect1)
                 screen.blit(hp_bar_back, hp_bar_rect2)
                 screen.blit(hp_bar_health2, hp_bar_rect2)
+                text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
+                screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect2.center))
                 screen.blit(hp_bar_overlay, hp_bar_rect2)
 
                 player_1.draw(screen)
@@ -916,14 +916,13 @@ while whole_game:
                             explosions.append([Particle(bullet.x, bullet.y) for _ in range(100)])
                     elif player_1.collide(bullet.collision_rectangle):
                         bullet_list2.remove(bullet)
-
+                
                 for explosion in explosions:
                     for particle in explosion:
                         particle.update()
                         particle.draw(screen)
                 explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
                 explosions = [e for e in explosions if len(e) > 0]
-                
                 pygame.display.flip()
                 
                 if p1_score >= 1000:
