@@ -1,5 +1,5 @@
-Neo - Menu
-Casper - Spel
-Maxi - AI
-Antero - Musik
-Adrian - Grafik
+Neo - Menu, Pick-Ups, Flag
+Casper - Game, Players, Collision, Movement, Particles
+Maxi - AI, Map Design
+Antero - Music, Sound Effects
+Adrian - Graphics

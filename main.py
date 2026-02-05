@@ -209,20 +209,169 @@ while whole_game:
                         player_1.health -= damage()
                         return True 
                 return False 
-        
-        class Ai:
+        if ui.get_kind() == "deathmatch":
+            class Ai:
+                    def __init__(self):
+                        self.player2_x = width - 90
+                        self.player2_y = (height // 2) - 20
+                        self.arrow2_x = width - 90
+                        self.arrow2_y = (height // 2) - 50
+                        self.sprite_arrow = player_arrow2
+                        self.health = player_health
+                        self.damage = damage() + 30
+                        if ui.get_mode() == "bossmode":
+                            self.speed = 15
+                        else:
+                            self.speed = 1 
+                        self.direction = "UP"
+                        self.exploded = False
+                        self.original_image = sprite_player2
+                        self.sprite_player2 = self.original_image
+                        hitbox_width = self.sprite_player2.get_width() - 25
+                        hitbox_height = self.sprite_player2.get_height() - 25
+                        self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
+                        self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
+                        self.collision_rectangle = pygame.Rect(self.player2_x + self.offset_x, self.player2_y + self.offset_y, hitbox_width, hitbox_height)
+                        self.kingpoints = 0
+                        
+                        self.patrol_target_x = random.randint(50, width - 50)
+                        self.patrol_target_y = random.randint(50, height - 50)
+                        self.mode = "PATROL" 
+                        self.patrol_timer = 0 
+
+                    def move(self, walls, broken_walls, target_player_x, target_player_y):
+                        if self.health <= 0: return
+
+                        dist_to_player_x = self.player2_x - target_player_x
+                        dist_to_player_y = self.player2_y - target_player_y
+                        total_distance = math.sqrt(dist_to_player_x**2 + dist_to_player_y**2)
+
+                        if total_distance < 500: # JAGA
+                            self.mode = "CHASE"
+                            target_x = target_player_x
+                            target_y = target_player_y
+                            self.patrol_timer = 0 
+                        else: # PATRULLERA
+                            self.mode = "PATROL"
+                            target_x = self.patrol_target_x
+                            target_y = self.patrol_target_y
+                            self.patrol_timer += 1
+                            arrived = abs(self.player2_x - self.patrol_target_x) < 60 and abs(self.player2_y - self.patrol_target_y) < 60
+                            
+                            if arrived or self.patrol_timer > 180:
+                                self.patrol_target_x = random.randint(50, width - 50)
+                                self.patrol_target_y = random.randint(50, height - 50)
+                                self.patrol_timer = 0 
+
+                        # Rörelse (Ingen sicksack)
+                        diff_x = target_x - self.player2_x
+                        diff_y = target_y - self.player2_y
+                        
+                        bias_x = 0
+                        bias_y = 0
+                        if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
+                        if self.direction in ["UP", "DOWN"]: bias_y = 60    
+                        
+                        moves_to_try = []
+                        if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
+                            moves_to_try = [("X", diff_x), ("Y", diff_y)]
+                        else:
+                            moves_to_try = [("Y", diff_y), ("X", diff_x)]
+
+                        moved_successfully = False
+                        
+                        for axis, value in moves_to_try:
+                            if moved_successfully: break 
+                            if abs(value) < 5: continue 
+
+                            dx = 0
+                            dy = 0
+                            dir_str = ""
+                            angle = 0
+                            
+                            if axis == "X":
+                                if value > 0: dx = self.speed; dir_str = "RIGHT"; angle = 270
+                                else: dx = -self.speed; dir_str = "LEFT"; angle = 90
+                            else: 
+                                if value > 0: dy = self.speed; dir_str = "DOWN"; angle = 180
+                                else: dy = -self.speed; dir_str = "UP"; angle = 0
+                            
+                            # Flytta spelaren (men inte pilen än)
+                            self.player2_x += dx
+                            self.player2_y += dy
+                            
+                            self.collision_rectangle.x = self.player2_x + self.offset_x
+                            self.collision_rectangle.y = self.player2_y + self.offset_y
+                            
+                            hit = False
+                            
+                            # Kolla kollision med väggar
+                            for wall in walls:
+                                if self.collision_rectangle.colliderect(wall):
+                                    hit = True
+                                    # Backa tillbaka om vi krockade
+                                    self.player2_x -= dx
+                                    self.player2_y -= dy
+                                    self.collision_rectangle.x = self.player2_x + self.offset_x
+                                    self.collision_rectangle.y = self.player2_y + self.offset_y
+                                    break 
+                            
+                            # Kolla kollision med trasiga väggar
+                            # (Notera: Jag städade upp logiken här lite så den matchar vägg-logiken bättre 
+                            # för att undvika buggar där AI fastnar)
+                            if not hit:
+                                for broken_wall in broken_walls:
+                                    if self.collision_rectangle.colliderect(broken_wall):
+                                        hit = True
+                                        self.player2_x -= dx
+                                        self.player2_y -= dy
+                                        self.collision_rectangle.x = self.player2_x + self.offset_x
+                                        self.collision_rectangle.y = self.player2_y + self.offset_y
+                                        break
+                            
+                            if not hit:
+                                self.direction = dir_str
+                                self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
+                                moved_successfully = True
+
+                        if not moved_successfully and self.mode == "PATROL":
+                            self.patrol_timer += 50
+
+                        # --- HÄR ÄR FIXEN ---
+                        # Uppdatera pilens position baserat på spelarens slutgiltiga position
+                        self.arrow2_x = self.player2_x
+                        self.arrow2_y = self.player2_y - 30
+
+                    def draw(self, screen):
+                        if not self.exploded:
+                            screen.blit(self.sprite_player2, (self.player2_x, self.player2_y))
+                            screen.blit(self.sprite_arrow, (self.arrow2_x, self.arrow2_y))
+                            if ui.get_setting("hitboxes"):
+                                pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
+
+                    def collide(self, bullet_rect):
+                        if not self.exploded:
+                            if self.collision_rectangle.colliderect(bullet_rect):
+                                if ui.get_setting("particles"):
+                                    explosions.append([Particle(self.player2_x + 34, self.player2_y + 30) for _ in range(100)])
+                                self.health -= damage()
+                                return True
+                        return False 
+        elif ui.get_kind() == "king of hill":
+            class Ai:
                 def __init__(self):
                     self.player2_x = width - 90
                     self.player2_y = (height // 2) - 20
+                    
+                    # --- LADE TILL PILEN HÄR ---
                     self.arrow2_x = width - 90
                     self.arrow2_y = (height // 2) - 50
                     self.sprite_arrow = player_arrow2
+                    # ---------------------------
+
                     self.health = player_health
-                    self.damage = damage() + 30
-                    if ui.get_mode() == "bossmode":
-                        self.speed = 15
-                    else:
-                        self.speed = 1 
+                    self.damage = damage()
+                    self.speed = 1
                     self.direction = "UP"
                     self.exploded = False
                     self.original_image = sprite_player2
@@ -234,6 +383,14 @@ while whole_game:
                     self.collision_rectangle = pygame.Rect(self.player2_x + self.offset_x, self.player2_y + self.offset_y, hitbox_width, hitbox_height)
                     self.kingpoints = 0
                     
+                    # --- ANTI-STUCK VARIABLER ---
+                    self.last_x = self.player2_x
+                    self.last_y = self.player2_y
+                    self.stuck_counter = 0     # Räknar hur länge vi stått still
+                    self.unstuck_mode = False  # Är vi i "ta oss loss"-läge?
+                    self.unstuck_timer = 0     # Hur länge ska vi försöka ta oss loss?
+                    self.unstuck_dir = "UP"    # Vilket håll kör vi för att komma loss?
+                    
                     self.patrol_target_x = random.randint(50, width - 50)
                     self.patrol_target_y = random.randint(50, height - 50)
                     self.mode = "PATROL" 
@@ -242,110 +399,134 @@ while whole_game:
                 def move(self, walls, broken_walls, target_player_x, target_player_y):
                     if self.health <= 0: return
 
-                    dist_to_player_x = self.player2_x - target_player_x
-                    dist_to_player_y = self.player2_y - target_player_y
-                    total_distance = math.sqrt(dist_to_player_x**2 + dist_to_player_y**2)
+                    # --- 1. KOLLA OM VI SITTER FAST ---
+                    if abs(self.player2_x - self.last_x) < 1 and abs(self.player2_y - self.last_y) < 1:
+                        self.stuck_counter += 1
+                    else:
+                        self.stuck_counter = 0 
+                    
+                    self.last_x = self.player2_x
+                    self.last_y = self.player2_y
 
-                    if total_distance < 500: # JAGA
-                        self.mode = "CHASE"
-                        target_x = target_player_x
-                        target_y = target_player_y
-                        self.patrol_timer = 0 
-                    else: # PATRULLERA
-                        self.mode = "PATROL"
-                        target_x = self.patrol_target_x
-                        target_y = self.patrol_target_y
-                        self.patrol_timer += 1
-                        arrived = abs(self.player2_x - self.patrol_target_x) < 60 and abs(self.player2_y - self.patrol_target_y) < 60
+                    # Om vi suttit fast i ca 0.5 sekunder (30 frames) -> Aktivera UNSTUCK MODE
+                    if self.stuck_counter > 30 and not self.unstuck_mode:
+                        self.unstuck_mode = True
+                        self.unstuck_timer = 40 
+                        self.unstuck_dir = random.choice(["UP", "DOWN", "LEFT", "RIGHT"])
+                    
+                    # --- BESTÄM MÅL ---
+                    target_x = 0
+                    target_y = 0
+                    
+                    if self.unstuck_mode:
+                        if self.unstuck_dir == "UP": target_y = self.player2_y - 100; target_x = self.player2_x
+                        elif self.unstuck_dir == "DOWN": target_y = self.player2_y + 100; target_x = self.player2_x
+                        elif self.unstuck_dir == "LEFT": target_x = self.player2_x - 100; target_y = self.player2_y
+                        elif self.unstuck_dir == "RIGHT": target_x = self.player2_x + 100; target_y = self.player2_y
                         
-                        if arrived or self.patrol_timer > 180:
-                            self.patrol_target_x = random.randint(50, width - 50)
-                            self.patrol_target_y = random.randint(50, height - 50)
-                            self.patrol_timer = 0 
+                        self.unstuck_timer -= 1
+                        if self.unstuck_timer <= 0:
+                            self.unstuck_mode = False 
+                            self.stuck_counter = 0
+                    else:
+                        # --- NORMAL LOGIK (Jaga eller Patrol) ---
+                        is_koth = (ui.get_kind() == "king of hill")
+                        if is_koth:
+                            center_x, center_y = 960, 540
+                            dist_to_center = math.sqrt((self.player2_x - center_x)**2 + (self.player2_y - center_y)**2)
+                            dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
+                            if dist_to_player < 250:
+                                target_x, target_y = target_player_x, target_player_y
+                            elif dist_to_center < 10:
+                                self.player2_x, self.player2_y = center_x, center_y
+                                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
+                                
+                                # VIKTIGT: Uppdatera pilen även här innan return!
+                                self.arrow2_x = self.player2_x
+                                self.arrow2_y = self.player2_y - 30
+                                return 
+                            else:
+                                target_x, target_y = center_x, center_y
+                        else:
+                            dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
+                            if dist_to_player < 500:
+                                self.mode = "CHASE"
+                                target_x, target_y = target_player_x, target_player_y
+                            else:
+                                self.mode = "PATROL"
+                                target_x, target_y = self.patrol_target_x, self.patrol_target_y
+                                self.patrol_timer += 1
+                                if (abs(self.player2_x - self.patrol_target_x) < 50 and abs(self.player2_y - self.patrol_target_y) < 50) or self.patrol_timer > 200:
+                                    self.patrol_target_x = random.randint(50, width - 50)
+                                    self.patrol_target_y = random.randint(50, height - 50)
+                                    self.patrol_timer = 0
 
-                    # Rörelse (Ingen sicksack)
+                    # --- RÖRELSE (SLIDE SYSTEM) ---
                     diff_x = target_x - self.player2_x
                     diff_y = target_y - self.player2_y
                     
-                    bias_x = 0
-                    bias_y = 0
-                    if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
-                    if self.direction in ["UP", "DOWN"]: bias_y = 60    
-                    
                     moves_to_try = []
-                    if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
-                        moves_to_try = [("X", diff_x), ("Y", diff_y)]
-                    else:
-                        moves_to_try = [("Y", diff_y), ("X", diff_x)]
+                    if abs(diff_x) > abs(diff_y): moves_to_try = [("X", diff_x), ("Y", diff_y)]
+                    else: moves_to_try = [("Y", diff_y), ("X", diff_x)]
 
                     moved_successfully = False
                     
                     for axis, value in moves_to_try:
                         if moved_successfully: break 
-                        if abs(value) < 5: continue 
+                        if abs(value) < 2: continue 
 
-                        dx = 0
-                        dy = 0
-                        dir_str = ""
-                        angle = 0
+                        test_dx, test_dy = 0, 0
+                        dir_str, angle = "", 0
                         
                         if axis == "X":
-                            if value > 0: dx = self.speed; dir_str = "RIGHT"; angle = 270
-                            else: dx = -self.speed; dir_str = "LEFT"; angle = 90
+                            if value > 0: test_dx = self.speed; dir_str = "RIGHT"; angle = 270
+                            else: test_dx = -self.speed; dir_str = "LEFT"; angle = 90
                         else: 
-                            if value > 0: dy = self.speed; dir_str = "DOWN"; angle = 180
-                            else: dy = -self.speed; dir_str = "UP"; angle = 0
+                            if value > 0: test_dy = self.speed; dir_str = "DOWN"; angle = 180
+                            else: test_dy = -self.speed; dir_str = "UP"; angle = 0
                         
-                        # Flytta spelaren (men inte pilen än)
-                        self.player2_x += dx
-                        self.player2_y += dy
-                        
+                        self.player2_x += test_dx
+                        self.player2_y += test_dy
                         self.collision_rectangle.x = self.player2_x + self.offset_x
                         self.collision_rectangle.y = self.player2_y + self.offset_y
                         
                         hit = False
-                        
-                        # Kolla kollision med väggar
                         for wall in walls:
                             if self.collision_rectangle.colliderect(wall):
                                 hit = True
-                                # Backa tillbaka om vi krockade
-                                self.player2_x -= dx
-                                self.player2_y -= dy
+                                self.player2_x -= test_dx
+                                self.player2_y -= test_dy
                                 self.collision_rectangle.x = self.player2_x + self.offset_x
                                 self.collision_rectangle.y = self.player2_y + self.offset_y
                                 break 
-                        
-                        # Kolla kollision med trasiga väggar
-                        # (Notera: Jag städade upp logiken här lite så den matchar vägg-logiken bättre 
-                        # för att undvika buggar där AI fastnar)
+
                         if not hit:
-                            for broken_wall in broken_walls:
-                                if self.collision_rectangle.colliderect(broken_wall):
-                                    hit = True
-                                    self.player2_x -= dx
-                                    self.player2_y -= dy
-                                    self.collision_rectangle.x = self.player2_x + self.offset_x
-                                    self.collision_rectangle.y = self.player2_y + self.offset_y
-                                    break
+                                for broken_wall in broken_walls:
+                                    if self.collision_rectangle.colliderect(broken_wall):
+                                        hit = True
+                                        self.player2_x -= dx
+                                        self.player2_y -= dy
+                                        self.collision_rectangle.x = self.player2_x + self.offset_x
+                                        self.collision_rectangle.y = self.player2_y + self.offset_y
+                                        break
                         
                         if not hit:
                             self.direction = dir_str
                             self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
                             moved_successfully = True
-
-                    if not moved_successfully and self.mode == "PATROL":
-                        self.patrol_timer += 50
-
-                    # --- HÄR ÄR FIXEN ---
-                    # Uppdatera pilens position baserat på spelarens slutgiltiga position
+                        else:
+                            continue
+                    
+                
                     self.arrow2_x = self.player2_x
                     self.arrow2_y = self.player2_y - 30
 
                 def draw(self, screen):
                     if not self.exploded:
                         screen.blit(self.sprite_player2, (self.player2_x, self.player2_y))
+                        # Lade till att pilen ritas ut:
                         screen.blit(self.sprite_arrow, (self.arrow2_x, self.arrow2_y))
+                        
                         if ui.get_setting("hitboxes"):
                             pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
 
@@ -356,7 +537,7 @@ while whole_game:
                                 explosions.append([Particle(self.player2_x + 34, self.player2_y + 30) for _ in range(100)])
                             self.health -= damage()
                             return True
-                    return False 
+                    return False
                     
         
         class Player2:
