@@ -82,7 +82,7 @@ else:
             normal_hit.play()
         return player_damage
     
-    # --- GEMENSAMMA KLASSER (Bullet, Particle, Player1) ---
+    # --- GEMENSAMMA KLASSER ---
 
     class Particle:
         def __init__(self, x, y):
@@ -286,7 +286,7 @@ else:
 
 
     # =========================================================================
-    # SPELLÄGE: SOLO (MED AI OCH TÅLAMODS-FIX)
+    # SPELLÄGE: SOLO (MED FIXAD RAK AI - INGEN SICKSACK)
     # =========================================================================
     if ui.get_mode() == "solo":
         player_1 = Player1()
@@ -320,14 +320,11 @@ else:
                 self.patrol_target_x = random.randint(50, width - 50)
                 self.patrol_target_y = random.randint(50, height - 50)
                 self.mode = "PATROL" 
-                self.patrol_timer = 0 # NY: Tålamods-timer!
+                self.patrol_timer = 0 
 
             def move(self, walls, target_player_x, target_player_y):
                 if self.health <= 0: return
 
-                dx = 0
-                dy = 0
-                
                 # 1. BESTÄM MÅL
                 dist_to_player_x = self.player2_x - target_player_x
                 dist_to_player_y = self.player2_y - target_player_y
@@ -337,105 +334,87 @@ else:
                     self.mode = "CHASE"
                     target_x = target_player_x
                     target_y = target_player_y
-                    self.patrol_timer = 0 # Nollställ timer när vi jagar
+                    self.patrol_timer = 0 
                 else: # PATRULLERA
                     self.mode = "PATROL"
                     target_x = self.patrol_target_x
                     target_y = self.patrol_target_y
                     
-                    # Öka timer
                     self.patrol_timer += 1
-
-                    # Kollar om vi är framme ELLER om tiden gått ut (3 sekunder = 180 frames)
                     arrived = abs(self.player2_x - self.patrol_target_x) < 60 and abs(self.player2_y - self.patrol_target_y) < 60
                     
                     if arrived or self.patrol_timer > 180:
                         self.patrol_target_x = random.randint(50, width - 50)
                         self.patrol_target_y = random.randint(50, height - 50)
-                        self.patrol_timer = 0 # Nollställ timer
+                        self.patrol_timer = 0 
 
-                # 2. RÖRELSE - MED TRÖGHET (INGEN SICK-SACK)
-                diff_x = self.player2_x - target_x
-                diff_y = self.player2_y - target_y
+                # 2. RÖRELSE - MED "ENVIS" LOGIK (INGEN SICKSACK)
+                diff_x = target_x - self.player2_x
+                diff_y = target_y - self.player2_y
                 
-                bias = 60 
-
-                # Bestäm vilken axel vi VILL köra på
-                prioritize_x = False
+                # --- HÄR ÄR FIXEN ---
+                # Vi lägger på en "Bonus" (bias) för den riktning vi redan åker i.
+                # Det gör att tanken "vill" fortsätta rakt fram istället för att byta hela tiden.
+                bias_x = 0
+                bias_y = 0
+                if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 # Bonus för att fortsätta horisontellt
+                if self.direction in ["UP", "DOWN"]: bias_y = 60    # Bonus för att fortsätta vertikalt
                 
-                # Om vi redan åker i sidled, fortsätt med det om inte Y är mycket större
-                if self.direction in ["LEFT", "RIGHT"]:
-                    if abs(diff_x) > 0 and abs(diff_y) < abs(diff_x) + bias:
-                        prioritize_x = True
-                # Om vi åker upp/ner, fortsätt med det om inte X är mycket större
-                else: 
-                    if abs(diff_x) > abs(diff_y) + bias:
-                        prioritize_x = True
-                    else:
-                        prioritize_x = False
+                # Prioritera den axel som är längst bort + vår bias
+                moves_to_try = []
+                if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
+                    moves_to_try = [("X", diff_x), ("Y", diff_y)]
+                else:
+                    moves_to_try = [("Y", diff_y), ("X", diff_x)]
 
-                # Hjälpfunktion för att flytta och kolla krock
-                def try_axis(ax_code):
+                moved_successfully = False
+                
+                # Försök flytta i prioriterad ordning
+                for axis, value in moves_to_try:
+                    if moved_successfully: break # VIKTIGT: Om vi flyttat en gång, SLUTA. Ingen diagonal!
+                    
+                    if abs(value) < 5: continue # Skaka inte om vi är framme på denna axel
+
                     test_dx = 0
                     test_dy = 0
-                    facing = ""
+                    direction_str = ""
                     angle = 0
                     
-                    if ax_code == "X":
-                        if diff_x > 0: test_dx = -self.speed; facing = "LEFT"; angle = 90
-                        else: test_dx = self.speed; facing = "RIGHT"; angle = 270
+                    if axis == "X":
+                        if value > 0: test_dx = self.speed; direction_str = "RIGHT"; angle = 270
+                        else: test_dx = -self.speed; direction_str = "LEFT"; angle = 90
                     else: # Y
-                        if diff_y > 0: test_dy = -self.speed; facing = "UP"; angle = 0
-                        else: test_dy = self.speed; facing = "DOWN"; angle = 180
+                        if value > 0: test_dy = self.speed; direction_str = "DOWN"; angle = 180
+                        else: test_dy = -self.speed; direction_str = "UP"; angle = 0
                     
-                    # Testa X
+                    # Applicera flytt
                     self.player2_x += test_dx
+                    self.player2_y += test_dy
                     self.collision_rectangle.x = self.player2_x + self.offset_x
+                    self.collision_rectangle.y = self.player2_y + self.offset_y
+                    
+                    # Kolla krock
                     hit = False
                     for wall in walls:
                         if self.collision_rectangle.colliderect(wall):
                             hit = True
-                            if test_dx > 0: self.collision_rectangle.right = wall.left
-                            if test_dx < 0: self.collision_rectangle.left = wall.right
-                            self.player2_x = self.collision_rectangle.x - self.offset_x
-                    
-                    # Testa Y
-                    self.player2_y += test_dy
-                    self.collision_rectangle.y = self.player2_y + self.offset_y
-                    for wall in walls:
-                        if self.collision_rectangle.colliderect(wall):
-                            hit = True
-                            if test_dy > 0: self.collision_rectangle.bottom = wall.top
-                            if test_dy < 0: self.collision_rectangle.top = wall.bottom
-                            self.player2_y = self.collision_rectangle.y - self.offset_y
-
-                    # Uppdatera hitbox
-                    self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
+                            # Krock! Backa tillbaka direkt.
+                            self.player2_x -= test_dx
+                            self.player2_y -= test_dy
+                            self.collision_rectangle.x = self.player2_x + self.offset_x
+                            self.collision_rectangle.y = self.player2_y + self.offset_y
+                            break 
                     
                     if not hit:
-                        self.direction = facing
+                        # Vägen var fri! Spara riktning och avsluta loopen
+                        self.direction = direction_str
                         self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
-                        return True
-                    return False
+                        moved_successfully = True
 
-                # 3. UTFÖR
-                success = False
-                
-                # Försök prio 1
-                if prioritize_x: success = try_axis("X")
-                else: success = try_axis("Y")
-
-                # Om vi fastnade (krockade), försök den ANDRA axeln
-                if not success:
-                    if prioritize_x: success = try_axis("Y")
-                    else: success = try_axis("X")
-                
-                # Om vi fortfarande sitter fast OCH patrullerar -> Byt mål direkt!
-                if not success and self.mode == "PATROL":
-                     self.patrol_target_x = random.randint(50, width - 50)
-                     self.patrol_target_y = random.randint(50, height - 50)
-                     self.patrol_timer = 0
-
+                # 3. OM BÅDA HÅLLEN ÄR BLOCKERADE (HÖRN)
+                if not moved_successfully and self.mode == "PATROL":
+                     # Vi sitter fast -> Byt mål direkt för att komma loss
+                     self.patrol_timer += 50
 
             def draw(self, screen):
                 if not self.exploded:
