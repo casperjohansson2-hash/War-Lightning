@@ -132,7 +132,7 @@ while whole_game:
                 self.sprite_player1 = sprite_player1
                 self.health = player_health
                 self.damage = damage()
-                self.speed = speed_val # HÄR SÄTTS HASTIGHETEN
+                self.speed = speed_val 
                 self.original_image = sprite_player1
                 self.sprite_player1 = self.original_image
                 self.direction = "UP"
@@ -230,7 +230,7 @@ while whole_game:
         bullet_list2 = []
 
         # =====================================================================
-        # SOLO MODE
+        # SOLO MODE (Mot AI)
         # =====================================================================
         if ui.get_mode() == "solo":
             player_1 = Player1(speed_val=2) # SPELAREN HAR HASTIGHET 2
@@ -272,19 +272,26 @@ while whole_game:
                         center_x = 960
                         center_y = 540
                         dist_to_center = math.sqrt((self.player2_x - center_x)**2 + (self.player2_y - center_y)**2)
+                        dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
                         
-                        # Om vi är vid mitten (inom 5 pixlar), stanna helt
-                        if dist_to_center < 10:
-                            self.player2_x = center_x
+                        # 1. Om spelaren är JÄTTENÄRA (250px) -> JAGA (Attackera inkräktaren)
+                        if dist_to_player < 250:
+                            target_x = target_player_x
+                            target_y = target_player_y
+                        
+                        # 2. Om spelaren är LÅNGT BORT och vi är i mitten -> STANNA (Vakta)
+                        elif dist_to_center < 10:
+                            # Vi står stilla. Avbryt funktionen här så rör vi oss inte.
+                            self.player2_x = center_x # Snappa till mitten för snygghetens skull
                             self.player2_y = center_y
                             self.collision_rectangle.x = self.player2_x + self.offset_x
                             self.collision_rectangle.y = self.player2_y + self.offset_y
-                            return # Avbryt rörelse, stå still
+                            return 
+
+                        # 3. Annars -> GÅ TILL MITTEN
                         else:
-                            # Annars, åk ALLTID mot mitten
                             target_x = center_x
                             target_y = center_y
-                            self.mode = "KOTH_CENTER"
 
                     # LOGIK FÖR DEATHMATCH (VANLIGT)
                     else:
@@ -313,7 +320,15 @@ while whole_game:
                     if not is_koth:
                         if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
                         if self.direction in ["UP", "DOWN"]: bias_y = 60    
-                    
+                    else:
+                        # Även i KotH, slå av tröghet om vi är nära mitten så den kan finjustera
+                        center_x_koth = 960
+                        center_y_koth = 540
+                        dist_to_center_koth = math.sqrt((self.player2_x - center_x_koth)**2 + (self.player2_y - center_y_koth)**2)
+                        if dist_to_center_koth > 150:
+                             if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
+                             if self.direction in ["UP", "DOWN"]: bias_y = 60  
+
                     moves_to_try = []
                     if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
                         moves_to_try = [("X", diff_x), ("Y", diff_y)]
