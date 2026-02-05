@@ -365,8 +365,8 @@ else:
     
     class Pickup:
         def __init__(self, image, effect, tag):
-            self.x = random.randint(0, width)
-            self.y = random.randint(0, height)
+            self.x = random.randint(50, width - 50)
+            self.y = random.randint(50, height - 50)
             self.image = image # pygame.image.load()
             self.effect = effect # 0 -> 1000 ?
             self.tag = tag # "health" el. "strength"
@@ -420,6 +420,7 @@ else:
     pickups = [
         Pickup(pygame.image.load("assets/ui/war_lightning.png"), 25, "health")
     ]
+    last_spawn = 0.0
 
     dim2 = pygame.Surface((200, 200), pygame.SRCALPHA)
     original_flag_p0 = pygame.image.load("assets/ui/flag_p0.png")
@@ -526,9 +527,33 @@ else:
         for wall in walls:
             pygame.draw.rect(screen, (255, 0, 0), wall, 1)
         
+        now = time.monotonic()
+        if now - last_spawn >= 10:
+            if random.random() < 0.25:
+                last_spawn = now
+                tag = "health"
+                added_pickup = Pickup(
+                    image = pygame.image.load("assets/ui/war_lighting.png"),
+                    effect = random.randint(10, 25),
+                    tag = tag
+                )
+                pickups.append(added_pickup)
+        
+        for pickup in pickups.copy():
+            pickup.draw(screen)
+
+            if pickup.collides(player_1):
+                player_1.health += pickup.effect
+                pickups.remove(pickup)
+            elif pickup.collides(player_2):
+                player_2.health += pickup.effect
+                pickups.remove(pickup)
+
         #if frames % 10 == 0:
         #    if random.random() < 0.25: # (25%)
-        #        pickups.append(Pickup(...))
+        #        pickups.append(Pickup(
+
+        #        ))
             
 
         if player_1.health < 0:
