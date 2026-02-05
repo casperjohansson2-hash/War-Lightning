@@ -532,23 +532,42 @@ while whole_game:
                 return False 
 
         #Klassen för skotten som båda spelarna kan skjuta, och håller koll på hastighet och direktion
+        # Klassen för skotten som båda spelarna kan skjuta
         class Bullet:
             def __init__(self, x, y, direction):
-                self.x = x
-                self.y = y
                 self.speed = 20
-                self.bild = sprite_bullet
                 self.direction = direction
-                self.collision_rectangle = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
-                self.collision = False
-
-                if self.direction == "LEFT":
-                    self.bild = pygame.transform.rotate(sprite_bullet, 90)
+                
+                # 1. Rotera bilden FÖRST så vi vet hur stor den är
+                if self.direction == "UP":
+                    self.bild = sprite_bullet
+                    # Justera startposition för att matcha hur du ritade förut (+8 i X-led)
+                    self.x = x + 8
+                    self.y = y
                 elif self.direction == "DOWN":
                     self.bild = pygame.transform.rotate(sprite_bullet, 180)
+                    self.x = x + 8
+                    self.y = y
+                elif self.direction == "LEFT":
+                    self.bild = pygame.transform.rotate(sprite_bullet, 90)
+                    # Justera startposition (+28 i Y-led för liggande skott)
+                    self.x = x
+                    self.y = y + 28
                 elif self.direction == "RIGHT":
                     self.bild = pygame.transform.rotate(sprite_bullet, -90)
+                    self.x = x
+                    self.y = y + 28
+                else:
+                    # Fallback om något går fel
+                    self.bild = sprite_bullet
+                    self.x = x
+                    self.y = y
 
+                # 2. Skapa hitboxen utifrån den ROTERADE bilden
+                # Nu får hitboxen rätt bredd och höjd automatiskt (smal för upp/ner, bred för höger/vänster)
+                self.collision_rectangle = self.bild.get_rect()
+                self.collision_rectangle.topleft = (self.x, self.y)
+                self.collision = False
 
             def move(self):
                 if self.direction == "UP":
@@ -560,13 +579,17 @@ while whole_game:
                 elif self.direction == "RIGHT":
                     self.x += self.speed
 
+                # Uppdatera hitboxens position till de nya koordinaterna
                 self.collision_rectangle.topleft = (self.x, self.y)
 
             def draw(self, screen):
-                if self.direction == "UP" or self.direction == "DOWN":
-                    screen.blit(self.bild, (self.x + 8, self.y))
-                else:
-                    screen.blit(self.bild, (self.x, self.y + 28))
+                # Rita bilden exakt där hitboxen är
+                # Vi tog bort de manuella offset-värdena (+8, +28) härifrån
+                # och la in dem i __init__ istället.
+                screen.blit(self.bild, self.collision_rectangle.topleft)
+                
+                # (Valfritt) Avkommentera raden nedan för att se hitboxen tydligt när du testar:
+                # pygame.draw.rect(screen, (0, 255, 0), self.collision_rectangle, 1)
 
             
 
@@ -699,6 +722,7 @@ while whole_game:
                 pygame.Rect(0, 0, width, 28),
                 pygame.Rect(width - 27, 0, 28, height),
                 pygame.Rect(0, height - 27, width, 28),
+                pygame.Rect(-1, 0, 28, height),
                 pygame.Rect(-1, 0, 28, height),
                 ]  
             broken_walls = [
@@ -910,25 +934,25 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
                         # Check if bullet went off screen
-                        if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
-                            bullet_list1.remove(bullet)
+                    if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
+                        bullet_list1.remove(bullet)
+                    
+                    if hit_wall:
+                        bullet_list1.remove(bullet)
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                            explosions.append(explosion)
                         
-                        if hit_wall:
-                            bullet_list1.remove(bullet)
-                            if ui.get_setting("particles"):
-                                explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
-                                explosions.append(explosion)
-                            
-                        if hit_broken_wall:
-                            bullet_list1.remove(bullet)
-                            if ui.get_setting("particles"):
-                                explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
-                                explosions.append(explosion)
+                    if hit_broken_wall:
+                        bullet_list1.remove(bullet)
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                            explosions.append(explosion)
 
-                            broken_walls.remove(broken_wall)
-                        
-                        if player_2.collide(bullet.collision_rectangle):
-                            bullet_list1.remove(bullet)
+                        broken_walls.remove(broken_wall)
+                    
+                    if player_2.collide(bullet.collision_rectangle):
+                        bullet_list1.remove(bullet)
 
                 
                 #Samma som ovan
