@@ -116,10 +116,8 @@ while whole_game:
             def move(self, walls, broken_walls):
                 keys = pygame.key.get_pressed()
                 
-            
                 dx = 0
                 dy = 0
-
                 
                 if keys[pygame.K_w] and self.health > 0:
                     dy = -self.speed
@@ -140,10 +138,12 @@ while whole_game:
 
                 
                 self.player1_x += dx
-                self.arrow1_x += dx
-                self.collision_rectangle.x = self.player1_x
+                self.player1_y += dy
+                
                 
                 self.collision_rectangle.x = self.player1_x + self.offset_x
+                self.collision_rectangle.y = self.player1_y + self.offset_y
+                
                 
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
@@ -151,8 +151,6 @@ while whole_game:
                             self.collision_rectangle.right = wall.left
                         if dx < 0: 
                             self.collision_rectangle.left = wall.right
-                        
-                        
                         self.player1_x = self.collision_rectangle.x - self.offset_x
 
                 for broken_wall in broken_walls:
@@ -161,15 +159,8 @@ while whole_game:
                             self.collision_rectangle.right = broken_wall.left
                         if dx < 0: 
                             self.collision_rectangle.left = broken_wall.right
-                        
-                        
                         self.player1_x = self.collision_rectangle.x - self.offset_x
 
-
-                
-                self.player1_y += dy
-                self.arrow1_y += dy
-                
                 
                 self.collision_rectangle.y = self.player1_y + self.offset_y
                 
@@ -179,8 +170,6 @@ while whole_game:
                             self.collision_rectangle.bottom = wall.top
                         if dy < 0: 
                             self.collision_rectangle.top = wall.bottom
-                        
-                        
                         self.player1_y = self.collision_rectangle.y - self.offset_y
 
                 for broken_wall in broken_walls:
@@ -189,11 +178,15 @@ while whole_game:
                             self.collision_rectangle.bottom = broken_wall.top
                         if dy < 0: 
                             self.collision_rectangle.top = broken_wall.bottom
-                        
-                        
                         self.player1_y = self.collision_rectangle.y - self.offset_y
 
+                
                 self.collision_rectangle.topleft = (self.player1_x + self.offset_x, self.player1_y + self.offset_y)
+
+                self.arrow1_x = self.player1_x
+                self.arrow1_y = self.player1_y - 30
+
+                
 
             def draw(self, screen):
                 if not self.exploded:
@@ -300,31 +293,38 @@ while whole_game:
                             if value > 0: dy = self.speed; dir_str = "DOWN"; angle = 180
                             else: dy = -self.speed; dir_str = "UP"; angle = 0
                         
+                        # Flytta spelaren (men inte pilen än)
                         self.player2_x += dx
-                        self.arrow2_x += dx
+                        self.player2_y += dy
+                        
                         self.collision_rectangle.x = self.player2_x + self.offset_x
                         self.collision_rectangle.y = self.player2_y + self.offset_y
                         
                         hit = False
+                        
+                        # Kolla kollision med väggar
                         for wall in walls:
                             if self.collision_rectangle.colliderect(wall):
                                 hit = True
+                                # Backa tillbaka om vi krockade
                                 self.player2_x -= dx
                                 self.player2_y -= dy
                                 self.collision_rectangle.x = self.player2_x + self.offset_x
                                 self.collision_rectangle.y = self.player2_y + self.offset_y
                                 break 
-                        for broken_wall in broken_walls:
-                            if self.collision_rectangle.colliderect(broken_wall):
-                                if dx > 0: 
-                                    self.collision_rectangle.right = broken_wall.left
-                                if dx < 0: 
-                                    self.collision_rectangle.left = broken_wall.right
-                                
-                                
-                                self.player2_x = self.collision_rectangle.x - self.offset_x
-                        self.player2_y += dy
-                        self.arrow2_y += dy
+                        
+                        # Kolla kollision med trasiga väggar
+                        # (Notera: Jag städade upp logiken här lite så den matchar vägg-logiken bättre 
+                        # för att undvika buggar där AI fastnar)
+                        if not hit:
+                            for broken_wall in broken_walls:
+                                if self.collision_rectangle.colliderect(broken_wall):
+                                    hit = True
+                                    self.player2_x -= dx
+                                    self.player2_y -= dy
+                                    self.collision_rectangle.x = self.player2_x + self.offset_x
+                                    self.collision_rectangle.y = self.player2_y + self.offset_y
+                                    break
                         
                         if not hit:
                             self.direction = dir_str
@@ -333,6 +333,11 @@ while whole_game:
 
                     if not moved_successfully and self.mode == "PATROL":
                         self.patrol_timer += 50
+
+                    # --- HÄR ÄR FIXEN ---
+                    # Uppdatera pilens position baserat på spelarens slutgiltiga position
+                    self.arrow2_x = self.player2_x
+                    self.arrow2_y = self.player2_y - 30
 
                 def draw(self, screen):
                     if not self.exploded:
@@ -386,10 +391,8 @@ while whole_game:
             def move(self, walls, broken_walls):
                 keys = pygame.key.get_pressed()
                 
-                
                 dx = 0
                 dy = 0
-
                 
                 if keys[pygame.K_UP] and self.health > 0:
                     dy = -self.speed
@@ -408,22 +411,19 @@ while whole_game:
                     self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
                     self.direction = "RIGHT"
 
-                
+                # Flytta spelaren
                 self.player2_x += dx
-                self.arrow2_x += dx
-                        
-                self.collision_rectangle.x = self.player2_x
+                # (Tog bort self.arrow2_x += dx här)
                 
                 self.collision_rectangle.x = self.player2_x + self.offset_x
                 
+                # --- Kollision X-led ---
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
                         if dx > 0: 
                             self.collision_rectangle.right = wall.left
                         if dx < 0: 
                             self.collision_rectangle.left = wall.right
-                        
-                        
                         self.player2_x = self.collision_rectangle.x - self.offset_x
 
                 for broken_wall in broken_walls:
@@ -432,23 +432,21 @@ while whole_game:
                             self.collision_rectangle.right = broken_wall.left
                         if dx < 0: 
                             self.collision_rectangle.left = broken_wall.right
-                        
-                        
                         self.player2_x = self.collision_rectangle.x - self.offset_x
+
+                # Flytta spelaren Y-led
                 self.player2_y += dy
-                self.arrow2_y += dy
-                
+                # (Tog bort self.arrow2_y += dy här)
                 
                 self.collision_rectangle.y = self.player2_y + self.offset_y
                 
+                # --- Kollision Y-led ---
                 for wall in walls:
                     if self.collision_rectangle.colliderect(wall):
                         if dy > 0: 
                             self.collision_rectangle.bottom = wall.top
                         if dy < 0: 
                             self.collision_rectangle.top = wall.bottom
-                        
-                        
                         self.player2_y = self.collision_rectangle.y - self.offset_y
 
                 for broken_wall in broken_walls:
@@ -457,12 +455,15 @@ while whole_game:
                             self.collision_rectangle.bottom = broken_wall.top
                         if dy < 0: 
                             self.collision_rectangle.top = broken_wall.bottom
-                        
-                        
                         self.player2_y = self.collision_rectangle.y - self.offset_y
 
-            
+                # Uppdatera hitboxens position
                 self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
+
+                # --- FIXEN ---
+                # Sätt pilens position baserat på spelarens slutgiltiga position
+                self.arrow2_x = self.player2_x
+                self.arrow2_y = self.player2_y - 30
 
             def draw(self, screen):
                 if not self.exploded:
