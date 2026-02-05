@@ -42,3 +42,15 @@ Only you and the battlefield.
 
 Prepare yourself.
 The war begins now.
+
+
+
+CONTROLS:
+
+Player 1                        Player 2
+
+W = MOVE FORWARD                UP = MOVE FORWARD
+A = MOVE LEFT                   LEFT = MOVE LEFT
+S = MOVE BACK                   DOWN = MOVE BACK
+D = MOVE RIGHT                  RIGHT = MOVE RIGHT
+SPACE = SHOOT                   ENTER = SHOOT
