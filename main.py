@@ -50,7 +50,7 @@ while whole_game:
 
         background1 = pygame.transform.smoothscale(original_background1, (width, height))
         background2 = pygame.transform.smoothscale(original_background2, (width, height))
-        sprite_bullet = pygame.transform.smoothscale(original_bullet, (original_bullet.get_width() + 1, original_bullet.get_height() + 1))
+        sprite_bullet = pygame.transform.smoothscale(original_bullet, (original_bullet.get_width() + 2, original_bullet.get_height() + 2))
         sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
         sprite_player2 = pygame.transform.smoothscale(original_player2, (original_player2.get_width(), original_player2.get_height()))
         player_arrow1 = pygame.transform.smoothscale(original_arrow1, (original_arrow1.get_width(), original_arrow1.get_height()))
@@ -605,12 +605,11 @@ while whole_game:
             def __init__(self, image, effect, tag):
                 self.x = random.randint(50, (width - 50))
                 self.y = random.randint(50, (height - 50))
-                self.image = image # pygame.image.load()
+                self.image = pygame.image.load("C:/War Lightning/assets/ui/health.png")
                 self.effect = effect # 0 -> 1000 ?
                 self.tag = tag # "health" el. "strength"
             
             def collides(self, player):
-                print(self.image.get_rect(topleft=(self.x, self.y)))
                 return player.collision_rectangle.colliderect(self.image.get_rect(topleft=(self.x, self.y)))
             
             def draw(self, screen):
@@ -721,10 +720,10 @@ while whole_game:
                 
                 ]  
             broken_walls = [
-                pygame.Rect(932, 485, 86, 26),
-                pygame.Rect(932, 649, 86, 26),
-                pygame.Rect(1020, 485, 86, 26),
-                pygame.Rect(1020, 649, 86, 26),
+                pygame.Rect(932, 485, 86, 28),
+                pygame.Rect(932, 649, 86, 28),
+                pygame.Rect(1020, 485, 86, 28),
+                pygame.Rect(1020, 649, 86, 28),
             ] 
         # Här defineras de två spelarna utifrån deras klasser
         player_1 = Player1()
@@ -750,7 +749,7 @@ while whole_game:
         #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
         #All kollision
         pickups = [
-        Pickup(pygame.image.load("assets/tanks/Player1.png"), 25, "health")
+        Pickup(pygame.image.load("C:/War Lightning/assets/ui/health.png"), 25, "health")
         ]
         last_spawn = 0
         dim2 = pygame.Surface((200, 200), pygame.SRCALPHA)
