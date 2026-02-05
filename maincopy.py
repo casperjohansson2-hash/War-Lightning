@@ -372,7 +372,8 @@ else:
             self.tag = tag # "health" el. "strength"
         
         def collides(self, player):
-            return player.collisionrectangle.collidesrect(self.image.get_rect(topleft=(self.x, self.y)))
+            print(self.image.get_rect(topleft=(self.x, self.y)))
+            return player.collision_rectangle.colliderect(self.image.get_rect(topleft=(self.x, self.y)))
         
         def draw(self, screen):
             screen.blit(self.image, (self.x, self.y))
@@ -420,6 +421,8 @@ else:
 
     ]
 
+    p = Pickup(pygame.image.load("assets/ui/war_lightning.png"), 25, "health")
+
     winner = None
     original_win_screen1 = pygame.image.load("assets/ui/p1_win.png")
     original_win_screen2 = pygame.image.load("assets/ui/p2_win.png")
@@ -453,6 +456,7 @@ else:
             pygame.display.flip()
             continue
 
+
         #Funktionerna för att de två spelarna ska kunna röra sig
         player_1.move(walls)
         player_2.move(walls)
@@ -482,6 +486,9 @@ else:
                 shot.play()
                 bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y, player_2.direction))
                 bullet_counter2 = 0
+        
+        print(p.collides(player_1))
+        p.draw(screen)
 
         #Här så uppdateras varenda objekt i respektive lista
         for bullet in reversed(bullet_list1):
