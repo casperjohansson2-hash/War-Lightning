@@ -925,32 +925,33 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for i, broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
-                        # Check if bullet went off screen
-                        if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
-                            try: bullet_list1.remove(bullet)
-                            except ValueError as e: pass
+                            break
+                    # Check if bullet went off screen
+                    if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
+                        try: bullet_list1.remove(bullet)
+                        except ValueError as e: pass
+                    
+                    if hit_wall:
+                        try: bullet_list1.remove(bullet)
+                        except ValueError as e: pass
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                            explosions.append(explosion)
                         
-                        if hit_wall:
-                            try: bullet_list1.remove(bullet)
-                            except ValueError as e: pass
-                            if ui.get_setting("particles"):
-                                explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
-                                explosions.append(explosion)
-                            
-                        if hit_broken_wall:
-                            try: bullet_list1.remove(bullet)
-                            except ValueError as e: pass
-                            if ui.get_setting("particles"):
-                                explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
-                                explosions.append(explosion)
-
-                            broken_walls.remove(broken_wall)
+                    if hit_broken_wall:
+                        try: bullet_list1.remove(bullet)
+                        except ValueError as e: pass
+                        if ui.get_setting("particles"):
+                            explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
+                            explosions.append(explosion)
                         
-                        if player_2.collide(bullet.collision_rectangle):
-                            bullet_list1.remove(bullet)
+                        broken_walls.pop(i)
+                    
+                    if player_2.collide(bullet.collision_rectangle):
+                        bullet_list1.remove(bullet)
 
                 
                 #Samma som ovan
@@ -964,9 +965,10 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for i, broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
+                            break
                     if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                         bullet_list2.remove(bullet)
 
@@ -982,7 +984,7 @@ while whole_game:
                             explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                             explosions.append(explosion)
 
-                        broken_walls.remove(broken_wall)
+                        broken_walls.pop(i)
 
                     if player_1.collide(bullet.collision_rectangle):
                         bullet_list2.remove(bullet)
@@ -1211,9 +1213,10 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for i, broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
+                            index = i
                     # Check if bullet went off screen
                     if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                         bullet_list1.remove(bullet)
@@ -1230,7 +1233,7 @@ while whole_game:
                             explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                             explosions.append(explosion)
 
-                        broken_walls.remove(broken_wall)
+                        broken_walls.pop(index)
                     
                     if player_2.collide(bullet.collision_rectangle):
                         bullet_list1.remove(bullet)
@@ -1247,9 +1250,10 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for i, broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
+                            index = i
                     if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                         bullet_list2.remove(bullet)
 
@@ -1264,8 +1268,8 @@ while whole_game:
                         if ui.get_setting("particles"):
                             explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                             explosions.append(explosion)
-
-                        broken_walls.remove(broken_wall)
+                        
+                        broken_walls.pop(index)
 
                     if player_1.collide(bullet.collision_rectangle):
                         bullet_list2.remove(bullet)
