@@ -71,7 +71,9 @@ while whole_game:
             else:
                 player_damage = 10
                 normal_hit.play()
-
+            if ui.get_mode() == "bossmode":
+                player_damage += 30
+                
             return player_damage
         
 
@@ -208,8 +210,11 @@ while whole_game:
                     self.player2_x = width - 90
                     self.player2_y = (height // 2) - 20
                     self.health = player_health
-                    self.damage = damage()
-                    self.speed = 1 # AI HASTIGHET ÄR 1
+                    self.damage = damage() + 30
+                    if ui.get_mode() == "bossmode":
+                        self.speed = 100
+                    else:
+                        self.speed = 1 
                     self.direction = "UP"
                     self.exploded = False
                     self.original_image = sprite_player2
@@ -706,7 +711,7 @@ while whole_game:
             last_kingpoints1 = 0
 
         # ÄNDRING: Här bestämmer vi vem Player 2 är
-        if ui.get_mode() == "solo":
+        if ui.get_mode() == "solo" or ui.get_mode() == "bossmode":
             player_2 = Ai()  # Player 2 blir en AI
         else:
             player_2 = Player2() # Player 2 blir en människa (VS mode)
