@@ -334,7 +334,8 @@ class AppState:
         "hitboxes": False,
         "volume": 1.0,
         "particles": True,
-        "map": 0
+        "map": 0,
+        "secret": False
     }
 
 def get_mode() -> str:
@@ -369,6 +370,7 @@ MODE_MENU = UI("Modes")
 KIND_MENU = UI("Kinds")
 SETTINGS = UI("Settings")
 CREDIBILITY = UI("Cred")
+SECRET = UI("Secret")
 
 TITLE = Text(HEADER_FONT, "War Lightning", (255, 255, 255))
 SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (255, 255, 255))
@@ -472,6 +474,16 @@ class Menu:
         BUTTON_SOUND.play()
         self.active = False
         AppState.kind = "deathmatch"
+    
+    def get_secrets(self) -> None:
+        BUTTON_SOUND.play()
+        self.ui = SECRET
+    
+    def select_bossmode(self) -> None:
+        BUTTON_SOUND.play()
+        self.active = False
+        AppState.mode = "bossmode"
+        AppState.kind = "deathmatch"
 
     def quit(self) -> None:
         BUTTON_SOUND.play()
@@ -497,282 +509,8 @@ class Menu:
             pygame.display.flip()
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
-    
-MAIN_MENU\
-.add_element(Label(
-    TITLE.text_rect(center=(400, 30)), TITLE
-))\
-.add_element(Button(
-    pygame.Rect(325, 300, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Start", (200, 235, 220)),
-    lambda: menu.start()
-))\
-.add_element(Button(
-    pygame.Rect(325, 350, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Settings", (200, 235, 220)),
-    lambda: menu.open_settings()
-))\
-.add_element(Button(
-    pygame.Rect(325, 400, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Creds", (200, 235, 220)),
-    lambda: menu.open_credits()
-))\
-.add_element(Button(
-    pygame.Rect(350, 500, 100, 25),
-    ButtonConfig(
-        (190, 150, 150),
-        (140, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Exit", (200, 235, 220)),
-    lambda: menu.quit()
-))
 
-MODE_MENU\
-.add_element(Label(
-    SELECT_MODE_TITLE.text_rect(center=(400, 30)), SELECT_MODE_TITLE
-))\
-.add_element(Button(
-    pygame.Rect(125, 300, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Solo", (200, 235, 220)),
-    lambda: menu.select_solo()
-))\
-.add_element(Button(
-    pygame.Rect(525, 300, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Versus", (200, 235, 220)),
-    lambda: menu.select_vs()
-))\
-.add_element(Button(
-    pygame.Rect(350, 500, 100, 25),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
-    lambda: menu.back_to_start()
-))
-
-KIND_MENU\
-.add_element(Label(
-    SELECT_MODE_TITLE.text_rect(center=(400, 30)), SELECT_MODE_TITLE
-))\
-.add_element(Button(
-    pygame.Rect(125, 300, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Deathmatch", (200, 235, 220)),
-    lambda: menu.select_deathmatch()
-))\
-.add_element(Button(
-    pygame.Rect(525, 300, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "King Of The Hill", (200, 235, 220)),
-    lambda: menu.select_kingofhill()
-))\
-.add_element(Button(
-    pygame.Rect(350, 500, 100, 25),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
-    lambda: menu.back_to_start()
-))
-
-SETTINGS\
-.add_element(Label(
-    SETTINGS_TITLE.text_rect(center=(400, 30)), SETTINGS_TITLE
-))\
-.add_element(Label(
-    HITBOX_TEXT.text_rect(center=(550, 200)), HITBOX_TEXT
-))\
-.add_element(Button(
-    pygame.Rect(325, 180, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Toggle Hitboxes", (200, 235, 220)),
-    lambda: menu.toggle_hitboxes()
-))\
-.add_element(Label(
-    VOLUME_TEXT.text_rect(center=(550, 250)), VOLUME_TEXT
-))\
-.add_element(Slider(
-    pygame.Rect(325, 240, 150, 25),
-    SliderConfig(
-        (150, 150, 250),
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 5, 2, 15, 2
-    ),
-    1.0,
-    (0.0, 1.0),
-    lambda vol: menu.edit_volume(vol)
-))\
-.add_element(Label(
-    PARTICLE_TEXT.text_rect(center=(550, 300)), PARTICLE_TEXT
-))\
-.add_element(Button(
-    pygame.Rect(325, 280, 150, 38),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Toggle Particles", (200, 235, 220)),
-    lambda: menu.toggle_particles()
-))\
-.add_element(MAP_LABEL)\
-.add_element(Button(
-    pygame.Rect(450, 334, 30, 30), # 150 - 30 = 120
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 5, 2
-    ),
-    Text(PRIMARY_FONT, ">", (200, 235, 220)),
-    lambda: menu.next_map()
-))\
-.add_element(Button(
-    pygame.Rect(320, 334, 30, 30),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 5, 2
-    ),
-    Text(PRIMARY_FONT, "<", (200, 235, 220)),
-    lambda: menu.prev_map()
-))\
-.add_element(Button(
-    pygame.Rect(350, 500, 100, 25),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
-    lambda: menu.back_to_start()
-))
-
-CREDIBILITY\
-.add_element(Label(
-    CRED_TITLE.text_rect(center=(400, 30)), CRED_TITLE
-))\
-.add_element(Button(
-    pygame.Rect(350, 500, 100, 25),
-    ButtonConfig(
-        (150, 150, 150),
-        (100, 100, 100),
-        (255, 0, 0),
-        200, 15, 2
-    ),
-    Text(PRIMARY_FONT, "Go Back", (200, 235, 220)),
-    lambda: menu.back_to_start()
-))
-
-with open("credits.txt", "r") as f:
-    credits = f.readlines()
-for index, line in enumerate(credits):
-    line = line.replace("\n", "").strip()
-    text = Text(PRIMARY_FONT, line, (255, 255, 255))
-    label = Label(text.text_rect(center=(400, 100+20*index)), text)
-    CREDIBILITY.add_element(label)
-
-screen = pygame.display.set_mode((800, 600))
-pygame.display.set_caption("War Lightning")
-pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
-
-menu = Menu(screen)
-
-menu.run()
-
-def restart() -> None:
-    global screen, menu, BACKGROUND_IMAGE, DIM, BUTTON_SOUND, HEADER_FONT, PRIMARY_FONT, MAIN_MENU, MODE_MENU, KIND_MENU, SETTINGS, CREDIBILITY, TITLE, SELECT_MODE_TITLE, SETTINGS_TITLE, CRED_TITLE, HITBOX_TEXT, PARTICLE_TEXT, VOLUME_TEXT, MAP_TEXT, MAP_LABEL
-    pygame.init()
-
-    pygame.mixer.music.load("assets/music/menu.mp3")
-
-    BACKGROUND_IMAGE = pygame.transform.smoothscale(pygame.image.load("assets/ui/test.png"), (800, 600))
-    DIM = pygame.Surface((800, 600), pygame.SRCALPHA)
-    DIM.fill((50, 50, 50, 150))
-
-    BUTTON_SOUND = pygame.mixer.Sound("assets/audio/press button.mp3")
-
-    HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
-    PRIMARY_FONT = pygame.font.Font("assets/fonts/SEEKUW.ttf", 15)
-
-    MAIN_MENU = UI("Menu")
-    MODE_MENU = UI("Modes")
-    KIND_MENU = UI("Kinds")
-    SETTINGS = UI("Settings")
-    CREDIBILITY = UI("Cred")
-
-    TITLE = Text(HEADER_FONT, "War Lightning", (255, 255, 255))
-    SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (255, 255, 255))
-    SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (255, 255, 255))
-    CRED_TITLE = Text(HEADER_FONT, "Creds", (255, 255, 255))
-
-    HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
-    PARTICLE_TEXT = Text(PRIMARY_FONT, "Enabled", (255, 255, 255))
-    VOLUME_TEXT = Text(PRIMARY_FONT, "Volume: 100%", (255, 255, 255))
-    MAP_TEXT = Text(PRIMARY_FONT, "Random", (255, 255, 255))
-
-    MAP_LABEL = Label(
-        MAP_TEXT.text_rect(center=(400, 350)), MAP_TEXT
-    )
-
+def load() -> None:
     MAIN_MENU\
     .add_element(Label(
         TITLE.text_rect(center=(400, 30)), TITLE
@@ -898,9 +636,37 @@ def restart() -> None:
         lambda: menu.back_to_start()
     ))
 
+    SECRET\
+    .add_element(Label(
+        SELECT_MODE_TITLE.text_rect(center=(400, 30)), SELECT_MODE_TITLE
+    ))\
+    .add_element(Button(
+        pygame.Rect(325, 180, 150, 38),
+        ButtonConfig(
+            (150, 150, 150),
+            (100, 100, 100),
+            (255, 0, 0),
+            200, 15, 2
+        ),
+        Text(PRIMARY_FONT, "Boss Mode", (255, 200, 255)),
+        lambda: menu.select_bossmode()
+    ))
+    
+
     SETTINGS\
     .add_element(Label(
         SETTINGS_TITLE.text_rect(center=(400, 30)), SETTINGS_TITLE
+    ))\
+    .add_element(Button(
+        pygame.Rect(750, 585, 50, 15), # 800x600
+        ButtonConfig(
+            (150, 150, 150),
+            (100, 100, 100),
+            (255, 0, 0),
+            70, 15, 2
+        ),
+        Text(PRIMARY_FONT, "Secret", (200, 235, 220)),
+        lambda: menu.get_secrets()
     ))\
     .add_element(Label(
         HITBOX_TEXT.text_rect(center=(550, 200)), HITBOX_TEXT
@@ -1004,6 +770,53 @@ def restart() -> None:
         text = Text(PRIMARY_FONT, line, (255, 255, 255))
         label = Label(text.text_rect(center=(400, 100+20*index)), text)
         CREDIBILITY.add_element(label)
+
+load()
+
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("War Lightning")
+pygame.display.set_icon(pygame.image.load("assets/ui/war_lightning.png"))
+
+menu = Menu(screen)
+
+menu.run()
+
+def restart() -> None:
+    global screen, menu, BACKGROUND_IMAGE, DIM, BUTTON_SOUND, HEADER_FONT, PRIMARY_FONT, MAIN_MENU, MODE_MENU, KIND_MENU, SETTINGS, CREDIBILITY, TITLE, SELECT_MODE_TITLE, SETTINGS_TITLE, CRED_TITLE, HITBOX_TEXT, PARTICLE_TEXT, VOLUME_TEXT, MAP_TEXT, MAP_LABEL
+    pygame.init()
+
+    pygame.mixer.music.load("assets/music/menu.mp3")
+
+    BACKGROUND_IMAGE = pygame.transform.smoothscale(pygame.image.load("assets/ui/test.png"), (800, 600))
+    DIM = pygame.Surface((800, 600), pygame.SRCALPHA)
+    DIM.fill((50, 50, 50, 150))
+
+    BUTTON_SOUND = pygame.mixer.Sound("assets/audio/press button.mp3")
+
+    HEADER_FONT = pygame.font.Font("assets/fonts/Smile Delight.ttf", 50)
+    PRIMARY_FONT = pygame.font.Font("assets/fonts/SEEKUW.ttf", 15)
+
+    MAIN_MENU = UI("Menu")
+    MODE_MENU = UI("Modes")
+    KIND_MENU = UI("Kinds")
+    SETTINGS = UI("Settings")
+    CREDIBILITY = UI("Cred")
+
+    TITLE = Text(HEADER_FONT, "War Lightning", (255, 255, 255))
+    SELECT_MODE_TITLE = Text(HEADER_FONT, "Select Mode", (255, 255, 255))
+    SETTINGS_TITLE = Text(HEADER_FONT, "Settings", (255, 255, 255))
+    CRED_TITLE = Text(HEADER_FONT, "Creds", (255, 255, 255))
+
+    HITBOX_TEXT = Text(PRIMARY_FONT, "Disabled", (255, 255, 255))
+    PARTICLE_TEXT = Text(PRIMARY_FONT, "Enabled", (255, 255, 255))
+    VOLUME_TEXT = Text(PRIMARY_FONT, "Volume: 100%", (255, 255, 255))
+    MAP_TEXT = Text(PRIMARY_FONT, "Random", (255, 255, 255))
+
+    MAP_LABEL = Label(
+        MAP_TEXT.text_rect(center=(400, 350)), MAP_TEXT
+    )
+
+    load()
     
     screen = pygame.display.set_mode((800, 600))
     pygame.display.set_caption("War Lightning")
