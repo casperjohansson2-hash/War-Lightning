@@ -92,6 +92,8 @@ while whole_game:
                 self.sprite_player1 = sprite_player1
                 self.health = player_health
                 self.damage = damage()
+                if ui.get_mode() != "vs":
+                    self.speed = 2
                 self.speed = 1
                 self.original_image = sprite_player1
                 self.sprite_player1 = self.original_image
