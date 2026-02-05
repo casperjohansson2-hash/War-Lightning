@@ -82,7 +82,7 @@ else:
             normal_hit.play()
         return player_damage
     
-    # --- GEMENSAMMA KLASSER (Bullet, Particle, Player1) ---
+    # --- GEMENSAMMA KLASSER ---
 
     class Particle:
         def __init__(self, x, y):
@@ -557,199 +557,7 @@ else:
         pygame.quit()
 
     # =========================================================================
-    # SPELLÄGE: VS (SPELARE MOT SPELARE)
-    # =========================================================================
-    elif ui.get_mode() == "vs":
-        player_1 = Player1()
-        class Player2:
-            def __init__(self):
-                self.player2_x = width - 90
-                self.player2_y = (height // 2) - 20
-                self.sprite_player2 = sprite_player2
-                self.health = player_health
-                self.damage = damage()
-                self.speed = 5
-                self.direction = "UP"
-                self.exploded = False
-                self.original_image = sprite_player2
-                self.sprite_player2 = self.original_image
-                hitbox_width = self.sprite_player2.get_width() - 25
-                hitbox_height = self.sprite_player2.get_height() - 25
-                self.kingpoints = 0
-                self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
-                self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
-                self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
-                self.collision_rectangle = pygame.Rect(self.player2_x + self.offset_x, self.player2_y + self.offset_y, hitbox_width, hitbox_height)
-
-            def move(self, walls):
-                keys = pygame.key.get_pressed()
-                dx = 0
-                dy = 0
-                if keys[pygame.K_UP] and self.health > 0:
-                    dy = -self.speed
-                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 0)
-                    self.direction = "UP"
-                elif keys[pygame.K_DOWN] and self.health > 0:
-                    dy = self.speed
-                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 180)
-                    self.direction = "DOWN"
-                elif keys[pygame.K_LEFT] and self.health > 0:
-                    dx = -self.speed
-                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
-                    self.direction = "LEFT"
-                elif keys[pygame.K_RIGHT] and self.health > 0:
-                    dx = self.speed
-                    self.sprite_player2 = pygame.transform.rotate(self.original_image, 270)
-                    self.direction = "RIGHT"
-                
-                self.player2_x += dx
-                self.collision_rectangle.x = self.player2_x + self.offset_x
-                for wall in walls:
-                    if self.collision_rectangle.colliderect(wall):
-                        if dx > 0: self.collision_rectangle.right = wall.left
-                        if dx < 0: self.collision_rectangle.left = wall.right
-                        self.player2_x = self.collision_rectangle.x - self.offset_x
-                
-                self.player2_y += dy
-                self.collision_rectangle.y = self.player2_y + self.offset_y
-                for wall in walls:
-                    if self.collision_rectangle.colliderect(wall):
-                        if dy > 0: self.collision_rectangle.bottom = wall.top
-                        if dy < 0: self.collision_rectangle.top = wall.bottom
-                        self.player2_y = self.collision_rectangle.y - self.offset_y
-                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
-
-            def draw(self, screen):
-                if not self.exploded:
-                    screen.blit(self.sprite_player2, (self.player2_x, self.player2_y))
-                    if ui.get_setting("hitboxes"):
-                        pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
-                
-            def collide(self, bullet_rect):
-                if not player_2.exploded:
-                    if self.collision_rectangle.colliderect(bullet_rect):
-                        if ui.get_setting("particles"):
-                            explosion = [Particle(player_2.player2_x + 34, player_2.player2_y + 30) for _ in range(100)]
-                            explosions.append(explosion)
-                        player_2.health -= damage()
-                        return True 
-                return False 
-
-        player_2 = Player2()
-
-        while game:
-            if countdown > 0:
-                for event in pygame.event.get(): ...
-                screen.blit(background, (0, 0))
-                screen.blit(dim, (0, 0))
-                text_surf = other_font.render(f"{countdown-1}".replace("0", "Fight!"), True, (255, 255, 255))
-                screen.blit(text_surf, text_surf.get_rect(center=(width//2, height//2)))
-                pygame.display.flip()
-                countdown -= 1
-                time.sleep(1.0)
-                continue
-            
-            player_1.move(walls)
-            player_2.move(walls)
-            screen.blit(background, (0, 0))
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    game = False
-
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE] and player_1.exploded == False:
-                if (bullet_counter1 > 20):
-                    shot.play()
-                    bullet_list1.append(Bullet(player_1.player1_x + 20, player_1.player1_y, player_1.direction))
-                    bullet_counter1 = 0
-
-            if keys[pygame.K_RETURN] and player_2.exploded == False:
-                if (bullet_counter2 > 20):
-                    shot.play()
-                    bullet_list2.append(Bullet(player_2.player2_x + 20, player_2.player2_y, player_2.direction))
-                    bullet_counter2 = 0
-            
-            # Hantera död och respawn
-            if player_1.health <= 0:
-                player_1.exploded = True
-                dead.play()
-                player_1.health = 100
-                player_2.health = 100
-                
-            if player_2.health <= 0:
-                player_2.exploded = True
-                dead.play()
-                player_1.health = 100
-                player_2.health = 100
-
-            clock.tick(60)
-            bullet_counter1 += 0.2
-            bullet_counter2 += 0.2
-
-            for wall in walls:
-                pygame.draw.rect(screen, (255, 0, 0), wall, 1)
-
-            # UI
-            if player_1.health < last_health1:
-                last_health1 = player_1.health
-                hp_bar_health1 = hp_bar_health1.subsurface(pygame.Rect(0, 0, max(int(225 * (player_1.health / 100)), 1), hp_bar_rect1.height))
-            if player_2.health < last_health2:
-                last_health2 = player_2.health
-                hp_bar_health2 = hp_bar_health2.subsurface(pygame.Rect(0, 0, max(int(225 * (player_2.health / 100)), 1), hp_bar_rect2.height))
-
-            screen.blit(hp_bar_back, hp_bar_rect1)
-            screen.blit(hp_bar_health1, hp_bar_rect1)
-            text_surf = primary_font.render(f"{max(player_1.health, 0)} HP", True, (255, 255, 255))
-            screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect1.center))
-            screen.blit(hp_bar_overlay, hp_bar_rect1)
-            screen.blit(hp_bar_back, hp_bar_rect2)
-            screen.blit(hp_bar_health2, hp_bar_rect2)
-            text_surf = primary_font.render(f"{max(player_2.health, 0)} HP", True, (255, 255, 255))
-            screen.blit(text_surf, text_surf.get_rect(center=hp_bar_rect2.center))
-            screen.blit(hp_bar_overlay, hp_bar_rect2)
-
-            player_1.draw(screen)
-            player_2.draw(screen)
-
-            # Bullet Logic
-            for bullet in reversed(bullet_list1):
-                bullet.move()
-                bullet.draw(screen)
-                hit_wall = False
-                for wall in walls:
-                    if bullet.collision_rectangle.colliderect(wall): hit_wall = True
-                if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
-                    bullet_list1.remove(bullet)
-                    if hit_wall and ui.get_setting("particles"):
-                        explosions.append([Particle(bullet.x, bullet.y) for _ in range(100)])
-                elif player_2.collide(bullet.collision_rectangle):
-                    bullet_list1.remove(bullet)
-
-            for bullet in reversed(bullet_list2):
-                bullet.move()
-                bullet.draw(screen)
-                hit_wall = False
-                for wall in walls:
-                    if bullet.collision_rectangle.colliderect(wall): hit_wall = True
-                if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980 or hit_wall:
-                    bullet_list2.remove(bullet)
-                    if hit_wall and ui.get_setting("particles"):
-                        explosions.append([Particle(bullet.x, bullet.y) for _ in range(100)])
-                elif player_1.collide(bullet.collision_rectangle):
-                    bullet_list2.remove(bullet)
-            
-            for explosion in explosions:
-                for particle in explosion:
-                    particle.update()
-                    particle.draw(screen)
-            explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
-            explosions = [e for e in explosions if len(e) > 0]
-            pygame.display.flip()
-        pygame.quit()
-
-    # =========================================================================
-    # SPELLÄGE: KING OF THE HILL (AI FOKUSERAR PÅ MITTEN)
+    # SPELLÄGE: KING OF THE HILL (AI FOKUSERAR PÅ MITTEN & STANNAR DÄR)
     # =========================================================================
     elif ui.get_kind() == "king of hill":
         
@@ -791,8 +599,8 @@ else:
             def move(self, walls, target_player_x, target_player_y):
                 if self.health <= 0: return
 
-                center_x = width // 2
-                center_y = height // 2
+                center_x = 960 # ANVÄNDER DINA KOORDINATER
+                center_y = 540
                 
                 # --- STRATEGI: KING OF THE HILL ---
                 dist_to_center = math.sqrt((self.player2_x - center_x)**2 + (self.player2_y - center_y)**2)
@@ -803,15 +611,18 @@ else:
                     target_x = center_x
                     target_y = center_y
 
-                # 2. Om spelaren är JÄTTENÄRA -> ATTACKERA (Men bara om den är närmare än förut)
-                elif dist_to_player < 200: # Ändrat från 300 till 200
+                # 2. Om spelaren är JÄTTENÄRA -> ATTACKERA (Men bara om den är närmare än förut - nu 200px)
+                elif dist_to_player < 200: 
                     target_x = target_player_x
                     target_y = target_player_y
 
-                # 3. Om vi är i mitten (inom 50 pixlar) -> STANNA HÄR (Parkera tanken)
-                elif dist_to_center < 50:
-                    target_x = self.player2_x # Sätt målet till där jag är
-                    target_y = self.player2_y # Då blir diff_x/y noll och den stannar.
+                # 3. Om vi är i mitten (inom 5 pixlar - SUPER TIGHT) -> SNAPPA TILL MITTEN
+                elif dist_to_center < 5:
+                    self.player2_x = center_x
+                    self.player2_y = center_y
+                    self.collision_rectangle.x = self.player2_x + self.offset_x
+                    self.collision_rectangle.y = self.player2_y + self.offset_y
+                    return # Stanna helt!
 
                 # 4. Annars (vi är nära mitten men inte mitt i prick) -> GÅ TILL EXAKT MITTEN
                 else:
@@ -824,8 +635,11 @@ else:
                 
                 bias_x = 0
                 bias_y = 0
-                if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
-                if self.direction in ["UP", "DOWN"]: bias_y = 60    
+                
+                # --- VIKTIGT: Stäng av tröghet om vi är nära mitten så den kan finjustera ---
+                if dist_to_center > 150:
+                    if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
+                    if self.direction in ["UP", "DOWN"]: bias_y = 60    
                 
                 moves_to_try = []
                 if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
@@ -837,7 +651,7 @@ else:
                 
                 for axis, value in moves_to_try:
                     if moved_successfully: break 
-                    if abs(value) < 5: continue 
+                    if abs(value) < 2: continue # Sänkte toleransen för finjustering
 
                     test_dx = 0
                     test_dy = 0
