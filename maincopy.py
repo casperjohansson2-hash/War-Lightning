@@ -541,8 +541,6 @@ else:
         bullet_counter1 = bullet_counter1 + 0.5
         bullet_counter2 = bullet_counter2 + 0.5
         #Här ritas spelarnas stridsvagnar
-        player_1.draw(screen)
-        player_2.draw(screen)
 
         now = time.monotonic()
         dx = (player_1.player1_x - center_x)
@@ -552,29 +550,40 @@ else:
         dy = (player_2.player2_y - center_y)
         distance2 = math.hypot(dx, dy)
 
+        dim2.fill((0, 0, 0, 0))
+
         if distance1 < 100 and not distance2 < 100:
-            dim2.fill((255, 200, 200, 150))
-            pygame.draw.rect(dim2, (255, 240, 240), dim2.get_rect(topleft=(0, 0)), 1)
+            pygame.draw.circle(dim2, (255, 200, 200), (100, 100), 100)
+            pygame.draw.circle(dim2, (255, 240, 240), (100, 100), 100, 2)
+            dim2.set_alpha(100)
             screen.blit(dim2, (center_x - 100, center_y - 100))
-            screen.blit(flag_p1, (center_x - 50, center_y - 50))
+            player_1.draw(screen)
+            player_2.draw(screen)
+            screen.blit(flag_p1, (center_x - 50, center_y - 75))
             if now - last_kingpoints1 >= 1.0: # Seconds
                 last_kingpoints1 = now
                 player_1.kingpoints += 1
-        
+
         elif distance2 < 100 and not distance1 < 100:
-            dim2.fill((200, 200, 255, 150))
-            pygame.draw.rect(dim2, (240, 240, 255), dim2.get_rect(topleft=(0, 0)), 1)
+            pygame.draw.circle(dim2, (200, 200, 255), (100, 100), 100)
+            pygame.draw.circle(dim2, (240, 240, 255), (100, 100), 100, 2)
+            dim2.set_alpha(100)
             screen.blit(dim2, (center_x - 100, center_y - 100))
-            screen.blit(flag_p2, (center_x - 50, center_y - 50))
+            player_1.draw(screen)
+            player_2.draw(screen)
+            screen.blit(flag_p2, (center_x - 50, center_y - 75))
             if now - last_kingpoints2 >= 1.0: # Seconds
                 last_kingpoints2 = now
                 player_2.kingpoints += 1
         
         else:
-            dim2.fill((200, 200, 200, 150))
-            pygame.draw.rect(dim2, (240, 240, 240), dim2.get_rect(topleft=(0, 0)), 1)
+            pygame.draw.circle(dim2, (200, 200, 200), (100, 100), 100)
+            pygame.draw.circle(dim2, (240, 240, 240), (100, 100), 100, 1)
+            dim2.set_alpha(100)
             screen.blit(dim2, (center_x - 100, center_y - 100))
-            screen.blit(flag_p0, (center_x - 50, center_y - 50))
+            player_1.draw(screen)
+            player_2.draw(screen)
+            screen.blit(flag_p0, (center_x - 50, center_y - 75))
 
         if player_1.health < last_health1:
             last_health1 = player_1.health
