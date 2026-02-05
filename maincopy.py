@@ -528,8 +528,8 @@ else:
             pygame.draw.rect(screen, (255, 0, 0), wall, 1)
         
         now = time.monotonic()
-        if now - last_spawn >= 10:
-            if random.random() < 0.25:
+        if now - last_spawn >= 10 and frames % 10 == 0 and len(pickups) < 3:
+            if random.random() < 0.05:
                 last_spawn = now
                 tag = "health"
                 added_pickup = Pickup(
