@@ -513,9 +513,9 @@ else:
         for wall in walls:
             pygame.draw.rect(screen, (255, 0, 0), wall, 1)
         
-        if frames % 10 == 0:
-            if random.random() < 0.25: # (25%)
-                pickups.append(Pickup(...))
+        #if frames % 10 == 0:
+        #    if random.random() < 0.25: # (25%)
+        #        pickups.append(Pickup(...))
             
 
         if player_1.health < 0:
@@ -582,3 +582,5 @@ else:
 
     #här så stängs pygame och stänger fönstret
     pygame.quit()
+
+ui.restart()
