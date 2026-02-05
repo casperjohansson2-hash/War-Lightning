@@ -12,8 +12,10 @@ while whole_game:
     normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
     crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
     dead = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank kaboom.mp3")
-    pygame.mixer.music.load("assets/audio/Match start.mp3")
-    pygame.mixer.music.play()
+    start = pygame.mixer.Sound("assets/audio/Match start.mp3")
+    pygame.mixer.music.load("assets/music/Ambi med paus.mp3")
+    start.play()
+    pygame.mixer.music.play(-1) 
     volume = ui.get_setting("volume")
     pygame.mixer.music.set_volume(volume)
 
@@ -202,207 +204,132 @@ while whole_game:
                 return False 
         
         class Ai:
-            def __init__(self):
-                self.player2_x = width - 90
-                self.player2_y = (height // 2) - 20
-                self.health = player_health
-                self.damage = damage()
-                self.speed = 1
-                self.direction = "UP"
-                self.exploded = False
-                self.original_image = sprite_player2
-                self.sprite_player2 = self.original_image
-                hitbox_width = self.sprite_player2.get_width() - 25
-                hitbox_height = self.sprite_player2.get_height() - 25
-                self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
-                self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
-                self.kingpoints = 0
-                self.sprite_player2 = pygame.transform.rotate(self.original_image, 90)
-                self.collision_rectangle = pygame.Rect(
-
-                    self.player2_x + self.offset_x, 
-                    self.player2_y + self.offset_y, 
-                    hitbox_width, 
-                    hitbox_height
-                )
-                
-                # AI State
-                self.patrol_target_x = random.randint(50, width - 50)
-                self.patrol_target_y = random.randint(50, height - 50)
-                self.mode = "PATROL" 
-
-            def move(self, walls, broken_walls, target_player_x, target_player_y):
-                if self.health <= 0: return
-
-                dx = 0
-                dy = 0
-                
-                # 1. BESTÄM MÅL
-                dist_to_player_x = self.player2_x - target_player_x
-                dist_to_player_y = self.player2_y - target_player_y
-                total_distance = math.sqrt(dist_to_player_x**2 + dist_to_player_y**2)
-
-                if total_distance < 500: # JAGA
-                    self.mode = "CHASE"
-                    target_x = target_player_x
-                    target_y = target_player_y
-                else: # PATRULLERA
-                    self.mode = "PATROL"
-                    target_x = self.patrol_target_x
-                    target_y = self.patrol_target_y
+                def __init__(self):
+                    self.player2_x = width - 90
+                    self.player2_y = (height // 2) - 20
+                    self.health = player_health
+                    self.damage = damage()
+                    self.speed = 1 # AI HASTIGHET ÄR 1
+                    self.direction = "UP"
+                    self.exploded = False
+                    self.original_image = sprite_player2
+                    self.sprite_player2 = self.original_image
+                    hitbox_width = self.sprite_player2.get_width() - 25
+                    hitbox_height = self.sprite_player2.get_height() - 25
+                    self.offset_x = (self.sprite_player2.get_width() - hitbox_width) // 2
+                    self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
+                    self.collision_rectangle = pygame.Rect(self.player2_x + self.offset_x, self.player2_y + self.offset_y, hitbox_width, hitbox_height)
+                    self.kingpoints = 0
                     
-                    if abs(self.player2_x - self.patrol_target_x) < 50 and abs(self.player2_y - self.patrol_target_y) < 50:
-                        self.patrol_target_x = random.randint(50, width - 50)
-                        self.patrol_target_y = random.randint(50, height - 50)
+                    self.patrol_target_x = random.randint(50, width - 50)
+                    self.patrol_target_y = random.randint(50, height - 50)
+                    self.mode = "PATROL" 
+                    self.patrol_timer = 0 
 
-                
-                for wall in walls:
-                    if self.collision_rectangle.colliderect(wall):
-                        if dx > 0: 
-                            self.collision_rectangle.right = wall.left
-                        if dx < 0: 
-                            self.collision_rectangle.left = wall.right
+                def move(self, walls, broken_walls, target_player_x, target_player_y):
+                    if self.health <= 0: return
+
+                    dist_to_player_x = self.player2_x - target_player_x
+                    dist_to_player_y = self.player2_y - target_player_y
+                    total_distance = math.sqrt(dist_to_player_x**2 + dist_to_player_y**2)
+
+                    if total_distance < 500: # JAGA
+                        self.mode = "CHASE"
+                        target_x = target_player_x
+                        target_y = target_player_y
+                        self.patrol_timer = 0 
+                    else: # PATRULLERA
+                        self.mode = "PATROL"
+                        target_x = self.patrol_target_x
+                        target_y = self.patrol_target_y
+                        self.patrol_timer += 1
+                        arrived = abs(self.player2_x - self.patrol_target_x) < 60 and abs(self.player2_y - self.patrol_target_y) < 60
                         
-                        
-                        self.player2_x = self.collision_rectangle.x - self.offset_x
+                        if arrived or self.patrol_timer > 180:
+                            self.patrol_target_x = random.randint(50, width - 50)
+                            self.patrol_target_y = random.randint(50, height - 50)
+                            self.patrol_timer = 0 
 
-                for broken_wall in broken_walls:
-                    if self.collision_rectangle.colliderect(broken_wall):
-                        if dx > 0: 
-                            self.collision_rectangle.right = broken_wall.left
-                        if dx < 0: 
-                            self.collision_rectangle.left = broken_wall.right
-                        
-                        
-                        self.player2_x = self.collision_rectangle.x - self.offset_x
-
-
-                
-                # ... (inuti Ai.move, Y-kollisionen) ...
-                
-                self.player2_y += dy  # ÄNDRAT FRÅN player1_y
-                
-                self.collision_rectangle.y = self.player2_y + self.offset_y # ÄNDRAT FRÅN player1_y
-                
-                for wall in walls:
-                    if self.collision_rectangle.colliderect(wall):
-                        if dy > 0: 
-                            self.collision_rectangle.bottom = wall.top
-                        if dy < 0: 
-                            self.collision_rectangle.top = wall.bottom
-                        
-                        # HÄR VAR FELET: Det stod self.player1_y
-                        self.player2_y = self.collision_rectangle.y - self.offset_y 
-
-                for broken_wall in broken_walls:
-                    if self.collision_rectangle.colliderect(broken_wall):
-                        if dy > 0: 
-                            self.collision_rectangle.bottom = broken_wall.top
-                        if dy < 0: 
-                            self.collision_rectangle.top = broken_wall.bottom
-                        
-                        # HÄR VAR FELET: Det stod self.player1_y
-                        self.player2_y = self.collision_rectangle.y - self.offset_y
-
-                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
-
-                # 2. RÖRELSE - MED TRÖGHET (INGEN SICK-SACK)
-                diff_x = self.player2_x - target_x
-                diff_y = self.player2_y - target_y
-                
-                bias = 60 # pixlar vi "står ut med" innan vi byter riktning
-
-                # Bestäm vilken axel vi VILL köra på
-                prioritize_x = False
-                
-                # Om vi redan åker i sidled (LEFT/RIGHT), fortsätt med det om inte Y är mycket större
-                if self.direction in ["LEFT", "RIGHT"]:
-                    if abs(diff_x) > 0 and abs(diff_y) < abs(diff_x) + bias:
-                        prioritize_x = True
-                # Om vi åker upp/ner, fortsätt med det om inte X är mycket större
-                else: 
-                    if abs(diff_x) > abs(diff_y) + bias:
-                        prioritize_x = True
+                    # Rörelse (Ingen sicksack)
+                    diff_x = target_x - self.player2_x
+                    diff_y = target_y - self.player2_y
+                    
+                    bias_x = 0
+                    bias_y = 0
+                    if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
+                    if self.direction in ["UP", "DOWN"]: bias_y = 60    
+                    
+                    moves_to_try = []
+                    if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
+                        moves_to_try = [("X", diff_x), ("Y", diff_y)]
                     else:
-                        prioritize_x = False
+                        moves_to_try = [("Y", diff_y), ("X", diff_x)]
 
-                # Hjälpfunktion för att flytta och kolla krock
-                def try_axis(ax_code):
-                    test_dx = 0
-                    test_dy = 0
-                    facing = ""
-                    angle = 0
+                    moved_successfully = False
                     
-                    if ax_code == "X":
-                        if diff_x > 0: test_dx = -self.speed; facing = "LEFT"; angle = 90
-                        else: test_dx = self.speed; facing = "RIGHT"; angle = 270
-                    else: # Y
-                        if diff_y > 0: test_dy = -self.speed; facing = "UP"; angle = 0
-                        else: test_dy = self.speed; facing = "DOWN"; angle = 180
-                    
-                    # Testa X
-                    self.player2_x += test_dx
-                    self.collision_rectangle.x = self.player2_x + self.offset_x
-                    hit = False
-                    for wall in walls:
-                        if self.collision_rectangle.colliderect(wall):
-                            hit = True
-                            if test_dx > 0: self.collision_rectangle.right = wall.left
-                            if test_dx < 0: self.collision_rectangle.left = wall.right
-                            self.player2_x = self.collision_rectangle.x - self.offset_x
-                    
-                    # Testa Y
-                    self.player2_y += test_dy
-                    self.collision_rectangle.y = self.player2_y + self.offset_y
-                    for wall in walls:
-                        if self.collision_rectangle.colliderect(wall):
-                            hit = True
-                            if test_dy > 0: self.collision_rectangle.bottom = wall.top
-                            if test_dy < 0: self.collision_rectangle.top = wall.bottom
-                            self.player2_y = self.collision_rectangle.y - self.offset_y
+                    for axis, value in moves_to_try:
+                        if moved_successfully: break 
+                        if abs(value) < 5: continue 
 
-                    # Uppdatera hitbox
-                    self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
-                    
-                    if not hit:
-                        self.direction = facing
-                        self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
-                        return True
-                    return False
+                        dx = 0
+                        dy = 0
+                        dir_str = ""
+                        angle = 0
+                        
+                        if axis == "X":
+                            if value > 0: dx = self.speed; dir_str = "RIGHT"; angle = 270
+                            else: dx = -self.speed; dir_str = "LEFT"; angle = 90
+                        else: 
+                            if value > 0: dy = self.speed; dir_str = "DOWN"; angle = 180
+                            else: dy = -self.speed; dir_str = "UP"; angle = 0
+                        
+                        self.player2_x += dx
+                        self.player2_y += dy
+                        self.collision_rectangle.x = self.player2_x + self.offset_x
+                        self.collision_rectangle.y = self.player2_y + self.offset_y
+                        
+                        hit = False
+                        for wall in walls:
+                            if self.collision_rectangle.colliderect(wall):
+                                hit = True
+                                self.player2_x -= dx
+                                self.player2_y -= dy
+                                self.collision_rectangle.x = self.player2_x + self.offset_x
+                                self.collision_rectangle.y = self.player2_y + self.offset_y
+                                break 
+                        for broken_wall in broken_walls:
+                            if self.collision_rectangle.colliderect(broken_wall):
+                                if dx > 0: 
+                                    self.collision_rectangle.right = broken_wall.left
+                                if dx < 0: 
+                                    self.collision_rectangle.left = broken_wall.right
+                                
+                                
+                                self.player2_x = self.collision_rectangle.x - self.offset_x
+                        self.player2_y += dy
+                        
+                        if not hit:
+                            self.direction = dir_str
+                            self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
+                            moved_successfully = True
 
-                # 3. UTFÖR
-                success = False
-                
-                # Försök prio 1
-                if prioritize_x: success = try_axis("X")
-                else: success = try_axis("Y")
+                    if not moved_successfully and self.mode == "PATROL":
+                        self.patrol_timer += 50
 
-                # Om vi fastnade (krockade), försök den ANDRA axeln
-                if not success:
-                    if prioritize_x: success = try_axis("Y")
-                    else: success = try_axis("X")
-                
-                # Om vi fortfarande sitter fast OCH patrullerar -> Byt mål!
-                if not success and self.mode == "PATROL":
-                        self.patrol_target_x = random.randint(50, width - 50)
-                        self.patrol_target_y = random.randint(50, height - 50)
+                def draw(self, screen):
+                    if not self.exploded:
+                        screen.blit(self.sprite_player2, (self.player2_x, self.player2_y))
+                        if ui.get_setting("hitboxes"):
+                            pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
 
-
-            def draw(self, screen):
-                if not self.exploded:
-                    screen.blit(self.sprite_player2, (self.player2_x, self.player2_y))
-                    if ui.get_setting("hitboxes"):
-                        pygame.draw.rect(screen, (0, 0, 255), self.collision_rectangle, 2)
-
-            def collide(self, bullet_rect):
-                if not self.exploded:
-                    if self.collision_rectangle.colliderect(bullet_rect):
-                        if ui.get_setting("particles"):
-                            explosion = [Particle(self.player2_x + 34, self.player2_y + 30) for _ in range(100)]
-                            explosions.append(explosion)
-                        self.health -= damage()
-                        return True 
-                return False 
+                def collide(self, bullet_rect):
+                    if not self.exploded:
+                        if self.collision_rectangle.colliderect(bullet_rect):
+                            if ui.get_setting("particles"):
+                                explosions.append([Particle(self.player2_x + 34, self.player2_y + 30) for _ in range(100)])
+                            self.health -= damage()
+                            return True
+                    return False 
                     
         
         class Player2:
@@ -648,6 +575,21 @@ while whole_game:
                 if self.lifetime > 0:
                     pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
 
+        class Pickup:
+            def __init__(self, image, effect, tag):
+                self.x = random.randint(50, (width - 50))
+                self.y = random.randint(50, (height - 50))
+                self.image = image # pygame.image.load()
+                self.effect = effect # 0 -> 1000 ?
+                self.tag = tag # "health" el. "strength"
+            
+            def collides(self, player):
+                print(self.image.get_rect(topleft=(self.x, self.y)))
+                return player.collision_rectangle.colliderect(self.image.get_rect(topleft=(self.x, self.y)))
+            
+            def draw(self, screen):
+                screen.blit(self.image, (self.x, self.y))
+
         primary_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 20)
         other_font = pygame.font.Font("assets/fonts/SEEKUW.ttf", 100)
         dim = pygame.Surface((width, height), pygame.SRCALPHA)
@@ -714,20 +656,50 @@ while whole_game:
                 pygame.Rect(0, height - 27, width, 28),
                 pygame.Rect(-1, 0, 28, height),
                 ]
-            broken_walls = [
-                pygame.Rect(255, 590, 86, 28),
-                ]
+            broken_walls = [ 
+                pygame.Rect(255, 590, 86, 28), 
+                pygame.Rect(794, 255, 28, 80), 
+                pygame.Rect(1108, 255, 28, 80),
+                pygame.Rect(1582, 425, 28, 80),
+                pygame.Rect(822, 946, 86, 28),
+                pygame.Rect(1022, 936, 86, 28),
+                pygame.Rect(822, 474, 86, 28),
+                pygame.Rect(936, 968, 84, 28), 
+            ]
         elif background == background2:
             walls = [
                 pygame.Rect(0, 0, width, 28),
                 pygame.Rect(width - 27, 0, 28, height),
                 pygame.Rect(0, height - 27, width, 28),
                 pygame.Rect(-1, 0, 28, height),
-                pygame.Rect(-1, 0, 28, height),
+                pygame.Rect(-1, 479, 172, 28),
+                pygame.Rect(-2, 590, 172, 28),
+                pygame.Rect(1768, 485, 172, 28),
+                pygame.Rect(1768, 590, 172, 28),
+                pygame.Rect(251, 507, 28, 86),
+                pygame.Rect(760, 507, 28, 86),
+                pygame.Rect(1248, 507, 28, 86),
+                pygame.Rect(1640, 506, 28, 86),
+                pygame.Rect(255, 312, 86, 28),
+                pygame.Rect(590, 310, 86, 28),
+                pygame.Rect(1354, 311, 86, 28),
+                pygame.Rect(1690, 311, 86, 28),
+                pygame.Rect(254, 812, 86, 28),
+                pygame.Rect(591, 812, 86, 28),
+                pygame.Rect(1354, 911, 86, 28),
+                pygame.Rect(1690, 900, 86, 28),
+                pygame.Rect(847, 980, 86, 28),
+                pygame.Rect(1104, 980, 86, 28),
+                pygame.Rect(846, 169, 86, 28),
+                pygame.Rect(1102, 169, 86, 28),
+                
                 ]  
             broken_walls = [
-
-                ] 
+                pygame.Rect(932, 485, 86, 26),
+                pygame.Rect(932, 649, 86, 26),
+                pygame.Rect(1020, 485, 86, 26),
+                pygame.Rect(1020, 649, 86, 26),
+            ] 
         # Här defineras de två spelarna utifrån deras klasser
         player_1 = Player1()
         if ui.get_kind() == "king of hill":
@@ -751,6 +723,17 @@ while whole_game:
         bullet_list2 = []
         #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
         #All kollision
+        pickups = [
+        Pickup(pygame.image.load("assets/tanks/Player1.png"), 25, "health")
+        ]
+        last_spawn = 0
+        dim2 = pygame.Surface((200, 200), pygame.SRCALPHA)
+        original_flag_p0 = pygame.image.load("assets/ui/flag_p0.png")
+        original_flag_p1 = pygame.image.load("assets/ui/flag_p1.png")
+        original_flag_p2 = pygame.image.load("assets/ui/flag_p2.png")
+        flag_p0 = pygame.transform.smoothscale(original_flag_p0, (100, 100))
+        flag_p1 = pygame.transform.smoothscale(original_flag_p1, (100, 100))
+        flag_p2 = pygame.transform.smoothscale(original_flag_p2, (100, 100))
 
         original_hp_bar_back = pygame.image.load("assets/ui/hp_bar_back.png")
         original_hp_bar_health = pygame.image.load("assets/ui/hp_bar_health.png")
@@ -765,6 +748,12 @@ while whole_game:
         last_health2 = 100
         last_death1 = 0.0
         last_death2 = 0.0
+
+        frames = 0
+        original_breakable_wall = pygame.image.load("assets/tiles/breakdawallwall.png")
+        breakable_wall1 = pygame.transform.smoothscale(original_breakable_wall, (86, 28))
+        breakable_wall2 = pygame.transform.smoothscale(pygame.transform.rotate(original_breakable_wall, 90), (28, 80))
+        breakable_wall3 = pygame.transform.smoothscale(original_breakable_wall, (84, 28))
 
         
             
@@ -890,11 +879,43 @@ while whole_game:
 
 
                 for wall in walls:
-                    pygame.draw.rect(screen, (255, 0, 0), wall, 1)
+                    if ui.get_setting("hitboxes"):
+                        pygame.draw.rect(screen, (255, 0, 0), wall, 1)
 
                 for broken_wall in broken_walls:
-                    pygame.draw.rect(screen, (0, 0, 255), broken_wall, 1)
+                    size = broken_wall.size
+                    if size == (86, 28):
+                        screen.blit(breakable_wall1, broken_wall)
+                    elif size == (28, 80):
+                        screen.blit(breakable_wall2, broken_wall)
+                    elif size == (84, 28):
+                        screen.blit(breakable_wall3, broken_wall)
+                    if ui.get_setting("hitboxes"):
+                        pygame.draw.rect(screen, (0, 0, 255), broken_wall, 1)
 
+                now = time.monotonic()
+                if now - last_spawn >= 50 and frames % 10 and len(pickups) < 3:
+                    if random.random() < 0.05:
+                        last_spawn = now
+                        tag = "health"
+                        added_pickup = Pickup(
+                            image = pygame.image.load("assets/tanks/Player1.png"),
+                            effect = 25,
+                            tag = tag
+
+                        )
+                        pickups.append(added_pickup)
+                
+                for pickup in pickups.copy():
+                    pickup.draw(screen)
+                    if pickup.collides(player_1):
+                        player_1.health += pickup.effect
+                        pickups.remove(pickup)
+                    elif pickup.collides(player_2):
+                        player_2.health += pickup.effect
+                        pickups.remove(pickup)
+
+                    
                 if player_1.health < last_health1:
                     last_health1 = player_1.health
                     hp_bar_health1 = hp_bar_health1.subsurface(
@@ -930,9 +951,10 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for _i,broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
+                            i = _i
                         # Check if bullet went off screen
                     if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                         bullet_list1.remove(bullet)
@@ -949,7 +971,7 @@ while whole_game:
                             explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                             explosions.append(explosion)
 
-                        broken_walls.remove(broken_wall)
+                        broken_walls.pop(i)
                     
                     if player_2.collide(bullet.collision_rectangle):
                         bullet_list1.remove(bullet)
@@ -966,9 +988,10 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for _i,broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
+                            i = _i
                     if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                         bullet_list2.remove(bullet)
 
@@ -984,7 +1007,7 @@ while whole_game:
                             explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                             explosions.append(explosion)
 
-                        broken_walls.remove(broken_wall)
+                        broken_walls.pop(i)
 
                     if player_1.collide(bullet.collision_rectangle):
                         bullet_list2.remove(bullet)
@@ -997,6 +1020,7 @@ while whole_game:
                 explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
                 explosions = [e for e in explosions if len(e) > 0]
                 #Och här så uppdateras hela pygame-skärmen
+                frames += 1
                 pygame.display.flip()
 
             #här så stängs pygame och stänger fönstret
@@ -1140,10 +1164,42 @@ while whole_game:
 
 
                 for wall in walls:
-                    pygame.draw.rect(screen, (255, 0, 0), wall, 1)
+                    if ui.get_setting("hitboxes"):
+                        pygame.draw.rect(screen, (255, 0, 0), wall, 1)
 
                 for broken_wall in broken_walls:
-                    pygame.draw.rect(screen, (0, 0, 255), broken_wall, 1)
+                    size = broken_wall.size
+                    if size == (86, 28):
+                        screen.blit(breakable_wall1, broken_wall)
+                    elif size == (28, 80):
+                        screen.blit(breakable_wall2, broken_wall)
+                    elif size == (84, 28):
+                        screen.blit(breakable_wall3, broken_wall)
+                    if ui.get_setting("hitboxes"):
+                        pygame.draw.rect(screen, (0, 0, 255), broken_wall, 1)
+
+                now = time.monotonic()
+                if now - last_spawn >= 50 and frames % 10 and len(pickups) < 3:
+                    if random.random() < 0.05:
+                        last_spawn = now
+                        tag = "health"
+                        added_pickup = Pickup(
+                            image = pygame.image.load("assets/tanks/Player1.png"),
+                            effect = 25,
+                            tag = tag
+
+                        )
+                        pickups.append(added_pickup)
+                
+                for pickup in pickups.copy():
+                    pickup.draw(screen)
+                    if pickup.collides(player_1):
+                        player_1.health += pickup.effect
+                        pickups.remove(pickup)
+                    elif pickup.collides(player_2):
+                        player_2.health += pickup.effect
+                        pickups.remove(pickup)
+
                 #Här ritas spelarnas stridsvagnar
                 if player_1.health < last_health1:
                     last_health1 = player_1.health
@@ -1175,15 +1231,36 @@ while whole_game:
                 dx = (player_2.player2_x - center_x)
                 dy = (player_2.player2_y - center_y)
                 distance2 = math.hypot(dx, dy)
-                if distance1 < 200 and not distance2 < 200:
-                    if now - last_kingpoints1 >= 1.0:
+                if distance1 < 100 and not distance2 < 100:
+                    pygame.draw.circle(dim2, (200, 200, 255), (100, 100), 100)
+                    pygame.draw.circle(dim2, (240, 240, 255), (100, 100), 100, 2)
+                    dim2.set_alpha(100)
+                    screen.blit(dim2, (center_x - 100, center_y - 100))
+                    player_1.draw(screen)
+                    player_2.draw(screen)
+                    screen.blit(flag_p1, (center_x - 50, center_y - 75))
+                    if now - last_kingpoints1 >= 1.0: # Seconds
                         last_kingpoints1 = now
                         player_1.kingpoints += 1
-                
-                if distance2 < 200 and not distance1 < 200:
-                    if now - last_kingpoints2 >= 1.0:
+                elif distance2 < 100 and not distance1 < 100:
+                    pygame.draw.circle(dim2, (255, 200, 200), (100, 100), 100)
+                    pygame.draw.circle(dim2, (255, 240, 240), (100, 100), 100, 2)
+                    dim2.set_alpha(100)
+                    screen.blit(dim2, (center_x - 100, center_y - 100))
+                    player_1.draw(screen)
+                    player_2.draw(screen)
+                    screen.blit(flag_p2, (center_x - 50, center_y - 75))
+                    if now - last_kingpoints2 >= 1.0: # Seconds
                         last_kingpoints2 = now
                         player_2.kingpoints += 1
+                else:
+                    pygame.draw.circle(dim2, (200, 200, 200), (100, 100), 100)
+                    pygame.draw.circle(dim2, (240, 240, 240), (100, 100), 100, 1)
+                    dim2.set_alpha(100)
+                    screen.blit(dim2, (center_x - 100, center_y - 100))
+                    player_1.draw(screen)
+                    player_2.draw(screen)
+                    screen.blit(flag_p0, (center_x - 50, center_y - 75))
 
                 if player_1.exploded:
                     if now - last_death1 >= 3:
@@ -1196,8 +1273,7 @@ while whole_game:
                         player_2.health = 100
 
                 
-                player_1.draw(screen)
-                player_2.draw(screen)
+                
                 text_surf = primary_font.render(f"{player_1.kingpoints} %", True, (0, 0, 255))
                 screen.blit(text_surf, text_surf.get_rect(center=(center_x - 50, 30)))
                 text_surf = primary_font.render(f"{player_2.kingpoints} %", True, (255, 0, 0))
@@ -1213,9 +1289,10 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for _i,broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
+                            i = _i
                     # Check if bullet went off screen
                     if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                         bullet_list1.remove(bullet)
@@ -1232,7 +1309,7 @@ while whole_game:
                             explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                             explosions.append(explosion)
 
-                        broken_walls.remove(broken_wall)
+                        broken_walls.pop(i)
                     
                     if player_2.collide(bullet.collision_rectangle):
                         bullet_list1.remove(bullet)
@@ -1249,9 +1326,10 @@ while whole_game:
                         if bullet.collision_rectangle.colliderect(wall):
                             hit_wall = True
 
-                    for broken_wall in broken_walls:
+                    for _i,broken_wall in enumerate(broken_walls):
                         if bullet.collision_rectangle.colliderect(broken_wall):
                             hit_broken_wall = True
+                            i = _i
                     if bullet.y < 0 or bullet.y > 1140 or bullet.x < 0 or bullet.x > 1980:
                         bullet_list2.remove(bullet)
 
@@ -1267,7 +1345,7 @@ while whole_game:
                             explosion = [Particle(bullet.x, bullet.y) for _ in range(100)]
                             explosions.append(explosion)
 
-                        broken_walls.remove(broken_wall)
+                        broken_walls.pop(i)
 
                     if player_1.collide(bullet.collision_rectangle):
                         bullet_list2.remove(bullet)
@@ -1285,9 +1363,11 @@ while whole_game:
                 explosions = [[p for p in explosion if p.lifetime > 0] for explosion in explosions]
                 explosions = [e for e in explosions if len(e) > 0]
                 #Och här så uppdateras hela pygame-skärmen
+                frames += 1
                 pygame.display.flip()
 
             #här så stängs pygame och stänger fönstret
+        
             pygame.quit()
 
 
