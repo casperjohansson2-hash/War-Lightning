@@ -233,7 +233,7 @@ while whole_game:
         # SOLO MODE (Mot AI)
         # =====================================================================
         if ui.get_mode() == "solo":
-            player_1 = Player1(speed_val=2) # SPELAREN HAR HASTIGHET 2
+            player_1 = Player1(speed_val=2)
             
             # --- AI LOGIKEN ---
             class Ai:
@@ -242,7 +242,7 @@ while whole_game:
                     self.player2_y = (height // 2) - 20
                     self.health = player_health
                     self.damage = damage()
-                    self.speed = 1 # AI HAR HASTIGHET 1
+                    self.speed = 1.6 # Lite snabbare för att vara farlig
                     self.direction = "UP"
                     self.exploded = False
                     self.original_image = sprite_player2
@@ -253,6 +253,14 @@ while whole_game:
                     self.offset_y = (self.sprite_player2.get_height() - hitbox_height) // 2
                     self.collision_rectangle = pygame.Rect(self.player2_x + self.offset_x, self.player2_y + self.offset_y, hitbox_width, hitbox_height)
                     
+                    # --- ANTI-STUCK VARIABLER ---
+                    self.last_x = self.player2_x
+                    self.last_y = self.player2_y
+                    self.stuck_counter = 0     # Räknar hur länge vi stått still
+                    self.unstuck_mode = False  # Är vi i "ta oss loss"-läge?
+                    self.unstuck_timer = 0     # Hur länge ska vi försöka ta oss loss?
+                    self.unstuck_dir = "UP"    # Vilket håll kör vi för att komma loss?
+                    
                     self.patrol_target_x = random.randint(50, width - 50)
                     self.patrol_target_y = random.randint(50, height - 50)
                     self.mode = "PATROL" 
@@ -261,79 +269,75 @@ while whole_game:
                 def move(self, walls, target_player_x, target_player_y):
                     if self.health <= 0: return
 
-                    # --- KOLLA OM DET ÄR KING OF THE HILL ---
-                    is_koth = (ui.get_kind() == "king of hill")
+                    # --- 1. KOLLA OM VI SITTER FAST ---
+                    # Om positionen knappt ändrats på 30 frames, öka räknaren
+                    if abs(self.player2_x - self.last_x) < 1 and abs(self.player2_y - self.last_y) < 1:
+                        self.stuck_counter += 1
+                    else:
+                        self.stuck_counter = 0 # Nollställ om vi rör på oss
                     
+                    self.last_x = self.player2_x
+                    self.last_y = self.player2_y
+
+                    # Om vi suttit fast i ca 0.5 sekunder (30 frames) -> Aktivera UNSTUCK MODE
+                    if self.stuck_counter > 30 and not self.unstuck_mode:
+                        self.unstuck_mode = True
+                        self.unstuck_timer = 40 # Kör "blind" rörelse i 40 frames
+                        # Välj en slumpmässig riktning för att komma loss från hörnet
+                        self.unstuck_dir = random.choice(["UP", "DOWN", "LEFT", "RIGHT"])
+                    
+                    # --- BESTÄM MÅL ---
                     target_x = 0
                     target_y = 0
                     
-                    # LOGIK FÖR KING OF THE HILL
-                    if is_koth:
-                        center_x = 960
-                        center_y = 540
-                        dist_to_center = math.sqrt((self.player2_x - center_x)**2 + (self.player2_y - center_y)**2)
-                        dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
+                    # Om vi är i UNSTUCK MODE, ignorera spelaren och kör åt slumpmässigt håll
+                    if self.unstuck_mode:
+                        if self.unstuck_dir == "UP": target_y = self.player2_y - 100; target_x = self.player2_x
+                        elif self.unstuck_dir == "DOWN": target_y = self.player2_y + 100; target_x = self.player2_x
+                        elif self.unstuck_dir == "LEFT": target_x = self.player2_x - 100; target_y = self.player2_y
+                        elif self.unstuck_dir == "RIGHT": target_x = self.player2_x + 100; target_y = self.player2_y
                         
-                        # 1. Om spelaren är JÄTTENÄRA (250px) -> JAGA (Attackera inkräktaren)
-                        if dist_to_player < 250:
-                            target_x = target_player_x
-                            target_y = target_player_y
-                        
-                        # 2. Om spelaren är LÅNGT BORT och vi är i mitten -> STANNA (Vakta)
-                        elif dist_to_center < 10:
-                            # Vi står stilla. Avbryt funktionen här så rör vi oss inte.
-                            self.player2_x = center_x # Snappa till mitten för snygghetens skull
-                            self.player2_y = center_y
-                            self.collision_rectangle.x = self.player2_x + self.offset_x
-                            self.collision_rectangle.y = self.player2_y + self.offset_y
-                            return 
-
-                        # 3. Annars -> GÅ TILL MITTEN
-                        else:
-                            target_x = center_x
-                            target_y = center_y
-
-                    # LOGIK FÖR DEATHMATCH (VANLIGT)
+                        self.unstuck_timer -= 1
+                        if self.unstuck_timer <= 0:
+                            self.unstuck_mode = False # Klar med unstuck, jaga igen
+                            self.stuck_counter = 0
                     else:
-                        dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
-                        if dist_to_player < 500:
-                            self.mode = "CHASE"
-                            target_x = target_player_x
-                            target_y = target_player_y
+                        # --- NORMAL LOGIK (Jaga eller Patrol) ---
+                        is_koth = (ui.get_kind() == "king of hill")
+                        if is_koth:
+                            center_x, center_y = 960, 540
+                            dist_to_center = math.sqrt((self.player2_x - center_x)**2 + (self.player2_y - center_y)**2)
+                            dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
+                            if dist_to_player < 250:
+                                target_x, target_y = target_player_x, target_player_y
+                            elif dist_to_center < 10:
+                                self.player2_x, self.player2_y = center_x, center_y
+                                self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
+                                return 
+                            else:
+                                target_x, target_y = center_x, center_y
                         else:
-                            self.mode = "PATROL"
-                            target_x = self.patrol_target_x
-                            target_y = self.patrol_target_y
-                            self.patrol_timer += 1
-                            if (abs(self.player2_x - self.patrol_target_x) < 50 and abs(self.player2_y - self.patrol_target_y) < 50) or self.patrol_timer > 200:
-                                self.patrol_target_x = random.randint(50, width - 50)
-                                self.patrol_target_y = random.randint(50, height - 50)
-                                self.patrol_timer = 0
+                            dist_to_player = math.sqrt((self.player2_x - target_player_x)**2 + (self.player2_y - target_player_y)**2)
+                            if dist_to_player < 500:
+                                self.mode = "CHASE"
+                                target_x, target_y = target_player_x, target_player_y
+                            else:
+                                self.mode = "PATROL"
+                                target_x, target_y = self.patrol_target_x, self.patrol_target_y
+                                self.patrol_timer += 1
+                                if (abs(self.player2_x - self.patrol_target_x) < 50 and abs(self.player2_y - self.patrol_target_y) < 50) or self.patrol_timer > 200:
+                                    self.patrol_target_x = random.randint(50, width - 50)
+                                    self.patrol_target_y = random.randint(50, height - 50)
+                                    self.patrol_timer = 0
 
-                    # GEMENSAM RÖRELSELOGIK (FÖR ATT INTE FASTNA I VÄGGAR)
+                    # --- RÖRELSE (SLIDE SYSTEM) ---
                     diff_x = target_x - self.player2_x
                     diff_y = target_y - self.player2_y
                     
-                    # I KotH vill vi inte ha "bias", vi vill raka vägen till mitten.
-                    bias_x = 0
-                    bias_y = 0
-                    if not is_koth:
-                        if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
-                        if self.direction in ["UP", "DOWN"]: bias_y = 60    
-                    else:
-                        # Även i KotH, slå av tröghet om vi är nära mitten så den kan finjustera
-                        center_x_koth = 960
-                        center_y_koth = 540
-                        dist_to_center_koth = math.sqrt((self.player2_x - center_x_koth)**2 + (self.player2_y - center_y_koth)**2)
-                        if dist_to_center_koth > 150:
-                             if self.direction in ["LEFT", "RIGHT"]: bias_x = 60 
-                             if self.direction in ["UP", "DOWN"]: bias_y = 60  
-
                     moves_to_try = []
-                    if abs(diff_x) + bias_x > abs(diff_y) + bias_y:
-                        moves_to_try = [("X", diff_x), ("Y", diff_y)]
-                    else:
-                        moves_to_try = [("Y", diff_y), ("X", diff_x)]
+                    # Prioritera största avståndet
+                    if abs(diff_x) > abs(diff_y): moves_to_try = [("X", diff_x), ("Y", diff_y)]
+                    else: moves_to_try = [("Y", diff_y), ("X", diff_x)]
 
                     moved_successfully = False
                     
@@ -341,10 +345,8 @@ while whole_game:
                         if moved_successfully: break 
                         if abs(value) < 2: continue 
 
-                        test_dx = 0
-                        test_dy = 0
-                        dir_str = ""
-                        angle = 0
+                        test_dx, test_dy = 0, 0
+                        dir_str, angle = "", 0
                         
                         if axis == "X":
                             if value > 0: test_dx = self.speed; dir_str = "RIGHT"; angle = 270
@@ -372,10 +374,8 @@ while whole_game:
                             self.direction = dir_str
                             self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
                             moved_successfully = True
-
-                    # Om vi fastnar i vanligt läge, byt patrullmål
-                    if not moved_successfully and self.mode == "PATROL":
-                        self.patrol_timer += 50
+                        else:
+                            continue
 
                 def draw(self, screen):
                     if not self.exploded:
@@ -394,7 +394,7 @@ while whole_game:
 
             player_2 = Ai()
 
-            # --- SETUP FÖR KING OF THE HILL OM DET ÄR VALT ---
+            # --- SETUP FÖR KING OF THE HILL ---
             is_koth = (ui.get_kind() == "king of hill")
             hill_size = 300
             hill_rect = pygame.Rect((width - hill_size) // 2, (height - hill_size) // 2, hill_size, hill_size)
@@ -423,7 +423,6 @@ while whole_game:
 
                 screen.blit(background, (0, 0))
                 
-                # RITA KING OF THE HILL SAKER
                 if is_koth:
                     hill_color = (100, 100, 100) 
                     p1_in_hill = player_1.collision_rectangle.colliderect(hill_rect) and not player_1.exploded
@@ -461,7 +460,7 @@ while whole_game:
 
                 dist_x = abs(player_1.player1_x - player_2.player2_x)
                 dist_y = abs(player_1.player1_y - player_2.player2_y)
-                # AI Skjuter om nära (i KotH skjuter den också om spelaren kommer nära)
+                
                 if not player_2.exploded and bullet_counter2 > 40 and (dist_x + dist_y) < 600:
                     shot.play()
                     bx, by = player_2.player2_x, player_2.player2_y
@@ -563,7 +562,7 @@ while whole_game:
             pygame.quit()
 
         # =====================================================================
-        # VS MODE - NORMAL HASTIGHET (1) FÖR BÅDA
+        # VS MODE 
         # =====================================================================
         elif ui.get_mode() == "vs":
             player_1 = Player1(speed_val=1)
@@ -575,7 +574,7 @@ while whole_game:
                     self.sprite_player2 = sprite_player2
                     self.health = player_health
                     self.damage = damage()
-                    self.speed = 1 # VS HASTIGHET ÄR 1
+                    self.speed = 1 
                     self.direction = "UP"
                     self.exploded = False
                     self.original_image = sprite_player2
@@ -641,7 +640,7 @@ while whole_game:
 
             player_2 = Player2()
 
-            # --- KOTH VARIABLES FÖR VS LÄGE ---
+            # --- SETUP UI VS ---
             is_koth = (ui.get_kind() == "king of hill")
             hill_size = 300
             hill_rect = pygame.Rect((width - hill_size) // 2, (height - hill_size) // 2, hill_size, hill_size)
