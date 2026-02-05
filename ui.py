@@ -4,7 +4,6 @@ from typing import (
     Tuple, Dict, Callable, Optional, Protocol, runtime_checkable, Any
 )
 from dataclasses import dataclass
-from functools import cache
 import pygame
 
 pygame.init()
@@ -338,22 +337,18 @@ class AppState:
         "map": 0
     }
 
-@cache # Faster retrieval
 def get_mode() -> str:
     """Import this method and call it to retrieve what mode the user has selected."""
     return AppState.mode
 
-@cache
 def get_kind() -> str:
     """Import this method and call it to retrieve what kind the user has selected."""
     return AppState.kind
 
-@cache
 def get_setting(name: str) -> Dict[str, Any]:
     """Import this method and call it to retireve the settings."""
     return AppState.settings[name]
 
-@cache
 def get_map() -> str:
     """Import this method and call it to retireve the map name."""
     return MAP_NAMES[AppState.settings["map"]]
