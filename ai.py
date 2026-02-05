@@ -145,7 +145,7 @@ else:
             self.sprite_player1 = sprite_player1
             self.health = player_health
             self.damage = damage()
-            self.speed = 2
+            self.speed = 5 
             self.original_image = sprite_player1
             self.sprite_player1 = self.original_image
             self.direction = "UP"
@@ -286,7 +286,7 @@ else:
 
 
     # =========================================================================
-    # SPELLÄGE: SOLO (MED FIXAD AI - INGA DIAGONALA ÅKNINGAR)
+    # SPELLÄGE: SOLO (MED AI OCH TÅLAMODS-FIX)
     # =========================================================================
     if ui.get_mode() == "solo":
         player_1 = Player1()
@@ -297,7 +297,7 @@ else:
                 self.player2_y = (height // 2) - 20
                 self.health = player_health
                 self.damage = damage()
-                self.speed = 1
+                self.speed = 3
                 self.direction = "UP"
                 self.exploded = False
                 
@@ -320,6 +320,7 @@ else:
                 self.patrol_target_x = random.randint(50, width - 50)
                 self.patrol_target_y = random.randint(50, height - 50)
                 self.mode = "PATROL" 
+                self.patrol_timer = 0 # NY: Tålamods-timer!
 
             def move(self, walls, target_player_x, target_player_y):
                 if self.health <= 0: return
@@ -336,25 +337,33 @@ else:
                     self.mode = "CHASE"
                     target_x = target_player_x
                     target_y = target_player_y
+                    self.patrol_timer = 0 # Nollställ timer när vi jagar
                 else: # PATRULLERA
                     self.mode = "PATROL"
                     target_x = self.patrol_target_x
                     target_y = self.patrol_target_y
                     
-                    if abs(self.player2_x - self.patrol_target_x) < 50 and abs(self.player2_y - self.patrol_target_y) < 50:
+                    # Öka timer
+                    self.patrol_timer += 1
+
+                    # Kollar om vi är framme ELLER om tiden gått ut (3 sekunder = 180 frames)
+                    arrived = abs(self.player2_x - self.patrol_target_x) < 60 and abs(self.player2_y - self.patrol_target_y) < 60
+                    
+                    if arrived or self.patrol_timer > 180:
                         self.patrol_target_x = random.randint(50, width - 50)
                         self.patrol_target_y = random.randint(50, height - 50)
+                        self.patrol_timer = 0 # Nollställ timer
 
                 # 2. RÖRELSE - MED TRÖGHET (INGEN SICK-SACK)
                 diff_x = self.player2_x - target_x
                 diff_y = self.player2_y - target_y
                 
-                bias = 60 # pixlar vi "står ut med" innan vi byter riktning
+                bias = 60 
 
                 # Bestäm vilken axel vi VILL köra på
                 prioritize_x = False
                 
-                # Om vi redan åker i sidled (LEFT/RIGHT), fortsätt med det om inte Y är mycket större
+                # Om vi redan åker i sidled, fortsätt med det om inte Y är mycket större
                 if self.direction in ["LEFT", "RIGHT"]:
                     if abs(diff_x) > 0 and abs(diff_y) < abs(diff_x) + bias:
                         prioritize_x = True
@@ -421,10 +430,11 @@ else:
                     if prioritize_x: success = try_axis("Y")
                     else: success = try_axis("X")
                 
-                # Om vi fortfarande sitter fast OCH patrullerar -> Byt mål!
+                # Om vi fortfarande sitter fast OCH patrullerar -> Byt mål direkt!
                 if not success and self.mode == "PATROL":
                      self.patrol_target_x = random.randint(50, width - 50)
                      self.patrol_target_y = random.randint(50, height - 50)
+                     self.patrol_timer = 0
 
 
             def draw(self, screen):
