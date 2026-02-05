@@ -1,7 +1,7 @@
 @echo off 
 title War Lightning - Console
 :loop
-py main.py
+py auf.py
 if %errorlevel% NEQ 0 (
     echo An error occured.
     pause >nul
