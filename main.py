@@ -5,12 +5,17 @@ import time
 import pygame
 import ui
 import math
+import os 
+
+
+os.environ['SDL_VIDEO_CENTERED'] = '1' 
 while whole_game:
     pygame.init()
-    shot = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank shot.mp3")
-    normal_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal hit.mp3")
-    crit_hit = pygame.mixer.Sound("C:/War Lightning/assets/audio/Metal pierce.mp3")
-    dead = pygame.mixer.Sound("C:/War Lightning/assets/audio/Tank kaboom.mp3")
+    now = pygame.time.get_ticks()
+    shot = pygame.mixer.Sound("assets/audio/Tank shot.mp3")
+    normal_hit = pygame.mixer.Sound("assets/audio/Metal hit.mp3")
+    crit_hit = pygame.mixer.Sound("assets/audio/Metal pierce.mp3")
+    dead = pygame.mixer.Sound("assets/audio/Tank kaboom.mp3")
     start = pygame.mixer.Sound("assets/audio/Match start.mp3")
     pygame.mixer.music.load("assets/music/Ambi med paus.mp3")
     start.play()
@@ -38,13 +43,13 @@ while whole_game:
         
 
         #Denna delen laddar in de olika sprites, och bakgrunder vi har i spelet
-        original_background1 = pygame.image.load("C:/War Lightning/assets/tiles/map1.png")
-        original_background2 = pygame.image.load("C:/War Lightning/assets/tiles/map2.png")
-        original_bullet = pygame.image.load("C:/War Lightning/assets/bullets/bullet.png")
-        original_player1 = pygame.image.load("C:/War Lightning/assets/tanks/Player1.png")
-        original_player2 = pygame.image.load("C:/War Lightning/assets/tanks/Player2.png")
-        original_arrow1 = pygame.image.load("C:/War Lightning/assets/tanks/arrow_p1.png")
-        original_arrow2 = pygame.image.load("C:/War Lightning/assets/tanks/arrow_p2.png")
+        original_background1 = pygame.image.load("assets/tiles/map1.png")
+        original_background2 = pygame.image.load("assets/tiles/map2.png")
+        original_bullet = pygame.image.load("assets/bullets/bullet.png")
+        original_player1 = pygame.image.load("assets/tanks/Player1.png")
+        original_player2 = pygame.image.load("assets/tanks/Player2.png")
+        original_arrow1 = pygame.image.load("assets/tanks/arrow_p1.png")
+        original_arrow2 = pygame.image.load("assets/tanks/arrow_p2.png")
         
         
 
@@ -53,8 +58,8 @@ while whole_game:
         sprite_bullet = pygame.transform.smoothscale(original_bullet, (original_bullet.get_width() + 2, original_bullet.get_height() + 2))
         sprite_player1 = pygame.transform.smoothscale(original_player1, (original_player1.get_width(), original_player1.get_height()))
         sprite_player2 = pygame.transform.smoothscale(original_player2, (original_player2.get_width(), original_player2.get_height()))
-        player_arrow1 = pygame.transform.smoothscale(original_arrow1, (original_arrow1.get_width(), original_arrow1.get_height()))
-        player_arrow2 = pygame.transform.smoothscale(original_arrow2, (original_arrow2.get_width(), original_arrow2.get_height()))
+        player_arrow1 = pygame.transform.smoothscale(original_arrow1, (original_arrow1.get_width() + 20, original_arrow1.get_height() + 40))
+        player_arrow2 = pygame.transform.smoothscale(original_arrow2, (original_arrow2.get_width() + 20, original_arrow2.get_height() + 40))
         #Här defineras fps klockan för att begränsa till samma hastighet
         clock = pygame.time.Clock()
         #Det som håller spelet igång och startar upp fönstret
@@ -86,7 +91,7 @@ while whole_game:
             def __init__(self):
                 self.player1_x = 30
                 self.player1_y = (height // 2) - 20
-                self.arrow1_x = 30
+                self.arrow1_x = 10
                 self.arrow1_y = (height // 2) - 50
                 self.sprite_arrow = player_arrow1
                 self.sprite_player1 = sprite_player1
@@ -184,10 +189,13 @@ while whole_game:
                         self.player1_y = self.collision_rectangle.y - self.offset_y
 
                 
+                
+        
                 self.collision_rectangle.topleft = (self.player1_x + self.offset_x, self.player1_y + self.offset_y)
 
-                self.arrow1_x = self.player1_x
-                self.arrow1_y = self.player1_y - 30
+                
+                self.arrow1_x = self.player1_x + (self.sprite_player1.get_width() // 2) - (self.sprite_arrow.get_width() // 2)
+                self.arrow1_y = self.player1_y - self.sprite_arrow.get_height() - 10
 
                 
 
@@ -214,7 +222,7 @@ while whole_game:
                     def __init__(self):
                         self.player2_x = width - 90
                         self.player2_y = (height // 2) - 20
-                        self.arrow2_x = width - 90
+                        self.arrow2_x = width - 110
                         self.arrow2_y = (height // 2) - 50
                         self.sprite_arrow = player_arrow2
                         self.health = player_health
@@ -334,13 +342,14 @@ while whole_game:
                                 self.sprite_player2 = pygame.transform.rotate(self.original_image, angle)
                                 moved_successfully = True
 
+                        
+
                         if not moved_successfully and self.mode == "PATROL":
                             self.patrol_timer += 50
 
-                        # --- HÄR ÄR FIXEN ---
-                        # Uppdatera pilens position baserat på spelarens slutgiltiga position
-                        self.arrow2_x = self.player2_x
-                        self.arrow2_y = self.player2_y - 30
+                        
+                        self.arrow2_x = self.player2_x + (self.sprite_player2.get_width() // 2) - (self.sprite_arrow.get_width() // 2)
+                        self.arrow2_y = self.player2_y - self.sprite_arrow.get_height() - 10
 
                     def draw(self, screen):
                         if not self.exploded:
@@ -360,7 +369,7 @@ while whole_game:
         elif ui.get_kind() == "king of hill":
             class Ai:
                 def __init__(self):
-                    self.player2_x = width - 90
+                    self.player2_x = width - 110
                     self.player2_y = (height // 2) - 20
                     
                     # --- LADE TILL PILEN HÄR ---
@@ -517,9 +526,9 @@ while whole_game:
                         else:
                             continue
                     
-                
-                    self.arrow2_x = self.player2_x
-                    self.arrow2_y = self.player2_y - 30
+                    
+                    self.arrow2_x = self.player2_x + (self.sprite_player2.get_width() // 2) - (self.sprite_arrow.get_width() // 2)
+                    self.arrow2_y = self.player2_y - self.sprite_arrow.get_height() - 10
 
                 def draw(self, screen):
                     if not self.exploded:
@@ -642,12 +651,12 @@ while whole_game:
                         self.player2_y = self.collision_rectangle.y - self.offset_y
 
                 # Uppdatera hitboxens position
+                
+                
                 self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
 
-                # --- FIXEN ---
-                # Sätt pilens position baserat på spelarens slutgiltiga position
-                self.arrow2_x = self.player2_x
-                self.arrow2_y = self.player2_y - 30
+                self.arrow2_x = self.player2_x + (self.sprite_player2.get_width() // 2) - (self.sprite_arrow.get_width() // 2)
+                self.arrow2_y = self.player2_y - self.sprite_arrow.get_height() - 10
 
             def draw(self, screen):
                 if not self.exploded:
@@ -789,8 +798,12 @@ while whole_game:
             def __init__(self, image, effect, tag):
                 self.x = random.randint(50, (width - 50))
                 self.y = random.randint(50, (height - 50))
-                self.image = pygame.image.load("C:/War Lightning/assets/ui/health.png")
-                self.effect = effect # 0 -> 1000 ?
+                what = random.randint(1, 2)
+                if what == 1:
+                    self.image = pygame.image.load("assets/ui/health.png")
+                else:
+                    self.image = pygame.image.load("assets/ui/speed.png")
+                self.effect = effect
                 self.tag = tag # "health" el. "strength"
             
             def collides(self, player):
@@ -933,9 +946,11 @@ while whole_game:
         #Main spel loopen där hela spelet händer och där alla funktioner och all logik uppdateras och genomförs.
         #All kollision
         pickups = [
-        Pickup(pygame.image.load("C:/War Lightning/assets/ui/health.png"), 25, "health")
+        Pickup(pygame.image.load("assets/ui/health.png"), 25, "health")
         ]
         last_spawn = 0
+        last_speed1 = 0
+        last_speed2 = 0
         dim2 = pygame.Surface((200, 200), pygame.SRCALPHA)
         original_flag_p0 = pygame.image.load("assets/ui/flag_p0.png")
         original_flag_p1 = pygame.image.load("assets/ui/flag_p1.png")
@@ -1106,25 +1121,58 @@ while whole_game:
                 if now - last_spawn >= 50 and frames % 10 and len(pickups) < 3:
                     if random.random() < 0.05:
                         last_spawn = now
-                        tag = "health"
-                        added_pickup = Pickup(
-                            image = pygame.image.load("assets/tanks/Player1.png"),
-                            effect = 25,
-                            tag = tag
+                        tag = random.choice(("health", "speedboost"))
+                        if tag == "health":
+                            added_pickup = Pickup(
+                                image = pygame.image.load("assets/ui/health.png"),
+                                effect = 25,
+                                tag = tag
 
-                        )
+                                )
+                        elif tag == "speedboost":
+                            added_pickup = Pickup(
+                                image = pygame.image.load("assets/ui/speed.png"),
+                                effect = 2,
+                                tag = tag
+
+                                )
                         pickups.append(added_pickup)
                 
                 for pickup in pickups.copy():
                     pickup.draw(screen)
+                    
+                    # --- KOLLISION MED SPELARE 1 ---
                     if pickup.collides(player_1):
-                        player_1.health += pickup.effect
-                        pickups.remove(pickup)
-                    elif pickup.collides(player_2):
-                        player_2.health += pickup.effect
+                        if pickup.tag == "health":
+                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
+                            player_1.health += pickup.effect
+                        elif pickup.tag == "speedboost":
+                            player_1.speed += pickup.effect
+                            last_speed1 = now
+                        
                         pickups.remove(pickup)
 
-                    
+                    # --- KOLLISION MED SPELARE 2 (ELLER AI) ---
+                    elif pickup.collides(player_2):
+                        if pickup.tag == "health":
+                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
+                            player_2.health += pickup.effect
+                        elif pickup.tag == "speedboost":
+                            player_2.speed += pickup.effect
+                            last_speed2 = now
+                        
+                        pickups.remove(pickup)
+
+                    # --- TIMER FÖR ATT TA BORT SPEEDBOOST (3 sekunder) ---
+        
+        # Kolla Spelare 1
+        # Om spelaren är snabbare än vanligt OCH det gått mer än 3000 ms (3 sekunder)
+                if player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() == "solo":
+                    player_1.speed = 2  # Återställ till normal fart (ändra 5 om du har annan startfart)
+                elif player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() != "solo":
+                    player_1.speed = 1  # Återställ till normal fart (ändra 5 om du har annan startfart)
+
+
                 if player_1.health < last_health1:
                     last_health1 = player_1.health
                     hp_bar_health1 = hp_bar_health1.subsurface(
@@ -1391,23 +1439,60 @@ while whole_game:
                 if now - last_spawn >= 50 and frames % 10 and len(pickups) < 3:
                     if random.random() < 0.05:
                         last_spawn = now
-                        tag = "health"
-                        added_pickup = Pickup(
-                            image = pygame.image.load("assets/tanks/Player1.png"),
-                            effect = 25,
-                            tag = tag
+                        tag = random.choice(("health", "speedboost"))
+                        if tag == "health":
+                            added_pickup = Pickup(
+                                image = pygame.image.load("assets/ui/health.png"),
+                                effect = 25,
+                                tag = tag
 
-                        )
+                                )
+                        elif tag == "speedboost":
+                            added_pickup = Pickup(
+                                image = pygame.image.load("assets/ui/speed.png"),
+                                effect = 2,
+                                tag = tag
+
+                                )
                         pickups.append(added_pickup)
                 
                 for pickup in pickups.copy():
                     pickup.draw(screen)
+                    
+                    # --- KOLLISION MED SPELARE 1 ---
                     if pickup.collides(player_1):
-                        player_1.health += pickup.effect
+                        if pickup.tag == "health":
+                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
+                            player_1.health += pickup.effect
+                        elif pickup.tag == "speedboost":
+                            player_1.speed += pickup.effect
+                            last_speed1 = now
+                        
                         pickups.remove(pickup)
+
+                    # --- KOLLISION MED SPELARE 2 (ELLER AI) ---
                     elif pickup.collides(player_2):
-                        player_2.health += pickup.effect
+                        if pickup.tag == "health":
+                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
+                            player_2.health += pickup.effect
+                        elif pickup.tag == "speedboost":
+                            player_2.speed += pickup.effect
+                            last_speed2 = now
+                        
                         pickups.remove(pickup)
+
+                # --- TIMER FÖR ATT TA BORT SPEEDBOOST (3 sekunder) ---
+        
+        # Kolla Spelare 1
+        # Om spelaren är snabbare än vanligt OCH det gått mer än 3000 ms (3 sekunder)
+                if player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() == "solo":
+                    player_1.speed = 2  # Återställ till normal fart (ändra 5 om du har annan startfart)
+                elif player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() != "solo":
+                    player_1.speed = 1  # Återställ till normal fart (ändra 5 om du har annan startfart)
+
+                # Kolla Spelare 2 (eller AI)
+                if player_2.speed > 5 and (now - last_speed2 > 3000):
+                    player_2.speed = 1  # Återställ till normal fart
 
                 #Här ritas spelarnas stridsvagnar
                 if player_1.health < last_health1:
@@ -1472,14 +1557,24 @@ while whole_game:
                     screen.blit(flag_p0, (center_x - 50, center_y - 75))
 
                 if player_1.exploded:
-                    if now - last_death1 >= 3:
+                    passed_time = now - last_death1
+                    if passed_time >= 3:
                         player_1.exploded = False
                         player_1.health = 100
+                        last_health1 = 100
+                    else:
+                        text_surf = primary_font.render(f"{(3 - passed_time):.1f}s", True, (255, 255, 255))
+                        screen.blit(text_surf, text_surf.get_rect(center=(50, center_y)))
 
                 if player_2.exploded:
-                    if now - last_death2 >= 3:
+                    passed_time = now - last_death2
+                    if passed_time >= 3:
                         player_2.exploded = False
                         player_2.health = 100
+                        last_health2 = 100 
+                    else:
+                        text_surf = primary_font.render(f"{(3 - passed_time):.1f}s", True, (255, 255, 255))
+                        screen.blit(text_surf, text_surf.get_rect(center=(width-50, center_y)))
 
                 
                 
@@ -1487,6 +1582,7 @@ while whole_game:
                 screen.blit(text_surf, text_surf.get_rect(center=(center_x - 50, 30)))
                 text_surf = primary_font.render(f"{player_2.kingpoints} %", True, (255, 0, 0))
                 screen.blit(text_surf, text_surf.get_rect(center=(center_x + 50, 30)))
+
 
                 for bullet in reversed(bullet_list1):
                     bullet.move()
