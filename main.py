@@ -5,13 +5,12 @@ import time
 import pygame
 import ui
 import math
-import os 
+import os
 
 
-os.environ['SDL_VIDEO_CENTERED'] = '1' 
+os.environ['SDL_VIDEO_CENTERED'] = '1'  # <--- NY RAD
 while whole_game:
     pygame.init()
-    now = pygame.time.get_ticks()
     shot = pygame.mixer.Sound("assets/audio/Tank shot.mp3")
     normal_hit = pygame.mixer.Sound("assets/audio/Metal hit.mp3")
     crit_hit = pygame.mixer.Sound("assets/audio/Metal pierce.mp3")
@@ -655,6 +654,7 @@ while whole_game:
                 
                 self.collision_rectangle.topleft = (self.player2_x + self.offset_x, self.player2_y + self.offset_y)
 
+
                 self.arrow2_x = self.player2_x + (self.sprite_player2.get_width() // 2) - (self.sprite_arrow.get_width() // 2)
                 self.arrow2_y = self.player2_y - self.sprite_arrow.get_height() - 10
 
@@ -798,12 +798,8 @@ while whole_game:
             def __init__(self, image, effect, tag):
                 self.x = random.randint(50, (width - 50))
                 self.y = random.randint(50, (height - 50))
-                what = random.randint(1, 2)
-                if what == 1:
-                    self.image = pygame.image.load("assets/ui/health.png")
-                else:
-                    self.image = pygame.image.load("assets/ui/speed.png")
-                self.effect = effect
+                self.image = pygame.image.load("assets/ui/health.png")
+                self.effect = effect # 0 -> 1000 ?
                 self.tag = tag # "health" el. "strength"
             
             def collides(self, player):
@@ -949,8 +945,6 @@ while whole_game:
         Pickup(pygame.image.load("assets/ui/health.png"), 25, "health")
         ]
         last_spawn = 0
-        last_speed1 = 0
-        last_speed2 = 0
         dim2 = pygame.Surface((200, 200), pygame.SRCALPHA)
         original_flag_p0 = pygame.image.load("assets/ui/flag_p0.png")
         original_flag_p1 = pygame.image.load("assets/ui/flag_p1.png")
@@ -1121,58 +1115,25 @@ while whole_game:
                 if now - last_spawn >= 50 and frames % 10 and len(pickups) < 3:
                     if random.random() < 0.05:
                         last_spawn = now
-                        tag = random.choice(("health", "speedboost"))
-                        if tag == "health":
-                            added_pickup = Pickup(
-                                image = pygame.image.load("assets/ui/health.png"),
-                                effect = 25,
-                                tag = tag
+                        tag = "health"
+                        added_pickup = Pickup(
+                            image = pygame.image.load("assets/tanks/Player1.png"),
+                            effect = 25,
+                            tag = tag
 
-                                )
-                        elif tag == "speedboost":
-                            added_pickup = Pickup(
-                                image = pygame.image.load("assets/ui/speed.png"),
-                                effect = 2,
-                                tag = tag
-
-                                )
+                        )
                         pickups.append(added_pickup)
                 
                 for pickup in pickups.copy():
                     pickup.draw(screen)
-                    
-                    # --- KOLLISION MED SPELARE 1 ---
                     if pickup.collides(player_1):
-                        if pickup.tag == "health":
-                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
-                            player_1.health += pickup.effect
-                        elif pickup.tag == "speedboost":
-                            player_1.speed += pickup.effect
-                            last_speed1 = now
-                        
+                        player_1.health += pickup.effect
                         pickups.remove(pickup)
-
-                    # --- KOLLISION MED SPELARE 2 (ELLER AI) ---
                     elif pickup.collides(player_2):
-                        if pickup.tag == "health":
-                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
-                            player_2.health += pickup.effect
-                        elif pickup.tag == "speedboost":
-                            player_2.speed += pickup.effect
-                            last_speed2 = now
-                        
+                        player_2.health += pickup.effect
                         pickups.remove(pickup)
 
-                    # --- TIMER FÖR ATT TA BORT SPEEDBOOST (3 sekunder) ---
-        
-        # Kolla Spelare 1
-        # Om spelaren är snabbare än vanligt OCH det gått mer än 3000 ms (3 sekunder)
-                if player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() == "solo":
-                    player_1.speed = 2  # Återställ till normal fart (ändra 5 om du har annan startfart)
-                elif player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() != "solo":
-                    player_1.speed = 1  # Återställ till normal fart (ändra 5 om du har annan startfart)
-
-
+                    
                 if player_1.health < last_health1:
                     last_health1 = player_1.health
                     hp_bar_health1 = hp_bar_health1.subsurface(
@@ -1439,60 +1400,23 @@ while whole_game:
                 if now - last_spawn >= 50 and frames % 10 and len(pickups) < 3:
                     if random.random() < 0.05:
                         last_spawn = now
-                        tag = random.choice(("health", "speedboost"))
-                        if tag == "health":
-                            added_pickup = Pickup(
-                                image = pygame.image.load("assets/ui/health.png"),
-                                effect = 25,
-                                tag = tag
+                        tag = "health"
+                        added_pickup = Pickup(
+                            image = pygame.image.load("assets/tanks/Player1.png"),
+                            effect = 25,
+                            tag = tag
 
-                                )
-                        elif tag == "speedboost":
-                            added_pickup = Pickup(
-                                image = pygame.image.load("assets/ui/speed.png"),
-                                effect = 2,
-                                tag = tag
-
-                                )
+                        )
                         pickups.append(added_pickup)
                 
                 for pickup in pickups.copy():
                     pickup.draw(screen)
-                    
-                    # --- KOLLISION MED SPELARE 1 ---
                     if pickup.collides(player_1):
-                        if pickup.tag == "health":
-                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
-                            player_1.health += pickup.effect
-                        elif pickup.tag == "speedboost":
-                            player_1.speed += pickup.effect
-                            last_speed1 = now
-                        
+                        player_1.health += pickup.effect
                         pickups.remove(pickup)
-
-                    # --- KOLLISION MED SPELARE 2 (ELLER AI) ---
                     elif pickup.collides(player_2):
-                        if pickup.tag == "health":
-                            # BORTTAGET TAK: Nu kan hälsan bli hur hög som helst
-                            player_2.health += pickup.effect
-                        elif pickup.tag == "speedboost":
-                            player_2.speed += pickup.effect
-                            last_speed2 = now
-                        
+                        player_2.health += pickup.effect
                         pickups.remove(pickup)
-
-                # --- TIMER FÖR ATT TA BORT SPEEDBOOST (3 sekunder) ---
-        
-        # Kolla Spelare 1
-        # Om spelaren är snabbare än vanligt OCH det gått mer än 3000 ms (3 sekunder)
-                if player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() == "solo":
-                    player_1.speed = 2  # Återställ till normal fart (ändra 5 om du har annan startfart)
-                elif player_1.speed > 3 and (now - last_speed1 > 3000) and ui.get_mode() != "solo":
-                    player_1.speed = 1  # Återställ till normal fart (ändra 5 om du har annan startfart)
-
-                # Kolla Spelare 2 (eller AI)
-                if player_2.speed > 5 and (now - last_speed2 > 3000):
-                    player_2.speed = 1  # Återställ till normal fart
 
                 #Här ritas spelarnas stridsvagnar
                 if player_1.health < last_health1:
@@ -1561,7 +1485,6 @@ while whole_game:
                     if passed_time >= 3:
                         player_1.exploded = False
                         player_1.health = 100
-                        last_health1 = 100
                     else:
                         text_surf = primary_font.render(f"{(3 - passed_time):.1f}s", True, (255, 255, 255))
                         screen.blit(text_surf, text_surf.get_rect(center=(50, center_y)))
@@ -1571,7 +1494,6 @@ while whole_game:
                     if passed_time >= 3:
                         player_2.exploded = False
                         player_2.health = 100
-                        last_health2 = 100 
                     else:
                         text_surf = primary_font.render(f"{(3 - passed_time):.1f}s", True, (255, 255, 255))
                         screen.blit(text_surf, text_surf.get_rect(center=(width-50, center_y)))
